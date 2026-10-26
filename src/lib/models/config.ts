@@ -15,7 +15,7 @@ export const PROVIDERS: Record<ProviderId, Provider> = {
   meta: { id: "meta", baseUrl: "https://api.meta.ai/v1", keyEnv: "META_MODEL_API_KEY", effort: false },
   baseten: {
     id: "baseten",
-    baseUrl: process.env.BASETEN_BASE_URL ?? "https://inference.baseten.co/v1",
+    baseUrl: process.env.BASETEN_BASE_URL || "https://inference.baseten.co/v1",
     keyEnv: "BASETEN_API_KEY",
     effort: true,
   },

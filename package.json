@@ -14,16 +14,19 @@
     "spike:youtube": "node --env-file-if-exists=.env.local scripts/spikes/youtube.mts",
     "test": "vitest run",
     "try:plan": "tsx --env-file-if-exists=.env.local scripts/try-plan.mts",
-    "try:clips": "tsx --env-file-if-exists=.env.local scripts/try-clips.mts"
+    "try:clips": "tsx --env-file-if-exists=.env.local scripts/try-clips.mts",
+    "try:build": "tsx --env-file-if-exists=.env.local scripts/try-build.mts"
   },
   "dependencies": {
     "next": "16.4.3",
+    "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/youtube": "^0.3.0",

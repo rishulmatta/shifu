@@ -16,8 +16,9 @@ const api = async (path: string, params: Record<string, string>) => {
 
 /** ISO 8601 duration (PT1H2M3S) → seconds. */
 const seconds = (iso: string) => {
-  const [, h = 0, m = 0, s = 0] = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)?.map(Number) ?? [];
-  return h * 3600 + m * 60 + s;
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  const part = (i: number) => Number(m?.[i] ?? 0);
+  return part(1) * 3600 + part(2) * 60 + part(3);
 };
 
 const search = await api("search", {

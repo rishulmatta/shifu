@@ -34,14 +34,18 @@ export function assembleTimeline(plan: CoursePlan, spans: Span[], items: RecallI
     for (const conceptId of mod.conceptIds) {
       const concept = concepts.get(conceptId);
       if (!concept) continue;
-      blocks.push({ kind: "intro", conceptId });
-      for (const o of concept.objectives) {
+      const playable = concept.objectives.flatMap((o) => {
         const span = chosen.get(o.id);
         const check = checksFor(items, o.id)[0];
-        if (!span || !check) continue;
-        blocks.push({ kind: "clip", objectiveId: o.id, spanId: span.id });
-        blocks.push({ kind: "check", objectiveId: o.id, itemId: check.id });
-        inModule.push(o.id);
+        return span && check ? [{ id: o.id, span, check }] : [];
+      });
+      // A concept with nothing to watch is left out rather than shown empty.
+      if (!playable.length) continue;
+      blocks.push({ kind: "intro", conceptId });
+      for (const p of playable) {
+        blocks.push({ kind: "clip", objectiveId: p.id, spanId: p.span.id });
+        blocks.push({ kind: "check", objectiveId: p.id, itemId: p.check.id });
+        inModule.push(p.id);
       }
       const cards = items.filter((i) => i.kind === "card" && i.objectiveId.startsWith(`${conceptId}/`));
       if (cards.length) blocks.push({ kind: "cards", conceptId, itemIds: cards.map((c) => c.id) });

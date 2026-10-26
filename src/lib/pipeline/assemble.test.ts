@@ -33,6 +33,17 @@ describe("assembleTimeline", () => {
     expect(quiz.itemIds.some((id) => lessonChecks.has(id))).toBe(false);
   });
 
+  it("leaves out a concept with nothing to watch, and a module with no concepts", () => {
+    const spans = bayesCourse.spans.filter((s) => !s.objectiveId.startsWith("bayes-rule/") && !s.objectiveId.startsWith("updating-gradually/"));
+    const blocks = assembleTimeline(bayesCourse.plan, spans, bayesCourse.items);
+    const intros = blocks.flatMap((b) => (b.kind === "intro" ? [b.conceptId] : []));
+    expect(intros).toEqual(["priors-and-evidence", "base-rates"]);
+    expect(blocks.some((b) => b.kind === "cards" && b.conceptId === "bayes-rule")).toBe(false);
+
+    const none = assembleTimeline(bayesCourse.plan, [], bayesCourse.items);
+    expect(none).toEqual([]);
+  });
+
   it("skips an objective that has no chosen span instead of failing", () => {
     const spans = bayesCourse.spans.filter((s) => s.objectiveId !== "bayes-rule/2");
     const blocks = assembleTimeline(bayesCourse.plan, spans, bayesCourse.items);
