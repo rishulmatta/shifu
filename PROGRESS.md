@@ -56,3 +56,10 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   picks alternates from other channels; recall items pass a quote check and an answer-blind check
   that also drops questions with more than one defensible answer. About 12 s and $0.02 for two
   videos and two objectives.
+- YouTube sources (SearchAPI search and captions, keyless oEmbed embed check), a course store
+  (Postgres, or files in `.data/` locally) and the build orchestrator: module by module, saved
+  after each so module 1 is playable while the rest builds. `pnpm try:build` ran the whole build
+  on live models with test video sources: 3 modules in 26 s for $0.05.
+- Home page with the create-course form, the build screen (steps, outline as soon as it's planned,
+  live status) and a banner while later modules build. Without a SearchAPI key the form explains
+  what's missing instead of starting a build.

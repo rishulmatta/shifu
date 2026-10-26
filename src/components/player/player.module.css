@@ -393,6 +393,20 @@
   background: var(--surface);
 }
 
+.unavailable {
+  color: var(--muted);
+  cursor: default;
+}
+
+.unavailable:hover {
+  background: transparent;
+}
+
+.why {
+  display: block;
+  font-size: 0.8rem;
+}
+
 .current {
   background: var(--surface);
   box-shadow: inset 3px 0 0 var(--vermilion);

@@ -1,6 +1,7 @@
 // Runs the whole build end to end on the model providers, with test video sources: every search
 // returns the two hand-written test transcripts. Proves the orchestration before the SearchAPI key
-// exists. Run: pnpm try:build ["topic"]
+// exists. Run: pnpm try:build ["topic"] [--local]
+// --local writes to the app's own .data/ store as /c/test-build, so the build screens can be watched.
 
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -21,20 +22,22 @@ const sources: Sources = {
   },
 };
 
-const store = new FileStore(await mkdtemp(join(tmpdir(), "shifu-build-")));
-const topic = process.argv[2] ?? "Bayes' theorem";
+const local = process.argv.includes("--local");
+const [topic = "Bayes' theorem"] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const store = local ? new FileStore() : new FileStore(await mkdtemp(join(tmpdir(), "shifu-build-")));
+const slug = local ? "test-build" : "try";
 const input = { topic, goal: "Understand how evidence should change what I believe", level: "beginner" as const, minutesPerDay: 10 };
-await store.createCourse(newRecord("try", input));
+await store.createCourse(newRecord(slug, input));
 
 const started = Date.now();
 const timer = setInterval(async () => {
-  const r = await store.getCourse("try");
+  const r = await store.getCourse(slug);
   if (r) console.log(`  [${((Date.now() - started) / 1000).toFixed(0)} s] ${r.progress.step}: ${r.progress.message} (${r.progress.modulesReady}/${r.progress.modulesTotal})`);
 }, 3000);
-await buildCourse("try", input, sources, store);
+await buildCourse(slug, input, sources, store);
 clearInterval(timer);
 
-const r = (await store.getCourse("try"))!;
+const r = (await store.getCourse(slug))!;
 const c = r.course;
 console.log(`\n${r.progress.step} in ${((Date.now() - started) / 1000).toFixed(1)} s · $${r.progress.costUsd.toFixed(4)} · ${r.progress.message}`);
 if (c) {

@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { BuildView } from "@/components/build/build-view";
 import { CoursePlayer } from "@/components/player/course-player";
-import { getCourse } from "@/lib/courses";
+import { getCourseRecord } from "@/lib/courses";
 
 export async function generateMetadata(props: PageProps<"/c/[slug]">): Promise<Metadata> {
-  const course = await getCourse((await props.params).slug);
-  return { title: course ? `${course.plan.topic} · Shifu` : "Shifu" };
+  const record = await getCourseRecord((await props.params).slug);
+  return { title: record ? `${record.input.topic} · Shifu` : "Shifu" };
 }
 
 async function Course({ params }: { params: PageProps<"/c/[slug]">["params"] }) {
-  const course = await getCourse((await params).slug);
-  if (!course) notFound();
-  return <CoursePlayer course={course} />;
+  const { slug } = await params;
+  const record = await getCourseRecord(slug);
+  if (!record) notFound();
+
+  const { course, progress } = record;
+  if (!course || course.timeline.length === 0) {
+    return <BuildView slug={slug} topic={record.input.topic} progress={progress} plan={course?.plan ?? null} />;
+  }
+  const building = progress.step !== "ready" && progress.step !== "failed";
+  return <CoursePlayer course={course} build={building ? progress : undefined} />;
 }
 
 export default function CoursePage(props: PageProps<"/c/[slug]">) {

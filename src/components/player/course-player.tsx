@@ -7,13 +7,16 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { CourseView } from "@/lib/course-view";
 import { update, useLearner, withEvidence } from "@/lib/learner";
+import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
+import { BuildBanner } from "../build/build-view";
 import { Mark } from "../mark";
 import { CardsView, CheckView, ClipView, IntroView, QuizView, TeachbackView } from "./blocks";
 import { Outline } from "./outline";
 import styles from "./player.module.css";
 
-export function CoursePlayer({ course }: { course: Course }) {
+/** `build` is set while later modules are still being built. */
+export function CoursePlayer({ course, build }: { course: Course; build?: BuildProgress }) {
   const view = useMemo(() => new CourseView(course), [course]);
   const learner = useLearner(course.slug);
   const { timeline } = course;
@@ -23,6 +26,7 @@ export function CoursePlayer({ course }: { course: Course }) {
 
   const save = (change: Parameters<typeof update>[1]) => update(course.slug, change);
   const go = (position: number) => {
+    if (position < 0) return;
     save((s) => ({ ...s, position }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -56,7 +60,7 @@ export function CoursePlayer({ course }: { course: Course }) {
         module={mod}
         moduleCount={course.plan.modules.length}
         buildsOn={c.prerequisites.map((id) => view.concepts.get(id)!).filter(Boolean)}
-        unfinished={view.unfinishedPrerequisites(learner, c)}
+        unfinished={view.unfinishedPrerequisites(learner, c).filter((p) => view.available.has(p.id))}
         onStart={next}
         onGoTo={(id) => go(view.introIndex(id))}
       />
@@ -135,6 +139,7 @@ export function CoursePlayer({ course }: { course: Course }) {
       </header>
       <div className={styles.layout}>
         <main className={styles.main}>
+          {build && <BuildBanner slug={course.slug} progress={build} />}
           <div className={styles.track} aria-label={`Step ${Math.min(index + 1, timeline.length)} of ${timeline.length}`}>
             <span style={{ width: `${(Math.min(index, timeline.length) / timeline.length) * 100}%` }} />
           </div>
@@ -145,7 +150,7 @@ export function CoursePlayer({ course }: { course: Course }) {
             </button>
           )}
         </main>
-        <Outline view={view} learner={learner} currentConceptId={concept?.id} onJump={(id) => go(view.introIndex(id))} />
+        <Outline view={view} learner={learner} currentConceptId={concept?.id} building={!!build} onJump={(id) => go(view.introIndex(id))} />
       </div>
     </div>
   );

@@ -8,11 +8,14 @@ export class CourseView {
   readonly concepts: Map<string, Concept>;
   readonly spans: Map<string, Span>;
   readonly items: Map<string, RecallItem>;
+  /** Concepts with something to play: still-building modules and clip-less concepts are left out. */
+  readonly available: Set<string>;
 
   constructor(readonly course: Course) {
     this.concepts = new Map(course.plan.concepts.map((c) => [c.id, c]));
     this.spans = new Map(course.spans.map((s) => [s.id, s]));
     this.items = new Map(course.items.map((i) => [i.id, i]));
+    this.available = new Set(course.timeline.flatMap((b) => (b.kind === "intro" ? [b.conceptId] : [])));
   }
 
   objective(id: ObjectiveId) {
@@ -65,7 +68,7 @@ export class CourseView {
   }
 
   summary(learner: LearnerState) {
-    const concepts = this.course.plan.concepts;
+    const concepts = this.course.plan.concepts.filter((c) => this.available.has(c.id));
     const objectives = concepts.flatMap((c) => c.objectives);
     const chosen = this.course.spans.filter((s) => s.rank === 0);
     const seconds = (spans: Span[]) => spans.reduce((t, s) => t + (s.end - s.start), 0);

@@ -11,7 +11,14 @@ import styles from "./player.module.css";
 const STATES: MasteryState[] = ["solid", "learning", "shaky", "new"];
 const LABEL: Record<MasteryState, string> = { solid: "Solid", learning: "Learning", shaky: "Shaky", new: "Not started" };
 
-export function Outline(props: { view: CourseView; learner: LearnerState; currentConceptId?: string; onJump: (conceptId: string) => void }) {
+export function Outline(props: {
+  view: CourseView;
+  learner: LearnerState;
+  currentConceptId?: string;
+  /** Whether later modules are still being built, which decides how unavailable concepts are labelled. */
+  building: boolean;
+  onJump: (conceptId: string) => void;
+}) {
   const { view, learner } = props;
   const s = view.summary(learner);
 
@@ -49,6 +56,23 @@ export function Outline(props: { view: CourseView; learner: LearnerState; curren
               {m.conceptIds.map((id) => {
                 const c = view.concepts.get(id);
                 if (!c) return null;
+                if (!view.available.has(id)) {
+                  return (
+                    <li key={id}>
+                      <span className={`${styles.concept} ${styles.unavailable}`}>
+                        <span className={styles.dots}>
+                          {c.objectives.map((o) => (
+                            <span key={o.id} className={`${styles.dot} ${styles.dot_new}`} />
+                          ))}
+                        </span>
+                        <span>
+                          {c.title}
+                          <span className={styles.why}>{props.building ? "still building" : "no good clip found"}</span>
+                        </span>
+                      </span>
+                    </li>
+                  );
+                }
                 return (
                   <li key={id}>
                     <button

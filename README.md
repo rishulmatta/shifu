@@ -126,6 +126,17 @@ cp .env.example .env.local   # fill in the keys you have
 pnpm dev                     # http://localhost:3000
 ```
 
+The sample course at `/c/bayes-sample` works with no keys at all. Building a course needs a model key
+(Meta Model API or Baseten) and a SearchAPI key. Without `DATABASE_URL`, courses are stored as files
+in `.data/`.
+
+| Command | Does |
+|---|---|
+| `pnpm test` | unit tests: mastery rules, timeline, router, planning, span checks, recall checks, stores |
+| `pnpm try:plan "topic"` | plans a real course and prints it |
+| `pnpm try:clips` | runs locate → verify → choose → recall on two test transcripts |
+| `pnpm try:build ["topic"] [--local]` | the whole build on live models with test video sources |
+
 The API test scripts check each external service on its own:
 
 | Command | Checks |
