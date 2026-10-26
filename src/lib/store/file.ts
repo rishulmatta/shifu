@@ -87,4 +87,11 @@ export class FileStore implements Store {
   async putEmbeddable(videoId: string, embeddable: boolean) {
     await this.write("embeddable", videoId, { embeddable });
   }
+
+  async bump(key: string, windowS: number) {
+    const id = `${key}@${Math.floor(Date.now() / 1000 / windowS)}`;
+    const count = ((await this.read<{ count: number }>("limits", id))?.count ?? 0) + 1;
+    await this.write("limits", id, { count });
+    return count;
+  }
 }

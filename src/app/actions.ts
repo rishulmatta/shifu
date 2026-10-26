@@ -1,8 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
+import { allowBuild, visitor } from "@/lib/limits";
 import { buildCourse, cached, newRecord } from "@/lib/pipeline/build";
 import { liveSources, missingForBuilds } from "@/lib/sources";
 import { getStore } from "@/lib/store";
@@ -35,9 +37,12 @@ export async function createCourse(_: CreateState, form: FormData): Promise<Crea
   const missing = missingForBuilds();
   if (missing.length) return { error: `Course building isn't switched on yet: Shifu still needs ${missing.join(", ")}.`, values };
 
+  const store = getStore();
+  const allowed = await allowBuild(store, visitor(await headers()));
+  if (!allowed.ok) return { error: allowed.message, values };
+
   const input = { ...parsed.data, goal: parsed.data.goal || `Understand ${parsed.data.topic}` };
   const slug = slugFor(input.topic);
-  const store = getStore();
   await store.createCourse(newRecord(slug, input));
   after(() => buildCourse(slug, input, cached(liveSources, store), store));
   redirect(`/c/${slug}`);

@@ -1,4 +1,5 @@
 import { getCourseRecord } from "@/lib/courses";
+import { allowTeachback, visitor } from "@/lib/limits";
 import { canTranscribe, transcribeWav } from "@/lib/models/transcribe";
 import { textInSeconds } from "@/lib/pipeline/captions";
 import { gradeTeachback } from "@/lib/pipeline/grade";
@@ -14,6 +15,9 @@ export async function POST(req: Request, ctx: RouteContext<"/api/courses/[slug]/
   const record = await getCourseRecord((await ctx.params).slug);
   const course = record?.course;
   if (!course) return fail("Course not found", 404);
+
+  const allowed = await allowTeachback(getStore(), visitor(req.headers));
+  if (!allowed.ok) return fail(allowed.message, 429);
 
   const form = await req.formData().catch(() => null);
   if (!form) return fail("Expected a form", 400);

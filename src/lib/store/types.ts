@@ -39,4 +39,7 @@ export interface Store {
   putSearch(query: string, hits: VideoHit[]): Promise<void>;
   getEmbeddable(videoId: string): Promise<boolean | undefined>;
   putEmbeddable(videoId: string, embeddable: boolean): Promise<void>;
+
+  /** Counts one more use of `key` in the current fixed window and returns the count so far. */
+  bump(key: string, windowS: number): Promise<number>;
 }

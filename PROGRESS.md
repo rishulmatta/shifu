@@ -29,6 +29,7 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 - [x] Muse Code installed
 - [ ] Muse Code's review of the plan
 - [ ] Modal and Fireworks credit requests
+- [ ] Vercel project and a Postgres database for the live deployment (your accounts)
 
 ## Log
 

@@ -31,6 +31,12 @@ create table if not exists embeddable (
   video_id text primary key,
   embeddable boolean not null,
   checked_at timestamptz not null default now()
+);
+create table if not exists rate_limits (
+  key text not null,
+  bucket bigint not null,
+  count integer not null,
+  primary key (key, bucket)
 );`;
 
 interface CourseRow {
@@ -126,5 +132,16 @@ export class PostgresStore implements Store {
        on conflict (video_id) do update set embeddable = excluded.embeddable, checked_at = now()`,
       [videoId, embeddable],
     );
+  }
+
+  async bump(key: string, windowS: number) {
+    const bucket = Math.floor(Date.now() / 1000 / windowS);
+    const [row] = await this.q<{ count: number }>(
+      `insert into rate_limits (key, bucket, count) values ($1, $2, 1)
+       on conflict (key, bucket) do update set count = rate_limits.count + 1
+       returning count`,
+      [key, bucket],
+    );
+    return row.count;
   }
 }
