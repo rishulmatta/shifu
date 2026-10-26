@@ -261,29 +261,6 @@ export function CardsView(props: { concept: Concept; cards: CardItem[]; onRate: 
   );
 }
 
-// ── Teach-back (recording lands on day 6, PLAN.md §10) ───────────────────────────────────────
-
-export function TeachbackView(props: { module: Module; objectives: Objective[]; onContinue: () => void }) {
-  return (
-    <section className={styles.card}>
-      <p className={styles.eyebrow}>Teach it back · {props.module.title}</p>
-      <h2 className={styles.title}>Explain this module in your own words</h2>
-      <p className={styles.lead}>In up to 90 seconds, out loud, as if to a friend. Try to cover:</p>
-      <ul className={styles.objectives}>
-        {props.objectives.map((o) => (
-          <li key={o.id}>{o.text}</li>
-        ))}
-      </ul>
-      <p className={styles.note}>Voice recording and grading are being built; for now, say it out loud and move on.</p>
-      <div className={styles.actions}>
-        <button className={styles.primary} onClick={props.onContinue}>
-          Continue
-        </button>
-      </div>
-    </section>
-  );
-}
-
 // ── Mixed quiz ───────────────────────────────────────────────────────────────────────────────
 
 export function QuizView(props: {

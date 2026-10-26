@@ -11,9 +11,10 @@ import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
 import { Mark } from "../mark";
-import { CardsView, CheckView, ClipView, IntroView, QuizView, TeachbackView } from "./blocks";
+import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { Outline } from "./outline";
 import styles from "./player.module.css";
+import { TeachbackView } from "./teachback";
 
 /** `build` is set while later modules are still being built. */
 export function CoursePlayer({ course, build }: { course: Course; build?: BuildProgress }) {
@@ -105,11 +106,20 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
     );
   } else if (block.kind === "teachback") {
     const mod = course.plan.modules.find((m) => m.index === block.moduleIndex)!;
+    const chosen = (id: string) => course.spans.find((s) => s.objectiveId === id && s.rank === 0);
     body = (
       <TeachbackView
         key={index}
+        slug={course.slug}
         module={mod}
-        objectives={mod.conceptIds.flatMap((id) => view.concepts.get(id)?.objectives ?? [])}
+        objectives={mod.conceptIds.flatMap((id) => view.concepts.get(id)?.objectives ?? []).filter((o) => chosen(o.id))}
+        clipFor={(id) => {
+          const span = chosen(id);
+          return span && { span, video: course.videos[span.videoId] };
+        }}
+        onGraded={(results) =>
+          save((s) => results.reduce((acc, r) => withEvidence(acc, r.objectiveId, { kind: "teachback", verdict: r.verdict }), s))
+        }
         onContinue={next}
       />
     );

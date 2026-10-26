@@ -272,6 +272,101 @@
   margin-top: 16px;
 }
 
+/* ── Teach-back ── */
+
+.typed {
+  margin-top: 16px;
+}
+
+.textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
+}
+
+.recording {
+  align-self: center;
+  color: var(--vermilion);
+  font-weight: 600;
+}
+
+.graded {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  list-style: none;
+}
+
+.graded li {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-left-width: 4px;
+  border-radius: 10px;
+  background: var(--paper);
+  line-height: 1.45;
+}
+
+.graded .link {
+  justify-self: start;
+  padding: 0;
+  text-align: left;
+}
+
+.verdict_covered {
+  border-left-color: var(--state-solid) !important;
+}
+
+.verdict_missing {
+  border-left-color: var(--state-learning) !important;
+}
+
+.verdict_misconception {
+  border-left-color: var(--state-shaky) !important;
+}
+
+.verdict {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gradedObjective {
+  font-weight: 600;
+}
+
+.heard {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.transcript {
+  margin-top: 16px;
+  color: var(--muted);
+}
+
+.transcript summary {
+  cursor: pointer;
+}
+
+.transcript p {
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
 /* ── Progress tracker ── */
 
 .aside {

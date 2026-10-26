@@ -14,7 +14,7 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 | 3 | Thu 29 Oct | Span locating, verification and merge | at least 7 of 10 hand-checked spans acceptable | 🔄 locate, verify and choose ✅ on test transcripts (live on Baseten); the 10-span eval needs real captions |
 | 4 | Fri 30 Oct | Course player and recall items with both checks | one full module playable end to end | 🔄 player ✅ on the sample course; recall with the quote and answer-blind checks ✅ on test transcripts |
 | 5 | Sat 31 Oct | The learner's path, mastery and the progress tracker | a miss plays a different creator; progress survives a reload | 🔄 both pass on the sample course; review queue and Today panel not started |
-| 6 | Sun 1 Nov | Teach-back by voice and flashcards | a spoken explanation is graded with rewatch links | ⬜ |
+| 6 | Sun 1 Nov | Teach-back by voice and flashcards | a spoken explanation is graded with rewatch links | 🔄 typed teach-back graded live (Baseten) with rewatch links; recording built, voice transcription waiting on the Meta key; flashcards ✅ |
 | 7 | Mon 2 Nov | Live deployment, demo courses, review queue, Today panel | the live URL works for a stranger with no sign-up | ⬜ |
 | 8 | Tue 3 Nov | Feature freeze, README, demo script | README done; video script locked | ⬜ |
 | 9 | Wed 4 Nov | Demo video recorded | video uploaded and its link checked | ⬜ |
@@ -63,3 +63,7 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 - Home page with the create-course form, the build screen (steps, outline as soon as it's planned,
   live status) and a banner while later modules build. Without a SearchAPI key the form explains
   what's missing instead of starting a build.
+- Teach-back: record (encoded in the browser to 16 kHz WAV for Muse Voice Transcribe) or type;
+  graded per objective as covered, missing or not quite right, with a note, the learner's own
+  words (checked against what they said) and a rewatch button on the exact clip; verdicts feed
+  mastery. A planted misconception was caught on the first live run.
