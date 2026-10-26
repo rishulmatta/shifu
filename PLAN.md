@@ -186,7 +186,10 @@ default. Muse Voice Transcribe costs $0.18 an hour of audio and takes WAV only, 
 and 32 MB per file.
 
 **Baseten** (credits granted 27 Oct): $100 and up to 2M tokens a minute. The key only works with
-`meta-models/muse-spark-open-1026`. The model always reasons; reasoning tokens are billed as output.
+`meta-models/muse-spark-open-1026`. Same price per token as Muse Spark 1.3 on Meta ($1.25 in, $4.25
+out per million). The model always reasons, reasoning tokens count as output, and at the default
+effort they dominate it, so every task sets `reasoning_effort` (§6, step 4). Tested 27 Oct:
+`json_schema` output works, and the reasoning comes back in a separate `reasoning_content` field.
 When Baseten's credits run out, its tasks move to Muse Spark 1.3 on Meta Model API, with Modal
 endpoints as a further fallback.
 
@@ -218,9 +221,17 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
 
 4. **Locate** (Muse Spark Open, fan-out). One call per unique video: a video found for several
    concepts gets all of their objectives in one call. Input: the objectives with their must-include
-   points, and the transcript as timed lines (`[12:31] …`). Output per objective: spans
-   `{start, end, covers[], selfContained, dependsOn?, quote}`, or none. Volume: a 30-min transcript
-   is about 7K tokens, so 12 concepts × 6 videos is about 0.5M input tokens per course.
+   points, and the transcript as numbered, timed lines (`L42 [12:31] …`). Output per objective: at
+   most one span `{firstLine, lastLine, covers[], selfContained, quote}`, or none; code turns line
+   numbers into seconds. Volume: a 30-min transcript is about 7K tokens, so 12 concepts × 6 videos
+   is about 0.5M input tokens per course.
+   - **Tested 27 Oct** on a six-line transcript: asked for an end *timestamp*, the model cut the
+     explanation short at low effort; asked for line numbers, it ended on the right line in every
+     run at every effort. The start still varied (from the intro line to a "That's…" line), which
+     is what step 5 and the day-3 eval are for. One run returned two overlapping spans, hence "at
+     most one".
+   - **Reasoning effort:** start at `none` (1.7 s and about 300 reasoning tokens on the test, against
+     7.5 s and 2,100 at the default) and raise it only where the day-3 eval shows a need.
 
 5. **Verify** (deterministic code, no model).
    - Snap boundaries to caption-line edges and clamp each span to 30–240 s.

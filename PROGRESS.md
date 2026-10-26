@@ -9,7 +9,7 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 | Day | Date | Milestone | Done when | Status |
 |---|---|---|---|---|
 | 1 | Tue 27 Oct | Skeleton, plan, brand, public repo | the repo is public with the plan and a building app | ✅ [`d43a778`](https://github.com/rishulmatta/shifu/commit/d43a778) |
-| 1 | Tue 27 Oct | API tests against live keys | every test script returns real output | ⏳ waiting on keys |
+| 1 | Tue 27 Oct | API tests against live keys | every test script returns real output | 🔄 Baseten ✅; Meta, YouTube and captions waiting on keys |
 | 2 | Wed 28 Oct | Shared types, fixture course, model router, plan step, discovery and captions | topic → outline plus candidate videos with captions in the database | ⬜ |
 | 3 | Thu 29 Oct | Span locating, verification and merge | at least 7 of 10 hand-checked spans acceptable | ⬜ |
 | 4 | Fri 30 Oct | Course player and recall items with both checks | one full module playable end to end | ⬜ |
@@ -22,11 +22,12 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 
 ## Waiting on
 
-- [ ] Baseten key in `.env.local` (credits granted)
+- [x] Baseten key in `.env.local` (credits granted)
 - [ ] Meta Model API key and the $150 credits (claim link not out yet)
 - [ ] YouTube Data API key, and the quota-increase request
 - [ ] Transcript vendor key (SearchAPI recommended)
-- [ ] Muse Code installed; its review of the plan
+- [x] Muse Code installed
+- [ ] Muse Code's review of the plan
 - [ ] Modal and Fireworks credit requests
 
 ## Log
@@ -39,3 +40,7 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 - Read Meta's docs: Muse Spark 1.3 allows 4M tokens a minute at about $2 per course; Muse Voice
   Transcribe takes WAV only. Baseten granted $100 and 2M tokens a minute.
 - Compared seven YouTube transcript APIs; SearchAPI recommended, Supadata runner-up.
+- Designed the learner's path (`PLAN.md` §3) and the mastery rules and progress tracker (§7).
+- Baseten test passed: Muse Spark Open returns schema-checked JSON. Reasoning dominates output at
+  the default effort (2,100 tokens for a six-line transcript). Asking for numbered lines instead of
+  an end timestamp fixed span endings at every effort, and effort `none` took 1.7 s.
