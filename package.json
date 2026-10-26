@@ -11,12 +11,14 @@
     "spike:plan": "node --env-file-if-exists=.env.local scripts/spikes/meta-plan.mts",
     "spike:baseten": "node --env-file-if-exists=.env.local scripts/spikes/baseten.mts",
     "spike:voice": "node --env-file-if-exists=.env.local scripts/spikes/voice.mts",
-    "spike:youtube": "node --env-file-if-exists=.env.local scripts/spikes/youtube.mts"
+    "spike:youtube": "node --env-file-if-exists=.env.local scripts/spikes/youtube.mts",
+    "test": "vitest run"
   },
   "dependencies": {
     "next": "16.4.3",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -24,7 +26,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
-    "typescript": "^5"
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   },
   "packageManager": "pnpm@12.6.0"
 }

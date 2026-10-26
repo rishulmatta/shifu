@@ -265,7 +265,7 @@ Module 1 runs through every step first so the learner can start; the rest follow
 | State | Reached when |
 |---|---|
 | new | no attempt yet |
-| learning | answered correctly at least once, including after "explain it differently" |
+| learning | attempted, but not yet solid or shaky |
 | shaky | missed twice in a row, marked missing or misunderstood in a teach-back, or forgotten in a review (rated "again") |
 | solid | answered correctly the first time **and** confirmed later: covered in a teach-back, or passed a spaced review |
 

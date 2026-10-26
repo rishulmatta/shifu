@@ -1,0 +1,42 @@
+import { describe, expect, it } from "vitest";
+import { bayesCourse } from "../fixtures/bayes";
+import { assembleTimeline } from "./assemble";
+
+const kinds = bayesCourse.timeline.map((b) => b.kind);
+
+describe("assembleTimeline", () => {
+  it("opens each concept with an intro, then a clip and a check per objective", () => {
+    expect(kinds.slice(0, 6)).toEqual(["intro", "clip", "check", "clip", "check", "cards"]);
+  });
+
+  it("ends every module with a teach-back and a quiz", () => {
+    const ends = bayesCourse.timeline.filter((b) => b.kind === "teachback" || b.kind === "quiz");
+    expect(ends.map((b) => `${b.kind}:${"moduleIndex" in b ? b.moduleIndex : ""}`)).toEqual([
+      "teachback:0",
+      "quiz:0",
+      "teachback:1",
+      "quiz:1",
+    ]);
+  });
+
+  it("follows the plan's order, so prerequisites come first", () => {
+    const intros = bayesCourse.timeline.flatMap((b) => (b.kind === "intro" ? [b.conceptId] : []));
+    expect(intros).toEqual(["priors-and-evidence", "bayes-rule", "base-rates", "updating-gradually"]);
+  });
+
+  it("mixes earlier modules into later quizzes, without repeating the lesson's check", () => {
+    const quiz = bayesCourse.timeline.find((b) => b.kind === "quiz" && b.moduleIndex === 1);
+    if (quiz?.kind !== "quiz") throw new Error("no quiz");
+    const objectives = quiz.itemIds.map((id) => bayesCourse.items.find((i) => i.id === id)?.objectiveId);
+    expect(objectives).toContain("bayes-rule/2");
+    const lessonChecks = new Set(bayesCourse.timeline.flatMap((b) => (b.kind === "check" ? [b.itemId] : [])));
+    expect(quiz.itemIds.some((id) => lessonChecks.has(id))).toBe(false);
+  });
+
+  it("skips an objective that has no chosen span instead of failing", () => {
+    const spans = bayesCourse.spans.filter((s) => s.objectiveId !== "bayes-rule/2");
+    const blocks = assembleTimeline(bayesCourse.plan, spans, bayesCourse.items);
+    expect(blocks.some((b) => b.kind === "clip" && b.objectiveId === "bayes-rule/2")).toBe(false);
+    expect(blocks.some((b) => b.kind === "clip" && b.objectiveId === "bayes-rule/1")).toBe(true);
+  });
+});
