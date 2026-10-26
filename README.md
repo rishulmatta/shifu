@@ -40,7 +40,11 @@ order with recall practice woven in.
   </tr>
   <tr>
     <td valign="top"><strong>Teach it back</strong><br>Explain the idea aloud. Shifu shows what you covered and what you missed, and plays the moment that fills the gap.</td>
-    <td valign="top"><strong>A mind map that fills in</strong><br>Concepts and their prerequisites, coloured by what you have mastered.</td>
+    <td valign="top"><strong>A mind map that fills in</strong><br>Concepts and their prerequisites, each ringed by how well you know its objectives.</td>
+  </tr>
+  <tr>
+    <td valign="top"><strong>A path that respects prerequisites</strong><br>Concepts come in the order they build on each other, and every session starts with what is due for review.</td>
+    <td valign="top"><strong>Progress that means something</strong><br>An objective counts as solid only when you get it right and it holds up later, in review or in your own words.</td>
   </tr>
 </table>
 
@@ -58,6 +62,23 @@ flowchart LR
   A --> K["Course timeline<br/>clip, check, clip, flashcard, teach-back"]
   K --> M["Mind map and review"]
 ```
+
+## A learner's path
+
+```mermaid
+flowchart LR
+  R["Due reviews first"] --> C["Next concept, in<br/>prerequisite order"]
+  C --> O["Watch the clip<br/>for an objective"]
+  O --> Q{"Check question"}
+  Q -->|"right"| N["Next objective"]
+  Q -->|"wrong"| X["Another creator explains it,<br/>then a new question"]
+  X --> N
+  N --> F["Flashcards"]
+  F --> T["Teach it back<br/>at the end of a module"]
+```
+
+Each objective moves from *new* to *learning* to *solid*, or to *shaky* when it slips. The details
+are in [`PLAN.md`](PLAN.md) §3 and §7.
 
 ## Meta's models at work
 
@@ -79,17 +100,10 @@ flowchart LR
 ## Status
 
 Built in public during the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon),
-27 October to 4 November 2026. The full plan, schedule and risks are in [`PLAN.md`](PLAN.md).
+27 October to 4 November 2026.
 
-- [x] Project skeleton, brand and API test scripts
-- [ ] API tests passing against live keys
-- [ ] Course planning, video discovery and captions
-- [ ] Span locating and verification
-- [ ] Course player with check questions
-- [ ] Learner loop, "explain it differently" and the mind map
-- [ ] Teach-back by voice and flashcards
-- [ ] Live deployment with three demo courses
-- [ ] Demo video
+- **Progress**, milestone by milestone: [`PROGRESS.md`](PROGRESS.md)
+- **The plan**, schedule and risks: [`PLAN.md`](PLAN.md)
 
 ## Built during the hackathon
 

@@ -49,20 +49,72 @@ From the participant guide, plus decisions taken in planning:
   this plan and builds two small modules (§4, "Who builds what"). Each agent commits its own work
   as it goes, and the README says exactly what Muse Code did.
 
-## 3. The learner's flow
+## 3. The learner's path
 
-1. **Start:** topic, goal ("pass my stats exam", "understand transformers for work"), level, time per day.
-2. **The course appears fast:** outline and mind map in about 15 s, module 1 lessons in 1–2 min;
-   later modules build in the background.
-3. **A lesson is a timeline of blocks** per concept:
-   `clip → (clip) → check question → … → flashcards`, with a teach-back at the end of each module.
-4. **Miss a check question** → "Explain it differently" plays an alternate span from a different
-   creator for that objective, then asks a different question on the same objective.
-5. **Teach it back:** record up to 90 s explaining the concept; see which points were covered, which
-   were missing and any misconceptions, each tied to the clip that covers it, with "rewatch" buttons.
-6. **Mind map:** concepts and prerequisites, coloured by mastery; clicking a node opens its lesson
-   or review.
-7. **Review:** due flashcards and objective checks scheduled by FSRS, mixing earlier concepts.
+The order in which a learner takes a course, and what happens at each step. Progress and mastery
+are in §7.
+
+**Starting.** Topic, goal ("pass my stats exam", "understand transformers for work"), level and
+minutes per day. The outline and mind map appear in about 15 s and module 1 is ready in 1–2 min;
+later modules build in the background.
+
+**Order.** Concepts follow the prerequisite graph from the plan: modules in order, and inside a
+module a concept comes only after the concepts it builds on. The default next step is the first
+unfinished concept whose prerequisites are done. The mind map lets the learner jump anywhere;
+jumping past an unfinished prerequisite names it and offers to go there first, but never blocks.
+
+**A session** fits the learner's minutes per day:
+
+1. Due reviews first, at most a quarter of the time, mixing earlier concepts.
+2. New material, from the exact block where the learner stopped.
+3. A short summary: what was learned, what was re-explained, what comes up for review and when.
+
+**A concept** is one round per objective:
+
+1. Why it matters: one line from the plan, and the earlier concept it builds on.
+2. For each objective, the clip and then a check question straight away.
+   - Right: on to the next objective.
+   - Wrong: "Explain it differently" plays the same idea from a different creator, then asks a new
+     question on that objective.
+   - Wrong again: the objective is marked shaky and queued for review, and the course moves on
+     rather than trapping the learner.
+3. Flashcards for the concept, rated once (again, hard, good, easy) to seed the scheduler.
+
+**A module** ends with:
+
+1. Teach it back: explain the module's main idea aloud in up to 90 s, then see what was covered,
+   missed or misunderstood, each with a rewatch button on the exact clip.
+2. A mixed quiz: questions from this module plus one or two from earlier modules.
+
+**Placement (Should).** Before module 1, one question per module. A module answered correctly is
+compressed: its clips become optional and one check question per concept confirms it.
+
+**Finishing.** A course is complete when every concept has been studied and every module's
+teach-back done. It is mastered when every objective is solid.
+
+```mermaid
+flowchart TD
+  S["Start: topic, goal, level, minutes a day"] --> P{"Placement check"}
+  P -->|"module known"| K["Compressed: one confirming question per concept"]
+  P -->|"new"| R["Due reviews first"]
+  K --> R
+  R --> C["Next concept in prerequisite order"]
+  C --> O["Objective: watch the clip"]
+  O --> Q{"Check question"}
+  Q -->|"right"| N{"More objectives?"}
+  Q -->|"wrong"| X["Explain it differently: another creator"]
+  X --> Q2{"New question"}
+  Q2 -->|"right"| N
+  Q2 -->|"wrong again"| SH["Mark shaky, queue for review"]
+  SH --> N
+  N -->|"yes"| O
+  N -->|"no"| F["Flashcards for the concept"]
+  F --> M{"End of module?"}
+  M -->|"no"| C
+  M -->|"yes"| T["Teach it back by voice"]
+  T --> MQ["Mixed quiz: this module and earlier ones"]
+  MQ --> C
+```
 
 ## 4. Architecture
 
@@ -102,7 +154,7 @@ open instantly.
 
 | Agent | Does |
 |---|---|
-| Muse Code | **Day 1:** reviews this plan with its `/plan` and `/grilling` skills; the useful changes are folded in here. **Days 2–4:** builds two small, self-contained modules: the mind map component (`@xyflow/react`, nodes coloured by mastery, fed by the fixture course) and the FSRS scheduling module (a `ts-fsrs` wrapper) with its tests |
+| Muse Code | **Day 1:** reviews this plan with its `/plan` and `/grilling` skills; the useful changes are folded in here. **Days 2–4:** builds two small, self-contained modules: the mind map component (`@xyflow/react`; each concept node a ring with one segment per objective, coloured by mastery state as in §7; fed by the fixture course) and the FSRS scheduling module (a `ts-fsrs` wrapper) with its tests |
 | Claude Code | everything else |
 
 - **Contract first.** On day 2, fix the shared types (course, concept, objective, span, recall
@@ -195,12 +247,42 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
 
 Module 1 runs through every step first so the learner can start; the rest follows in the background.
 
-## 7. The learner loop
+## 7. Mastery and the progress tracker
 
-- **Mastery per objective:** new → learning → shaky → solid, from check answers, teach-back
-  coverage and flashcard ratings. It drives the mind map's colours.
+**Mastery per objective**, from evidence:
+
+| State | Reached when |
+|---|---|
+| new | no attempt yet |
+| learning | answered correctly at least once, including after "explain it differently" |
+| shaky | missed twice in a row, marked missing or misunderstood in a teach-back, or forgotten in a review (rated "again") |
+| solid | answered correctly the first time **and** confirmed later: covered in a teach-back, or passed a spaced review |
+
+- The latest evidence wins: a solid objective forgotten in review drops to shaky, and a shaky one
+  answered correctly rises to learning.
+- A concept's state is its weakest objective's.
+- The rules are one pure, unit-tested function, `nextState(state, event)`.
+- Why solid needs two pieces of evidence: a right answer straight after a clip shows short-term
+  understanding; recalling it later, or in your own words, shows it stuck. Teach-back counts, so a
+  learner can reach solid in one sitting, and so can the demo.
+
+**The progress tracker**, on the course page and in a "Today" panel:
+
+- **Course progress:** concepts studied out of the total, per module and overall, and minutes
+  watched out of the course's length.
+- **Mastery:** the course's objectives as a stacked bar (new, learning, shaky, solid). On the mind
+  map each concept is a node whose ring has one segment per objective, coloured by state.
+- **Today:** reviews due and their estimated minutes, then "Continue: <concept>" at the exact block
+  where the learner stopped.
+- **Session summary:** learned, re-explained, shaky, and the next review date.
+- **Teach-back history:** per module, the points covered and missed on each attempt.
+- **Should:** a streak (days with a session), and a "continue on another device" link, since
+  progress is tied to the browser's cookie while there are no accounts.
+
+**Mechanics:**
+
 - **A miss** plays an alternate span, then a fresh question on the same objective (generated on
-  demand from the alternate if needed). Two misses mark the objective shaky and queue it for review.
+  demand from the alternate if needed).
 - **Teach-back:** browser recorder → WAV encoded in the browser (16 kHz mono; the API takes WAV
   only) → upload → Muse Voice Transcribe (`POST /asr/transcribe`, `PUSH_TO_TALK`) → grader returns
   `{covered[], missing[], misconceptions[]}`, each tied to an objective and a span. Missing points
@@ -220,6 +302,9 @@ Module 1 runs through every step first so the learner can start; the rest follow
 | `spans` | objective, video, start, end, rank (chosen or alternate), verification result |
 | `recall_items` | type, prompt, answer, distractors, evidence, check results |
 | `learners` | anonymous id |
+| `enrollments` | learner × course: minutes per day, current position (concept, block), started, completed |
+| `objective_states` | learner × objective: state, evidence counts, last event (written by `nextState`) |
+| `sessions` | learner × course: start, end, minutes, blocks done (for the summary and the streak) |
 | `attempts` | learner × item: answer, correct, time taken |
 | `teachbacks` | learner × module: audio reference, transcript, grading JSON |
 | `reviews` | learner × item: FSRS state |
@@ -234,12 +319,16 @@ Module 1 runs through every step first so the learner can start; the rest follow
   on a miss.
 - Teach-back by voice, graded, with clip links.
 - Flashcards.
-- Mind map with mastery colours.
+- The learner's path (§3): prerequisite order, the per-objective loop, the end-of-module teach-back
+  and mixed quiz.
+- Progress tracker (§7): course progress, mastery bar, resume at the exact block, the Today panel.
+- Mind map with per-objective mastery rings.
 - Live deployment with 3 pre-built demo courses.
 
 **Should**
 
 - FSRS review queue.
+- Session summary, streak, and a "continue on another device" link.
 - Placement check: one question per module up front; modules the learner already knows are compressed.
 - Live build progress in the UI.
 
@@ -262,12 +351,12 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 | Day | Date | Build | Done when |
 |---|---|---|---|
 | 1 | Tue 27 Oct | Accounts and keys (Meta Model API, YouTube Data API, transcript vendor, Vercel, Postgres); request partner credits; Muse Code reviews this plan; Next.js skeleton. **Spikes:** Muse Spark 1.3 structured output; one Baseten call; transcript vendor on 10 videos; Muse Voice Transcribe on a browser recording (check accepted audio formats) | every spike returns real output; vendor chosen |
-| 2 | Wed 28 Oct | Shared types and a fixture course; model router; plan step; discover and transcripts with caching; schema and migrations | topic → outline plus candidate videos with transcripts in the database; Muse Code started on its two modules |
+| 2 | Wed 28 Oct | Shared types (including mastery states and progress) and a fixture course; model router; plan step; discover and transcripts with caching; schema and migrations | topic → outline plus candidate videos with transcripts in the database; Muse Code started on its two modules |
 | 3 | Thu 29 Oct | Locate (fan-out), verify, merge. Eval: hand-pick the best span for 10 objectives across the 3 demo topics and compare | at least 7 of 10 chosen spans acceptable |
 | 4 | Fri 30 Oct | Course player (timeline, embed with start and end, check blocks); recall generation with both checks; merge Muse Code's two modules | one full module playable end to end |
-| 5 | Sat 31 Oct | Learner loop: answers, mastery, "explain it differently"; wire Muse Code's mind map to real mastery | a missed question plays a different creator |
+| 5 | Sat 31 Oct | The learner's path: answers, "explain it differently", `nextState` with tests, the progress tracker and resume; wire Muse Code's mind map to real mastery | a missed question plays a different creator, and progress survives a reload |
 | 6 | Sun 1 Nov | Teach-back: recorder, transcription, grading UI; flashcards | a spoken explanation is graded with rewatch links |
-| 7 | Mon 2 Nov | Deploy; rate limits and daily cap; pre-build the 3 demo courses; review queue on Muse Code's FSRS module; fix what the demo courses expose | the live URL works for a stranger with no sign-up |
+| 7 | Mon 2 Nov | Deploy; rate limits and daily cap; pre-build the 3 demo courses; review queue on Muse Code's FSRS module and the Today panel; fix what the demo courses expose | the live URL works for a stranger with no sign-up |
 | 8 | Tue 3 Nov | Feature freeze (stretch work only if everything above is solid); README, including exactly what Muse Code did; demo script. Last day of organiser support: Tue 3 Nov ET, which runs to about 4 PM Wed 4 Nov AEDT | README done; video script locked |
 | 9 | Wed 4 Nov | Record and edit the 3-minute video; final fixes; make the repo public; draft the submission | video uploaded and its link checked |
 | 10 | Thu 5 Nov | **Submit by 10:00 AM AEDT**, three hours before the 1:00 PM deadline | submitted; repo public; video plays when logged out |
@@ -280,7 +369,7 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 | 0:20–0:45 | Type a topic → outline and mind map appear; module 1 builds (sped up) |
 | 0:45–1:30 | Learn: clip → check question → miss → a different creator explains it → correct |
 | 1:30–2:10 | Teach it back by voice → covered and missing points → rewatch the exact moment |
-| 2:10–2:35 | The mind map turns green; review queue; flashcards |
+| 2:10–2:35 | Progress: the mind map's rings fill in, the Today panel, flashcards |
 | 2:35–3:00 | How it works: which Meta model does what, the verification checks, built in 9 days |
 
 ## 12. Risks
