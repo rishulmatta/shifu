@@ -1,0 +1,72 @@
+:root {
+  --paper: #f7f3ec;
+  --ink: #221d1a;
+  --muted: #6f655c;
+  --vermilion: #c8432b;
+  --rule: #e4ddd2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #171412;
+    --ink: #efe7da;
+    --muted: #a39789;
+    --vermilion: #e2583e;
+    --rule: #2e2925;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+}
+
+.intro {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.intro h1 {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  letter-spacing: -0.03em;
+}
+
+.intro p {
+  max-width: 34rem;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.intro .note {
+  color: var(--muted);
+  font-size: 0.95rem;
+}

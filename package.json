@@ -1,0 +1,30 @@
+{
+  "name": "shifu",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "spike:plan": "node --env-file-if-exists=.env.local scripts/spikes/meta-plan.mts",
+    "spike:baseten": "node --env-file-if-exists=.env.local scripts/spikes/baseten.mts",
+    "spike:voice": "node --env-file-if-exists=.env.local scripts/spikes/voice.mts",
+    "spike:youtube": "node --env-file-if-exists=.env.local scripts/spikes/youtube.mts"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@12.6.0"
+}
