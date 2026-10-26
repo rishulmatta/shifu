@@ -100,14 +100,14 @@ async function call(rung: Rung, messages: Message[], name: string, jsonSchema: o
   return { content: String(body.choices?.[0]?.message?.content ?? ""), usage, ms: Date.now() - started };
 }
 
-const addUsage = (a: Usage, b: Usage): Usage => ({
+export const addUsage = (a: Usage, b: Usage): Usage => ({
   inputTokens: a.inputTokens + b.inputTokens,
   outputTokens: a.outputTokens + b.outputTokens,
   reasoningTokens: a.reasoningTokens + b.reasoningTokens,
   costUsd: a.costUsd + b.costUsd,
 });
 
-const ZERO: Usage = { inputTokens: 0, outputTokens: 0, reasoningTokens: 0, costUsd: 0 };
+export const ZERO: Usage = { inputTokens: 0, outputTokens: 0, reasoningTokens: 0, costUsd: 0 };
 
 function parse<S extends z.ZodType>(schema: S, content: string): { ok: true; data: z.infer<S> } | { ok: false; error: string } {
   let json: unknown;
