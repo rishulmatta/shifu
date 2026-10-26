@@ -12,7 +12,8 @@
     "spike:baseten": "node --env-file-if-exists=.env.local scripts/spikes/baseten.mts",
     "spike:voice": "node --env-file-if-exists=.env.local scripts/spikes/voice.mts",
     "spike:youtube": "node --env-file-if-exists=.env.local scripts/spikes/youtube.mts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "try:plan": "tsx --env-file-if-exists=.env.local scripts/try-plan.mts"
   },
   "dependencies": {
     "next": "16.4.3",
