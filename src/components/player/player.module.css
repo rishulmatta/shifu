@@ -1,0 +1,429 @@
+.shell {
+  min-height: 100dvh;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.topic {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 32px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.main {
+  min-width: 0;
+}
+
+.track {
+  height: 4px;
+  margin-bottom: 20px;
+  border-radius: 2px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.track span {
+  display: block;
+  height: 100%;
+  background: var(--vermilion);
+  transition: width 300ms ease;
+}
+
+/* ── Cards ── */
+
+.card {
+  padding: 28px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin-bottom: 16px;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.objectives {
+  margin: 16px 0 0 20px;
+  line-height: 1.6;
+}
+
+.note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--vermilion);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--vermilion) 8%, transparent);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.primary,
+.secondary {
+  padding: 11px 20px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.secondary {
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+}
+
+.primary:hover,
+.secondary:hover {
+  border-color: var(--vermilion);
+}
+
+.link {
+  border: none;
+  background: none;
+  color: var(--vermilion);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.back {
+  margin-top: 16px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ── Video ── */
+
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000;
+}
+
+.frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.credit {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.credit a {
+  color: var(--ink);
+}
+
+/* ── Questions ── */
+
+.options {
+  display: grid;
+  gap: 10px;
+}
+
+.option {
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.option:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.right {
+  border-color: var(--state-solid);
+  background: color-mix(in srgb, var(--state-solid) 14%, var(--paper));
+}
+
+.wrong {
+  border-color: var(--state-shaky);
+  background: color-mix(in srgb, var(--state-shaky) 12%, var(--paper));
+}
+
+.explanation {
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+/* ── Flashcards ── */
+
+.flash {
+  display: grid;
+  gap: 14px;
+  place-content: center;
+  width: 100%;
+  min-height: 200px;
+  padding: 28px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.flash:disabled {
+  cursor: default;
+}
+
+.flipped {
+  border-color: var(--ink);
+}
+
+.flashFront {
+  font-size: 1.3rem;
+  font-weight: 650;
+}
+
+.flashBack {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.ratings {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ── Progress tracker ── */
+
+.aside {
+  align-self: start;
+  position: sticky;
+  top: 80px;
+  display: grid;
+  gap: 24px;
+}
+
+.progress {
+  padding: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.stat {
+  margin-bottom: 12px;
+}
+
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--rule);
+}
+
+.bar span {
+  min-width: 4px;
+}
+
+.seg_solid {
+  background: var(--state-solid);
+}
+
+.seg_learning {
+  background: var(--state-learning);
+}
+
+.seg_shaky {
+  background: var(--state-shaky);
+}
+
+.seg_new {
+  background: var(--state-new);
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin: 12px 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dot_solid {
+  background: var(--state-solid);
+}
+
+.dot_learning {
+  background: var(--state-learning);
+}
+
+.dot_shaky {
+  background: var(--state-shaky);
+}
+
+.dot_new {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--state-new);
+}
+
+.modules {
+  display: grid;
+  gap: 18px;
+  list-style: none;
+}
+
+.moduleTitle {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.concepts {
+  display: grid;
+  gap: 2px;
+  list-style: none;
+}
+
+.concept {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.concept:hover {
+  background: var(--surface);
+}
+
+.current {
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--vermilion);
+}
+
+.dots {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 16px;
+  }
+
+  .aside {
+    position: static;
+  }
+
+  .header {
+    padding: 12px 16px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .ratings {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

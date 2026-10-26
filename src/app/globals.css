@@ -1,18 +1,28 @@
 :root {
   --paper: #f7f3ec;
+  --surface: #fffdf9;
   --ink: #221d1a;
   --muted: #6f655c;
   --vermilion: #c8432b;
   --rule: #e4ddd2;
+  --state-new: #b9afa3;
+  --state-learning: #d39b2c;
+  --state-shaky: #c8432b;
+  --state-solid: #3f7d58;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #171412;
+    --surface: #1f1b18;
     --ink: #efe7da;
     --muted: #a39789;
     --vermilion: #e2583e;
     --rule: #2e2925;
+    --state-new: #6b6158;
+    --state-learning: #e0ad46;
+    --state-shaky: #e2583e;
+    --state-solid: #5fa57a;
   }
 
   html {
@@ -64,6 +74,20 @@ a {
   max-width: 34rem;
   font-size: 1.125rem;
   line-height: 1.5;
+}
+
+.intro .cta {
+  margin-top: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.intro .cta:hover {
+  background: var(--vermilion);
 }
 
 .intro .note {

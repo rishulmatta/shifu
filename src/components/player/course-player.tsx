@@ -1,0 +1,152 @@
+"use client";
+
+// Walks a learner through a course timeline (PLAN.md §3), recording mastery evidence (§7) and
+// resuming at the exact block where they stopped.
+
+import Link from "next/link";
+import { useMemo } from "react";
+import { CourseView } from "@/lib/course-view";
+import { update, useLearner, withEvidence } from "@/lib/learner";
+import type { CardItem, CheckItem, Course } from "@/lib/types";
+import { Mark } from "../mark";
+import { CardsView, CheckView, ClipView, IntroView, QuizView, TeachbackView } from "./blocks";
+import { Outline } from "./outline";
+import styles from "./player.module.css";
+
+export function CoursePlayer({ course }: { course: Course }) {
+  const view = useMemo(() => new CourseView(course), [course]);
+  const learner = useLearner(course.slug);
+  const { timeline } = course;
+  const index = Math.min(learner.position, timeline.length);
+  const block = timeline[index];
+  const concept = view.conceptAt(index);
+
+  const save = (change: Parameters<typeof update>[1]) => update(course.slug, change);
+  const go = (position: number) => {
+    save((s) => ({ ...s, position }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const next = () => go(index + 1);
+  const markAnswered = (s: typeof learner) => ({ ...s, answered: [...s.answered, index] });
+
+  let body: React.ReactNode;
+  if (!block) {
+    const s = view.summary(learner);
+    body = (
+      <section className={styles.card}>
+        <p className={styles.eyebrow}>Course complete</p>
+        <h2 className={styles.title}>You finished {course.plan.topic}.</h2>
+        <p className={styles.lead}>
+          {s.mastery.solid} of {s.objectives} objectives are solid. Come back for your reviews and the rest will follow.
+        </p>
+        <div className={styles.actions}>
+          <button className={styles.secondary} onClick={() => go(0)}>
+            Start again from the top
+          </button>
+        </div>
+      </section>
+    );
+  } else if (block.kind === "intro") {
+    const c = view.concepts.get(block.conceptId)!;
+    const mod = course.plan.modules.find((m) => m.index === c.moduleIndex)!;
+    body = (
+      <IntroView
+        key={index}
+        concept={c}
+        module={mod}
+        moduleCount={course.plan.modules.length}
+        buildsOn={c.prerequisites.map((id) => view.concepts.get(id)!).filter(Boolean)}
+        unfinished={view.unfinishedPrerequisites(learner, c)}
+        onStart={next}
+        onGoTo={(id) => go(view.introIndex(id))}
+      />
+    );
+  } else if (block.kind === "clip") {
+    const span = view.spans.get(block.spanId)!;
+    body = (
+      <ClipView
+        key={index}
+        objective={view.objective(block.objectiveId)!}
+        span={span}
+        video={course.videos[span.videoId]}
+        onEnded={() => save((s) => (s.watched.includes(span.id) ? s : { ...s, watched: [...s.watched, span.id] }))}
+        onContinue={next}
+      />
+    );
+  } else if (block.kind === "check") {
+    const item = view.items.get(block.itemId) as CheckItem;
+    const altSpan = view.alternate(block.objectiveId);
+    const altItem = view.checks(block.objectiveId).find((i) => i.id !== item.id) as CheckItem | undefined;
+    body = (
+      <CheckView
+        key={index}
+        item={item}
+        alternate={altSpan && altItem ? { span: altSpan, video: course.videos[altSpan.videoId], item: altItem } : undefined}
+        answered={learner.answered.includes(index)}
+        onAnswer={(correct, unaided) =>
+          save((s) => markAnswered(withEvidence(s, block.objectiveId, { kind: "check", correct, unaided })))
+        }
+        onContinue={next}
+      />
+    );
+  } else if (block.kind === "cards") {
+    body = (
+      <CardsView
+        key={index}
+        concept={view.concepts.get(block.conceptId)!}
+        cards={block.itemIds.map((id) => view.items.get(id) as CardItem)}
+        onRate={(id, rating) => save((s) => ({ ...s, cards: { ...s.cards, [id]: rating } }))}
+        onContinue={next}
+      />
+    );
+  } else if (block.kind === "teachback") {
+    const mod = course.plan.modules.find((m) => m.index === block.moduleIndex)!;
+    body = (
+      <TeachbackView
+        key={index}
+        module={mod}
+        objectives={mod.conceptIds.flatMap((id) => view.concepts.get(id)?.objectives ?? [])}
+        onContinue={next}
+      />
+    );
+  } else {
+    const mod = course.plan.modules.find((m) => m.index === block.moduleIndex)!;
+    body = (
+      <QuizView
+        key={index}
+        module={mod}
+        items={block.itemIds.map((id) => view.items.get(id) as CheckItem)}
+        done={learner.quizScores[index]}
+        onAnswer={(item, correct) => save((s) => withEvidence(s, item.objectiveId, { kind: "check", correct, unaided: true }))}
+        onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [index]: score } }))}
+        onContinue={next}
+      />
+    );
+  }
+
+  return (
+    <div className={styles.shell}>
+      <header className={styles.header}>
+        <Link href="/" className={styles.brand}>
+          <Mark size={28} />
+          <span>Shifu</span>
+        </Link>
+        <span className={styles.topic}>{course.plan.topic}</span>
+      </header>
+      <div className={styles.layout}>
+        <main className={styles.main}>
+          <div className={styles.track} aria-label={`Step ${Math.min(index + 1, timeline.length)} of ${timeline.length}`}>
+            <span style={{ width: `${(Math.min(index, timeline.length) / timeline.length) * 100}%` }} />
+          </div>
+          {body}
+          {index > 0 && block && (
+            <button className={styles.back} onClick={() => go(index - 1)}>
+              ← Back
+            </button>
+          )}
+        </main>
+        <Outline view={view} learner={learner} currentConceptId={concept?.id} onJump={(id) => go(view.introIndex(id))} />
+      </div>
+    </div>
+  );
+}

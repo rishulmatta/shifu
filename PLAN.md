@@ -321,6 +321,13 @@ Module 1 runs through every step first so the learner can start; the rest follow
 | `reviews` | learner × item: FSRS state |
 | `build_jobs` | course × step: progress, tokens, cost, errors |
 
+**Decision (27 Oct): learner state lives in the browser for the hackathon.** Without accounts,
+progress is tied to one browser anyway, so `learners`, `enrollments`, `objective_states`,
+`attempts`, `reviews` and `sessions` are kept in `localStorage` (`src/lib/learner.ts`) rather than
+Postgres. Postgres holds course content: courses, concepts, objectives, videos, transcripts, spans,
+recall items and build jobs. The "continue on another device" link (Should) would move this
+server-side.
+
 ## 9. Scope
 
 **Must (the demo depends on it)**
