@@ -7,25 +7,35 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CourseView } from "@/lib/course-view";
 import { update, useLearner, withAnswer, withEvidence } from "@/lib/learner";
+import { mergeCourse } from "@/lib/overlay";
 import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
 import { Mark } from "../mark";
+import { CoachPanel } from "./coach";
 import { MapDialog } from "./map-dialog";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { Outline } from "./outline";
 import styles from "./player.module.css";
 import { TeachbackView } from "./teachback";
 
-/** `build` is set while later modules are still being built. */
-export function CoursePlayer({ course, build }: { course: Course; build?: BuildProgress }) {
+/**
+ * `build` is set while later modules are still being built. The learner sees the course with what
+ * the coach added for them merged in (overlay.ts).
+ */
+export function CoursePlayer({ course: shared, build }: { course: Course; build?: BuildProgress }) {
+  const learner = useLearner(shared.slug);
+  const merged = useMemo(() => mergeCourse(shared, learner.overlay), [shared, learner.overlay]);
+  const course = merged.course;
   const view = useMemo(() => new CourseView(course), [course]);
-  const learner = useLearner(course.slug);
   const { timeline } = course;
   const index = Math.min(learner.position, timeline.length);
   const block = timeline[index];
+  const key = merged.keys[index];
   const concept = view.conceptAt(index);
   const [mapOpen, setMapOpen] = useState(false);
+  // Concepts the coach is still building: on the map, but nothing to play yet.
+  const pending = new Set(learner.overlay.concepts.filter((c) => !view.available.has(c.id)).map((c) => c.id));
 
   const save = (change: Parameters<typeof update>[1]) => update(course.slug, change);
   const go = (position: number) => {
@@ -34,7 +44,7 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const next = () => go(index + 1);
-  const markAnswered = (s: typeof learner) => ({ ...s, answered: [...s.answered, index] });
+  const markAnswered = (s: typeof learner) => ({ ...s, answered: [...s.answered, key] });
 
   let body: React.ReactNode;
   if (!block) {
@@ -89,7 +99,7 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
         key={index}
         item={item}
         alternate={altSpan && altItem ? { span: altSpan, video: course.videos[altSpan.videoId], item: altItem } : undefined}
-        answered={learner.answered.includes(index)}
+        answered={learner.answered.includes(key)}
         onAnswer={(asked, choice, confidence, unaided) => save((s) => markAnswered(withAnswer(s, asked, choice, confidence, unaided)))}
         onContinue={next}
       />
@@ -123,16 +133,30 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
         onContinue={next}
       />
     );
+  } else if (block.kind === "practice") {
+    body = (
+      <QuizView
+        key={index}
+        label="Practice"
+        title={view.concepts.get(block.conceptId)?.title ?? ""}
+        items={block.itemIds.flatMap((id) => (view.items.get(id) as CheckItem | undefined) ?? [])}
+        done={learner.quizScores[key]}
+        onAnswer={(item, choice, confidence) => save((s) => withAnswer(s, item, choice, confidence, true))}
+        onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [key]: score } }))}
+        onContinue={next}
+      />
+    );
   } else {
     const mod = course.plan.modules.find((m) => m.index === block.moduleIndex)!;
     body = (
       <QuizView
         key={index}
-        module={mod}
+        label="Quiz"
+        title={mod.title}
         items={block.itemIds.map((id) => view.items.get(id) as CheckItem)}
-        done={learner.quizScores[index]}
+        done={learner.quizScores[key]}
         onAnswer={(item, choice, confidence) => save((s) => withAnswer(s, item, choice, confidence, true))}
-        onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [index]: score } }))}
+        onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [key]: score } }))}
         onContinue={next}
       />
     );
@@ -154,6 +178,7 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
         <MapDialog
           view={view}
           learner={learner}
+          pending={pending}
           currentConceptId={concept?.id}
           building={!!build}
           onSelect={(id) => {
@@ -179,10 +204,12 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
         <Outline
           view={view}
           learner={learner}
+          pending={pending}
           currentConceptId={concept?.id}
           building={!!build}
           onJump={(id) => go(view.introIndex(id))}
           onOpenMap={() => setMapOpen(true)}
+          coach={<CoachPanel shared={shared} merged={merged} view={view} learner={learner} index={index} conceptId={concept?.id} go={go} />}
         />
       </div>
     </div>

@@ -161,6 +161,30 @@ can't do. (Decided 27 Oct; "pause and predict" was considered and dropped.)
    its clip) is set in that world when it fits: near transfer after the clip, far transfer in the
    quiz. The goal challenges use it too.
 
+### The course coach
+
+Asked for on 28 Oct: the learner can tell Shifu what they need and the course changes to fit
+("ask me more questions", "explain the basics first"). It is not a chatbot: the coach never
+teaches in the chat, and every reply comes with one visible change to the course.
+
+- **Practice:** more check questions on the objectives they're on or weakest in, written from the
+  objective's clips with the same quote and answer-blind checks, placed next.
+- **A prerequisite:** a new concept the current one builds on (title, why, one or two objectives,
+  YouTube searches), built from fresh clips through the same steps as a course build. Its node
+  grows into the mind map while it builds; it is placed before the concept that needs it, and the
+  learner can start it at once.
+- **Explain it differently**, **go to** a concept the course has, or **skip ahead**: done in the
+  browser.
+- **None:** a short reply for anything else, saying what the coach can do.
+
+Muse Spark 1.3 picks the change (low effort, about 5 s), reading the whole course with the
+learner's states, where they are and their recent misconceptions. The server checks that it names
+real objectives and playable concepts, and makes a smaller change or none rather than a wrong one.
+Changes are the learner's own: they live with their progress in the browser and are merged into
+the course for the player and the map, so one learner's coaching doesn't reshape the course for
+everyone with the link. Limits: 40 messages and 6 new concepts per visitor per hour, 60 new
+concepts a day in all.
+
 ## 4. Architecture
 
 ```
@@ -416,7 +440,8 @@ server-side.
 - The learner's path (§3): prerequisite order, the per-objective loop, the end-of-module teach-back
   and mixed quiz.
 - Progress tracker (§7): course progress, mastery bar, resume at the exact block, the Today panel.
-- Mind map with per-objective mastery rings.
+- Mind map with per-objective mastery rings (built 28 Oct).
+- The course coach (§3, asked for on 28 Oct): practice and prerequisites on request.
 - Teaching that works (§3), in this order: the goal challenge before and after, the student's
   follow-up in the teach-back, wrong answers that diagnose, confidence, examples from the
   learner's world.
@@ -475,7 +500,7 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 | Poor span choices | the day-3 eval; verification drops bad spans; alternates cover gaps |
 | Muse Spark Open's structured output on Baseten | validate with zod; retry once with the error |
 | Rights | captions only, never media; caption text never shown; every clip credited and linked |
-| Looks like an "education chatbot" | no chat UI anywhere; the demo leads with the course and the verification |
+| Looks like an "education chatbot" | the coach changes the course instead of chatting: it never teaches in the chat and every reply makes one visible change (practice up next, a new concept growing into the mind map); the demo leads with the course and the verification |
 
 ## 13. Open decisions
 

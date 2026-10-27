@@ -681,3 +681,155 @@
     padding: 16px;
   }
 }
+
+/* ── Coach ── */
+
+.coach {
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.coachIntro {
+  margin-bottom: 12px;
+  line-height: 1.45;
+}
+
+.turns {
+  display: grid;
+  gap: 10px;
+  max-height: 300px;
+  margin-bottom: 12px;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.mine {
+  justify-self: end;
+  max-width: 88%;
+  padding: 8px 12px;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.theirs {
+  justify-self: start;
+  max-width: 96%;
+}
+
+.change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--paper);
+  font-size: 0.85rem;
+}
+
+.change > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.change_done {
+  color: var(--state-solid);
+}
+
+.change_done span:nth-child(2) {
+  color: var(--ink);
+}
+
+.change_failed {
+  color: var(--state-shaky);
+}
+
+.change .link {
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+
+.spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--vermilion);
+  border-radius: 50%;
+  vertical-align: -1px;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  padding: 6px 11px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--vermilion);
+}
+
+.chip:disabled,
+.ask button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ask {
+  display: flex;
+  gap: 8px;
+}
+
+.askInput {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.askInput:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 1px;
+}
+
+.ask .primary {
+  padding: 9px 16px;
+}
+
+@media (min-width: 901px) {
+  .aside {
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}

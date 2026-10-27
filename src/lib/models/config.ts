@@ -78,7 +78,7 @@ export interface Rung {
   effort?: Effort;
 }
 
-export type Task = "plan" | "locate" | "merge" | "recall" | "answer" | "grade" | "transcribe";
+export type Task = "plan" | "locate" | "merge" | "recall" | "answer" | "grade" | "transcribe" | "coach";
 
 /** Muse Spark Open at one effort: Baseten first, then Modal (the same weights, billed per token). */
 const open = (effort: Effort): Rung[] => [
@@ -96,6 +96,8 @@ export const CHAINS: Record<Task, Rung[]> = {
   recall: [...open("low"), spark("low")],
   answer: [...open("none"), spark("none")],
   grade: [spark("medium"), ...open("medium")],
+  // The course coach: reads the learner's message against the whole course and picks one change.
+  coach: [spark("low"), ...open("low")],
   // Muse Spark Open takes audio input; Muse Voice Transcribe on Meta, when its key is set, goes first
   // (transcribe.ts), because it is a dedicated speech model at $0.18 an hour.
   transcribe: open("none"),

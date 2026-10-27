@@ -46,6 +46,9 @@ order with recall practice woven in.
     <td valign="top"><strong>A path that respects prerequisites</strong><br>Concepts come in the order they build on each other, and every session starts with what is due for review.</td>
     <td valign="top"><strong>Progress that means something</strong><br>An objective counts as solid only when you get it right and it holds up later, in review or in your own words.</td>
   </tr>
+  <tr>
+    <td valign="top" colspan="2"><strong>A coach that reshapes the course</strong><br>Say "ask me more questions" or "explain the basics first" and the course changes: checked practice questions come next, or a new prerequisite concept is built from fresh clips and grows into your mind map. The coach never lectures in a chat; every reply is a change you can see.</td>
+  </tr>
 </table>
 
 ## How it works

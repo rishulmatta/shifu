@@ -5,6 +5,7 @@
 
 import { useSyncExternalStore } from "react";
 import { initialProgress, nextState } from "./mastery";
+import { NO_OVERLAY, type Overlay } from "./overlay";
 import type { CheckItem, Confidence, MasteryEvent, ObjectiveId, ObjectiveProgress } from "./types";
 
 export type Rating = "again" | "hard" | "good" | "easy";
@@ -19,21 +20,56 @@ export interface Attempt {
   misconception?: string;
 }
 
+/** One message in the coach panel. A coach turn may carry what it changed and how that went. */
+export interface CoachTurn {
+  from: "learner" | "coach";
+  text: string;
+  /** For a coach turn that changed the course: what it did, shown under the reply. */
+  change?: { status: "working" | "done" | "failed"; note: string; goTo?: string };
+}
+
 export interface LearnerState {
-  /** Index of the current block in the course timeline. */
+  /** Index of the current block in the course timeline, with the learner's additions merged in. */
   position: number;
   objectives: Record<ObjectiveId, ObjectiveProgress>;
-  /** Check and quiz blocks already answered, so going back doesn't record evidence twice. */
-  answered: number[];
+  /** Keys (overlay.ts) of check blocks already answered, so going back doesn't record evidence twice. */
+  answered: string[];
   /** Spans watched to their end. */
   watched: string[];
   /** The learner's own rating of each flashcard, for the review scheduler. */
   cards: Record<string, Rating>;
-  quizScores: Record<number, { correct: number; total: number }>;
+  /** By block key, for quiz and practice blocks. */
+  quizScores: Record<string, { correct: number; total: number }>;
   attempts: Attempt[];
+  /** What the coach added for this learner, and the conversation. */
+  overlay: Overlay;
+  coach: CoachTurn[];
 }
 
-export const EMPTY: LearnerState = { position: 0, objectives: {}, answered: [], watched: [], cards: {}, quizScores: {}, attempts: [] };
+export const EMPTY: LearnerState = {
+  position: 0,
+  objectives: {},
+  answered: [],
+  watched: [],
+  cards: {},
+  quizScores: {},
+  attempts: [],
+  overlay: NO_OVERLAY,
+  coach: [],
+};
+
+/**
+ * Progress saved before 28 Oct recorded answered blocks and quiz scores by position; with no
+ * additions then, position n is the key "bn".
+ */
+export function migrate(saved: Partial<LearnerState> & { answered?: (string | number)[] }): LearnerState {
+  const s = { ...EMPTY, ...saved };
+  return {
+    ...s,
+    answered: (saved.answered ?? []).map((a) => (typeof a === "number" ? `b${a}` : a)),
+    quizScores: Object.fromEntries(Object.entries(s.quizScores).map(([k, v]) => [/^\d+$/.test(k) ? `b${k}` : k, v])),
+  };
+}
 
 const key = (slug: string) => `shifu:course:${slug}`;
 const memory = new Map<string, LearnerState>();
@@ -45,7 +81,7 @@ function load(slug: string): LearnerState {
   let state = EMPTY;
   try {
     const raw = window.localStorage.getItem(key(slug));
-    if (raw) state = { ...EMPTY, ...JSON.parse(raw) };
+    if (raw) state = migrate(JSON.parse(raw));
   } catch {
     // Storage blocked or corrupt: start fresh and keep progress in memory for this visit.
   }

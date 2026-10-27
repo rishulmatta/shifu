@@ -56,6 +56,8 @@ export function cached(sources: Sources, store: Store, lang = "en"): Sources {
   };
 }
 
+const videosN = (n: number) => `${n} video${n === 1 ? "" : "s"}`;
+
 /** Candidate videos for a concept: every search query, merged in order, filtered and checked. */
 async function findVideos(concept: Concept, sources: Sources, warn: (m: string) => void): Promise<Video[]> {
   const results = await mapSettled(concept.searchQueries, 3, (q) => sources.search(q), (q, e) => warn(`search "${q}" failed: ${String(e)}`));
@@ -72,16 +74,24 @@ async function findVideos(concept: Concept, sources: Sources, warn: (m: string) 
   return videos;
 }
 
-interface ModuleResult {
+export interface BuiltConcepts {
   videos: Video[];
   spans: Span[];
   items: RecallItem[];
   usage: Usage;
 }
 
-async function buildModule(plan: CoursePlan, moduleIndex: number, sources: Sources, report: (p: Partial<BuildProgress>) => Promise<void>, warn: (m: string) => void): Promise<ModuleResult> {
-  const concepts = plan.concepts.filter((c) => c.moduleIndex === moduleIndex);
-  const label = `module ${moduleIndex + 1}`;
+type Report = (p: Partial<BuildProgress>) => Promise<void>;
+
+function buildModule(plan: CoursePlan, moduleIndex: number, sources: Sources, report: Report, warn: (m: string) => void) {
+  return buildConcepts(plan, plan.concepts.filter((c) => c.moduleIndex === moduleIndex), `module ${moduleIndex + 1}`, sources, report, warn);
+}
+
+/**
+ * Finds videos, reads captions, locates and chooses spans and writes recall for some concepts of a
+ * plan: one module of a build, or one prerequisite the coach adds. `label` names them in progress.
+ */
+export async function buildConcepts(plan: CoursePlan, concepts: Concept[], label: string, sources: Sources, report: Report, warn: (m: string) => void): Promise<BuiltConcepts> {
 
   await report({ step: "finding", message: `Finding videos for ${label}` });
   const found = await mapSettled(concepts, 3, (c) => findVideos(c, sources, warn), (c, e) => warn(`finding videos for ${c.id} failed: ${String(e)}`));
@@ -96,14 +106,14 @@ async function buildModule(plan: CoursePlan, moduleIndex: number, sources: Sourc
     }
   });
 
-  await report({ step: "captions", message: `Reading captions of ${byVideo.size} videos for ${label}` });
+  await report({ step: "captions", message: `Reading captions of ${videosN(byVideo.size)} for ${label}` });
   const entries = [...byVideo.values()];
   const captions = await mapSettled(entries, LIMITS.parallel, (e) => sources.captions(e.video.id), (e, err) => warn(`captions for ${e.video.id} failed: ${String(err)}`));
   const withCaptions = entries
     .map((e, i) => ({ ...e, lines: captions[i] }))
     .filter((e): e is typeof e & { lines: CaptionLine[] } => !!e.lines && e.lines.length >= LIMITS.minCaptionLines);
 
-  await report({ step: "clips", message: `Finding the right moments in ${withCaptions.length} videos for ${label}` });
+  await report({ step: "clips", message: `Finding the right moments in ${videosN(withCaptions.length)} for ${label}` });
   let usage = ZERO;
   const located = await mapSettled(withCaptions, LIMITS.parallel, (e) => locateInVideo(e.video, e.lines, e.objectives), (e, err) => warn(`locating in ${e.video.id} failed: ${String(err)}`));
   const candidates: Candidate[] = [];

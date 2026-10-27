@@ -95,3 +95,13 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   modules left to right (top to bottom on phones), neighbours joined by straight arrows, longer
   links routed round the concepts in between. Checked in headless Chrome, light and dark, desktop
   and phone.
+- The course coach: a panel under the mind map where the learner says what they need. Muse Spark
+  1.3 turns each message into one change: practice questions up next (written from the clips,
+  quote- and answer-blind-checked), a new prerequisite concept built from fresh clips (its node
+  grows into the map while it builds), the idea from another creator, a jump, or skipping ahead.
+  The learner's additions live with their progress and are merged into the course they see; the
+  shared course never changes. Answered blocks and quiz scores are now kept by block, so added
+  blocks can't shift them. Tested live: seven typical messages each picked the right change in
+  4–9 s for under a cent; "ask me more questions" added three checked questions in about 10 s; a
+  prerequisite built from the two test transcripts in 6 s. Building one from YouTube needs the
+  SearchAPI key.

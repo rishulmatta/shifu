@@ -20,6 +20,9 @@ export function Outline(props: {
   building: boolean;
   onJump: (conceptId: string) => void;
   onOpenMap: () => void;
+  /** Concepts the coach is still building. */
+  pending: ReadonlySet<string>;
+  coach: React.ReactNode;
 }) {
   const { view, learner } = props;
   const s = view.summary(learner);
@@ -40,10 +43,12 @@ export function Outline(props: {
           states={view.objectiveStates(learner)}
           available={view.available}
           building={props.building}
+          pending={props.pending}
           currentConceptId={props.currentConceptId}
           onSelect={props.onJump}
         />
       </div>
+      {props.coach}
       <div className={styles.progress}>
         <p className={styles.eyebrow}>Your progress</p>
         <p className={styles.stat}>

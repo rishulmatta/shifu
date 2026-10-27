@@ -121,7 +121,9 @@ export type Block =
   | { kind: "check"; objectiveId: ObjectiveId; itemId: string }
   | { kind: "cards"; conceptId: ConceptId; itemIds: string[] }
   | { kind: "teachback"; moduleIndex: number }
-  | { kind: "quiz"; moduleIndex: number; itemIds: string[] };
+  | { kind: "quiz"; moduleIndex: number; itemIds: string[] }
+  /** Extra questions the coach wrote for this learner (PLAN.md §3, "The course coach"). */
+  | { kind: "practice"; conceptId: ConceptId; itemIds: string[] };
 
 export type CourseStatus = "planning" | "building" | "ready" | "failed";
 

@@ -311,7 +311,9 @@ export function CardsView(props: { concept: Concept; cards: CardItem[]; onRate: 
 // ── Mixed quiz ───────────────────────────────────────────────────────────────────────────────
 
 export function QuizView(props: {
-  module: Module;
+  /** "Quiz" at the end of a module, "Practice" for questions the coach added. */
+  label: "Quiz" | "Practice";
+  title: string;
   items: CheckItem[];
   done?: { correct: number; total: number };
   onAnswer: (item: CheckItem, choice: number, confidence: Confidence) => void;
@@ -327,7 +329,9 @@ export function QuizView(props: {
   if (score) {
     return (
       <section className={styles.card}>
-        <p className={styles.eyebrow}>Quiz · {props.module.title}</p>
+        <p className={styles.eyebrow}>
+          {props.label} · {props.title}
+        </p>
         <h2 className={styles.title}>
           {score.correct} of {score.total} right
         </h2>
@@ -347,7 +351,7 @@ export function QuizView(props: {
   return (
     <section className={styles.card}>
       <p className={styles.eyebrow}>
-        Quiz · question {index + 1} of {items.length}
+        {props.label} · question {index + 1} of {items.length}
       </p>
       <Question
         key={item.id}

@@ -7,6 +7,10 @@ export const LIMITS = {
   buildsPerVisitorPerHour: 3,
   buildsPerDay: Number(process.env.SHIFU_DAILY_BUILDS || 30),
   teachbacksPerVisitorPerHour: 20,
+  coachPerVisitorPerHour: 40,
+  /** Prerequisite concepts the coach builds from new clips: each is a small build. */
+  growsPerVisitorPerHour: 6,
+  growsPerDay: Number(process.env.SHIFU_DAILY_GROWS || 60),
 };
 
 /** The caller's IP as Vercel forwards it, or "local" in development. */
@@ -34,4 +38,21 @@ export async function allowTeachback(store: Store, who: string): Promise<LimitRe
   return mine > LIMITS.teachbacksPerVisitorPerHour
     ? { ok: false, message: "That's a lot of explaining for one hour. Take a break and try again later." }
     : { ok: true };
+}
+
+export async function allowCoach(store: Store, who: string): Promise<LimitResult> {
+  const mine = await store.bump(`coach:${who}`, 3_600);
+  return mine > LIMITS.coachPerVisitorPerHour
+    ? { ok: false, message: "That's a lot of changes for one hour. Keep going with the course and try again later." }
+    : { ok: true };
+}
+
+export async function allowGrow(store: Store, who: string): Promise<LimitResult> {
+  const mine = await store.bump(`grow:${who}`, 3_600);
+  if (mine > LIMITS.growsPerVisitorPerHour) {
+    return { ok: false, message: "You've added a few new concepts in the last hour. Work through them first, then ask again." };
+  }
+  const today = await store.bump("grow:all", 86_400);
+  if (today > LIMITS.growsPerDay) return { ok: false, message: "Shifu has added all the new concepts it can for today. Try again tomorrow." };
+  return { ok: true };
 }

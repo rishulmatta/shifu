@@ -22,6 +22,7 @@ export function MapDialog(props: {
   learner: LearnerState;
   currentConceptId?: string;
   building: boolean;
+  pending: ReadonlySet<string>;
   onSelect: (conceptId: string) => void;
   onClose: () => void;
 }) {
@@ -54,6 +55,7 @@ export function MapDialog(props: {
         states={view.objectiveStates(learner)}
         available={view.available}
         building={props.building}
+        pending={props.pending}
         currentConceptId={props.currentConceptId}
         onSelect={props.onSelect}
       />

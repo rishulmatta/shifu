@@ -25,6 +25,8 @@ export function MindMap(props: {
   available?: Set<ConceptId>;
   /** Whether unavailable concepts are still being built (otherwise no good clip was found). */
   building?: boolean;
+  /** Concepts being built right now (the coach adding one), whatever `building` says. */
+  pending?: ReadonlySet<ConceptId>;
   currentConceptId?: ConceptId;
   onSelect?: (conceptId: ConceptId) => void;
   /** compact: always vertical, sized to its container (the progress panel). full: the big map. */
@@ -96,11 +98,12 @@ export function MindMap(props: {
         {layout.nodes.map((n) => {
           const concept = concepts.get(n.id)!;
           const open = isOpen(n.id);
+          const building = props.building || !!props.pending?.has(n.id);
           const state = stateOf(concept);
           const current = n.id === currentConceptId;
           const solid = concept.objectives.filter((o) => states[o.id] === "solid").length;
           const select = open && props.onSelect ? () => props.onSelect!(n.id) : undefined;
-          const label = `${concept.title}: ${open ? `${STATE_LABEL[state]}, ${solid} of ${concept.objectives.length} objectives solid` : props.building ? "still building" : "no good clip found"}${current ? ", you are here" : ""}`;
+          const label = `${concept.title}: ${open ? `${STATE_LABEL[state]}, ${solid} of ${concept.objectives.length} objectives solid` : building ? "still building" : "no good clip found"}${current ? ", you are here" : ""}`;
           return (
             <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
               <g
@@ -125,7 +128,7 @@ export function MindMap(props: {
                 <text className={styles.number} dy="0.35em">
                   {state === "solid" && open ? "✓" : numbers.get(n.id)}
                 </text>
-                <Label layout={layout} node={n} note={open ? undefined : props.building ? "building…" : "no clip found"} />
+                <Label layout={layout} node={n} note={open ? undefined : building ? "building…" : "no clip found"} />
               </g>
             </g>
           );
