@@ -38,7 +38,8 @@ export async function POST(req: Request, ctx: RouteContext<"/api/courses/[slug]/
     if (audio.size > MAX_AUDIO_BYTES) return fail("That recording is too long. Keep it under 90 seconds.", 413);
     try {
       explanation = await transcribeWav(audio);
-    } catch {
+    } catch (e) {
+      console.error("teach-back transcription failed:", e instanceof Error ? e.message : e);
       return fail("We couldn't transcribe that. Try again, or type it instead.", 502);
     }
   }
@@ -58,7 +59,8 @@ export async function POST(req: Request, ctx: RouteContext<"/api/courses/[slug]/
   try {
     const grade = await gradeTeachback({ objectives, clipTexts, explanation });
     return Response.json({ transcript: explanation, results: grade.results, encouragement: grade.encouragement });
-  } catch {
+  } catch (e) {
+    console.error("teach-back grading failed:", e instanceof Error ? e.message : e);
     return fail("Grading failed. Try again in a moment.", 502);
   }
 }

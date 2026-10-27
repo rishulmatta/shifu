@@ -87,7 +87,7 @@ are in [`PLAN.md`](PLAN.md) §3 and §7.
 | Design the course: modules, concepts, objectives and the prerequisite graph behind the mind map | Muse Spark 1.3 | Meta Model API |
 | Read every candidate video's captions and find the span that teaches each objective | Muse Spark Open | Baseten |
 | Write check questions and flashcards for every clip, then answer each one from the clip alone as a check | Muse Spark Open | Baseten |
-| Transcribe the learner's spoken explanation | Muse Voice Transcribe | Meta Model API |
+| Transcribe the learner's spoken explanation | Muse Voice Transcribe, or Muse Spark Open listening to the audio | Meta Model API, or Baseten |
 | Grade the explanation against the objectives and the clips | Muse Spark 1.3 | Meta Model API |
 
 ## Why you can trust a clip or a question
@@ -127,8 +127,8 @@ pnpm dev                     # http://localhost:3000
 ```
 
 The sample course at `/c/bayes-sample` works with no keys at all. Building a course needs a model key
-(Meta Model API or Baseten) and a SearchAPI key. Without `DATABASE_URL`, courses are stored as files
-in `.data/`.
+(Meta Model API, Baseten or a Modal endpoint) and a SearchAPI key; any one model key also switches on
+the voice teach-back. Without `DATABASE_URL`, courses are stored as files in `.data/`.
 
 | Command | Does |
 |---|---|
@@ -144,6 +144,7 @@ The API test scripts check each external service on its own:
 | `pnpm spike:plan` | Muse Spark 1.3 returns a course plan as schema-checked JSON |
 | `pnpm spike:baseten` | Muse Spark Open on Baseten finds a span in a sample transcript |
 | `pnpm spike:voice` | Muse Voice Transcribe transcribes a WAV file |
+| `pnpm spike:modal` | Muse Spark Open on a Modal endpoint: model names, JSON output, audio input |
 | `pnpm spike:youtube` | YouTube search and the embeddable, 3–40 minute filter |
 
 ## License

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { ChainError, generate, NoProviderError, toJsonSchema } from "./router";
+import { canRun, ChainError, generate, NoProviderError, toJsonSchema } from "./router";
 
 const schema = z.object({ answer: z.string() });
 const req = { name: "Answer", schema, system: "s", user: "u" };
@@ -78,6 +78,39 @@ describe("generate", () => {
     fetchMock.mockResolvedValueOnce(reply('{"answer":"42"}'));
     await generate("plan", req);
     expect(bodyOf(0).reasoning_effort).toBeUndefined();
+  });
+
+  it("uses Modal only once it has both a proxy token and an endpoint URL", async () => {
+    vi.stubEnv("MODAL_PROXY_TOKEN", "wk-1.ws-2");
+    fetchMock.mockImplementation(async () => reply("down", 503));
+    await expect(generate("locate", req)).rejects.toBeInstanceOf(ChainError);
+    expect(fetchMock.mock.calls.map((c) => String(c[0]))).not.toContainEqual(expect.stringContaining("modal"));
+
+    fetchMock.mockReset();
+    vi.stubEnv("MODAL_BASE_URL", "https://shifu.modal.example/v1");
+    fetchMock.mockResolvedValueOnce(reply("down", 503)).mockResolvedValueOnce(reply('{"answer":"42"}'));
+    const out = await generate("locate", req);
+    expect(out.provider).toBe("modal");
+    expect(urlOf(1)).toBe("https://shifu.modal.example/v1/chat/completions");
+    expect(bodyOf(1)).toMatchObject({ model: "meta-models/Muse-Spark-Open-816B-A42B", reasoning_effort: "none" });
+  });
+
+  it("sends audio as a content part beside the text", async () => {
+    fetchMock.mockResolvedValueOnce(reply('{"answer":"42"}'));
+    await generate("transcribe", { ...req, audio: { data: "UklGRg==", format: "wav" } });
+    expect(bodyOf(0).messages[1].content).toEqual([
+      { type: "text", text: "u" },
+      { type: "input_audio", input_audio: { data: "UklGRg==", format: "wav" } },
+    ]);
+  });
+});
+
+describe("canRun", () => {
+  it("is true when any provider in the chain is ready", () => {
+    expect(canRun("transcribe")).toBe(true);
+    vi.stubEnv("BASETEN_API_KEY", "");
+    expect(canRun("transcribe")).toBe(false);
+    expect(canRun("plan")).toBe(true);
   });
 });
 

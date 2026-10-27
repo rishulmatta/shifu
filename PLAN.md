@@ -218,7 +218,7 @@ open instantly.
 | Merge: best span per objective across videos, plus alternates | Muse Spark 1.3 | Meta Model API | one call per concept; judgment |
 | Recall items per clip: check questions, flashcards, cloze cards | Muse Spark Open | Baseten | fan-out |
 | Answerability check: answer each question from the clip without the key | Muse Spark Open | Baseten | an independent check (§6, step 7) |
-| Transcribe the learner's teach-back | Muse Voice Transcribe | Meta Model API | file endpoint |
+| Transcribe the learner's teach-back | Muse Voice Transcribe, else Muse Spark Open | Meta Model API, else Baseten or Modal | file endpoint; Muse Spark Open takes audio input too |
 | Grade the teach-back against the objectives and clips | Muse Spark 1.3 | Meta Model API | judgment with citations |
 | Stretch: diagram flashcards (draw a labelled diagram, mask its labels) | Muse Image → SAM 3.1 | Meta Model API | the image is generated, so there is no rights issue |
 
@@ -235,8 +235,18 @@ and 32 MB per file.
 out per million). The model always reasons, reasoning tokens count as output, and at the default
 effort they dominate it, so every task sets `reasoning_effort` (§6, step 4). Tested 27 Oct:
 `json_schema` output works, and the reasoning comes back in a separate `reasoning_content` field.
-When Baseten's credits run out, its tasks move to Muse Spark 1.3 on Meta Model API, with Modal
-endpoints as a further fallback.
+**Modal** ($100 credit, 28 Oct): a Shared Endpoint serves the same weights
+(`meta-models/Muse-Spark-Open-816B-A42B`) per token at the same price, with audio input. Every
+Muse Spark Open task tries Baseten first, then Modal, then Muse Spark 1.3 on Meta Model API (the
+order in `config.ts`). Modal's docs say the credits included with a plan don't pay for Shared
+Endpoint usage, so check that the hackathon credit does before relying on it. Self-hosting is out:
+the model needs four to eight Blackwell GPUs.
+
+**Speech on Muse Spark Open** (tested 28 Oct on Baseten): a 30-second spoken explanation came back
+verbatim in about 7 s for $0.002, a wrong explanation stayed wrong, but about two runs in five
+echoed the last sentence, so `trimEcho` cuts a tail that repeats the words before it. Telling the
+model the topic made it write the topic in as if it had been said, so it gets no hint. This is the
+teach-back's transcriber until the Meta key arrives, and its fallback after.
 
 ## 6. The build pipeline
 
@@ -349,7 +359,8 @@ Module 1 runs through every step first so the learner can start; the rest follow
 - **Confidence:** every check and quiz answer carries Guessing, Think so or Sure. Sure and wrong
   is a lapse (shaky at once); a correct guess is progress but not the unaided correct answer.
 - **Teach-back:** browser recorder → WAV encoded in the browser (16 kHz mono; the API takes WAV
-  only) → upload → Muse Voice Transcribe (`POST /asr/transcribe`, `PUSH_TO_TALK`) → grader returns
+  only) → upload → Muse Voice Transcribe (`POST /asr/transcribe`, `PUSH_TO_TALK`), or Muse Spark
+  Open listening to the WAV when there is no Meta key or it fails → grader returns
   `{covered[], missing[], misconceptions[]}`, each tied to an objective and a span. Missing points
   become review items and offer "rewatch" on the exact clip.
 - **Review:** `ts-fsrs` schedules flashcards and objective checks; a review session interleaves
@@ -447,7 +458,7 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 |---|---|
 | YouTube search quota (about 100 searches a day) | cache; one search per concept; pre-built demo courses; quota increase requested on day 1 |
 | Transcript vendor fails or is slow | 10-video test on day 1; `transcript()` stays swappable; cache everything |
-| Baseten credits not approved | router falls back to Muse Spark 1.3 on Meta Model API, then Modal; spend tracked per course in `build_jobs` |
+| Baseten credits run out | router falls back to Muse Spark Open on Modal, then Muse Spark 1.3 on Meta Model API; spend tracked per course in `build_jobs` |
 | Meta credits link late; a card is required | add a card with a spend limit as soon as the link opens |
 | Course build too slow | module 1 first; streamed progress; pre-built demo courses |
 | Poor span choices | the day-3 eval; verification drops bad spans; alternates cover gaps |
@@ -471,7 +482,7 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 
 ## 14. Do today
 
-- [ ] Request Modal credits (first 1,000 people) and Baseten credits (Appendix A); Fireworks for the team.
+- [x] Request Modal credits (first 1,000 people) and Baseten credits (Appendix A). Both granted: Baseten 27 Oct, Modal 28 Oct.
 - [ ] Claim the $150 Meta Model API credits when the link opens; add a card and a spend limit.
 - [ ] Join the Discord and post in #intros.
 - [ ] New Google Cloud project → YouTube Data API key; apply for a quota increase.

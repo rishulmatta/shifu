@@ -3,7 +3,7 @@
 // error, and moves to the next provider on a refusal, a timeout or a second bad answer.
 
 import { z } from "zod";
-import { CHAINS, PRICES, PROVIDERS, type Rung, type Task } from "./config";
+import { baseUrlOf, CHAINS, isReady, PRICES, PROVIDERS, type Rung, type Task } from "./config";
 
 export interface Usage {
   inputTokens: number;
@@ -26,8 +26,13 @@ export interface GenerateRequest<S extends z.ZodType> {
   schema: S;
   system: string;
   user: string;
+  /** Sent with the user message, for models that take audio input (base64). */
+  audio?: { data: string; format: "wav" };
   timeoutMs?: number;
 }
+
+/** Whether any provider in the task's chain has a key and an endpoint. */
+export const canRun = (task: Task) => CHAINS[task].some((r) => isReady(PROVIDERS[r.provider]));
 
 export class NoProviderError extends Error {
   constructor(task: Task) {
@@ -70,12 +75,13 @@ export function costOf(model: string, inputTokens: number, cachedTokens: number,
   return ((inputTokens - cachedTokens) * input + cachedTokens * cached + outputTokens * output) / 1e6;
 }
 
-type Message = { role: "system" | "user" | "assistant"; content: string };
+type Part = { type: "text"; text: string } | { type: "input_audio"; input_audio: { data: string; format: "wav" } };
+type Message = { role: "system" | "user" | "assistant"; content: string | Part[] };
 
 async function call(rung: Rung, messages: Message[], name: string, jsonSchema: object, timeoutMs: number) {
   const provider = PROVIDERS[rung.provider];
   const started = Date.now();
-  const res = await fetch(`${provider.baseUrl}/chat/completions`, {
+  const res = await fetch(`${baseUrlOf(provider)}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env[provider.keyEnv]}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -121,7 +127,7 @@ function parse<S extends z.ZodType>(schema: S, content: string): { ok: true; dat
 }
 
 export async function generate<S extends z.ZodType>(task: Task, req: GenerateRequest<S>): Promise<Generated<z.infer<S>>> {
-  const rungs = CHAINS[task].filter((r) => process.env[PROVIDERS[r.provider].keyEnv]);
+  const rungs = CHAINS[task].filter((r) => isReady(PROVIDERS[r.provider]));
   if (!rungs.length) throw new NoProviderError(task);
 
   const jsonSchema = toJsonSchema(req.schema);
@@ -131,7 +137,10 @@ export async function generate<S extends z.ZodType>(task: Task, req: GenerateReq
   for (const rung of rungs) {
     const messages: Message[] = [
       { role: "system", content: req.system },
-      { role: "user", content: req.user },
+      {
+        role: "user",
+        content: req.audio ? [{ type: "text", text: req.user }, { type: "input_audio", input_audio: req.audio }] : req.user,
+      },
     ];
     try {
       for (let attempt = 0; attempt < 2; attempt++) {

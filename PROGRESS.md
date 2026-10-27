@@ -76,3 +76,8 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   doesn't count towards solid, and the tracker lists "sure, but wrong" objectives. The recall step
   now writes a misconception per distractor and sets the quiz question in the learner's world
   (tested live: a marketing context gave "the chance a clicker is a buyer").
+- Voice without the Meta key: Muse Spark Open takes audio, so the teach-back transcribes on Baseten
+  when there is no Meta key (or Muse Voice Transcribe fails). Tested live: about 7 s and $0.002 for
+  30 seconds, wrong explanations kept as said; an echo of the last sentence (two runs in five) is
+  trimmed. Modal's $100 credit is wired in as a second Muse Spark Open provider after Baseten; it
+  turns on once its endpoint URL and proxy token are in `.env.local`.

@@ -11,6 +11,7 @@
     "spike:plan": "node --env-file-if-exists=.env.local scripts/spikes/meta-plan.mts",
     "spike:baseten": "node --env-file-if-exists=.env.local scripts/spikes/baseten.mts",
     "spike:voice": "node --env-file-if-exists=.env.local scripts/spikes/voice.mts",
+    "spike:modal": "node --env-file-if-exists=.env.local scripts/spikes/modal.mts",
     "spike:youtube": "node --env-file-if-exists=.env.local scripts/spikes/youtube.mts",
     "test": "vitest run",
     "try:plan": "tsx --env-file-if-exists=.env.local scripts/try-plan.mts",
