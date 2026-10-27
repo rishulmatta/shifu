@@ -54,7 +54,11 @@ Actions:
 - "none": no change. For greetings, questions about Shifu, or anything outside the course: reply briefly and say what you can do.
 Fill every field that doesn't apply with "", [] or 0. Use only ids from the course below. Plain, warm language; never claim a change other than the one you chose, and never say what a clip or question will contain: you haven't seen them.`;
 
-export function coachPrompt(ctx: CoachContext, message: string): string {
+/**
+ * `basicsFor`: the learner pressed "I'm missing the basics" on this objective, so the coach looks
+ * for the foundation they lack instead of reading the message for what they want.
+ */
+export function coachPrompt(ctx: CoachContext, message: string, basicsFor?: ObjectiveId): string {
   const lines = [`Course: ${ctx.plan.topic}. The learner's goal: ${ctx.plan.goal}.`];
   if (!ctx.canGrow) lines.push(`New clips can't be fetched right now, so "prerequisite" isn't available.`);
   lines.push("", "Concepts by module (id · title), each objective with its id and the learner's state:");
@@ -77,6 +81,11 @@ export function coachPrompt(ctx: CoachContext, message: string): string {
     for (const t of ctx.history) lines.push(`${t.from === "learner" ? "Learner" : "Coach"}: ${t.text}`);
   }
   lines.push("", `The learner's message: ${message}`);
+  if (basicsFor) {
+    lines.push(
+      `They pressed "I'm missing the basics" on ${basicsFor}. Choose "prerequisite" for the foundation they most likely lack (their wrong answers are a clue), or "goto" if the course already teaches it with a clip.`,
+    );
+  }
   return lines.join("\n");
 }
 
@@ -143,8 +152,8 @@ export function resolve(out: z.infer<typeof CoachOutput>, ctx: CoachContext, idS
   }
 }
 
-export async function decide(ctx: CoachContext, message: string, idSuffix: string): Promise<{ reply: string; action: CoachAction; usage: Usage }> {
-  const out = await generate("coach", { name: "CoachTurn", schema: CoachOutput, system: COACH_SYSTEM, user: coachPrompt(ctx, message), timeoutMs: 60_000 });
+export async function decide(ctx: CoachContext, message: string, idSuffix: string, basicsFor?: ObjectiveId): Promise<{ reply: string; action: CoachAction; usage: Usage }> {
+  const out = await generate("coach", { name: "CoachTurn", schema: CoachOutput, system: COACH_SYSTEM, user: coachPrompt(ctx, message, basicsFor), timeoutMs: 60_000 });
   const action = resolve(out.data, ctx, idSuffix);
   const asked = out.data.action;
   // When the change it named couldn't be made, the reply mustn't claim it was.

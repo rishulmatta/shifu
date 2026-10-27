@@ -4,7 +4,7 @@
 // resuming at the exact block where they stopped.
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CourseView } from "@/lib/course-view";
 import { update, useLearner, withAnswer, withEvidence } from "@/lib/learner";
 import { mergeCourse } from "@/lib/overlay";
@@ -12,7 +12,8 @@ import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
 import { Mark } from "../mark";
-import { CoachPanel } from "./coach";
+import { MAP_EVENT } from "../coach/ask";
+import { Coach } from "../coach/coach";
 import { MapDialog } from "./map-dialog";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { Outline } from "./outline";
@@ -33,9 +34,16 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
   const block = timeline[index];
   const key = merged.keys[index];
   const concept = view.conceptAt(index);
-  const [mapOpen, setMapOpen] = useState(false);
+  // The full map: open, and the concept it picks out ("Show on map" from the coach).
+  const [map, setMap] = useState<{ focus?: string } | null>(null);
+  const added = new Set(learner.overlay.concepts.map((c) => c.id));
   // Concepts the coach is still building: on the map, but nothing to play yet.
-  const pending = new Set(learner.overlay.concepts.filter((c) => !view.available.has(c.id)).map((c) => c.id));
+  const pending = new Set([...added].filter((id) => !view.available.has(id)));
+  useEffect(() => {
+    const onShow = (e: Event) => setMap({ focus: (e as CustomEvent<string>).detail });
+    window.addEventListener(MAP_EVENT, onShow);
+    return () => window.removeEventListener(MAP_EVENT, onShow);
+  }, []);
 
   const save = (change: Parameters<typeof update>[1]) => update(course.slug, change);
   const go = (position: number) => {
@@ -170,22 +178,24 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
           <span>Shifu</span>
         </Link>
         <span className={styles.topic}>{course.plan.topic}</span>
-        <button className={styles.mapButton} onClick={() => setMapOpen(true)}>
+        <button className={styles.mapButton} onClick={() => setMap({})}>
           <MapIcon /> Mind map
         </button>
       </header>
-      {mapOpen && (
+      {map && (
         <MapDialog
           view={view}
           learner={learner}
           pending={pending}
+          added={added}
+          focusId={map.focus}
           currentConceptId={concept?.id}
           building={!!build}
           onSelect={(id) => {
-            setMapOpen(false);
+            setMap(null);
             go(view.introIndex(id));
           }}
-          onClose={() => setMapOpen(false)}
+          onClose={() => setMap(null)}
         />
       )}
       <div className={styles.layout}>
@@ -205,13 +215,23 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
           view={view}
           learner={learner}
           pending={pending}
+          added={added}
           currentConceptId={concept?.id}
           building={!!build}
           onJump={(id) => go(view.introIndex(id))}
-          onOpenMap={() => setMapOpen(true)}
-          coach={<CoachPanel shared={shared} merged={merged} view={view} learner={learner} index={index} conceptId={concept?.id} go={go} />}
+          onOpenMap={() => setMap({})}
         />
       </div>
+      <Coach
+        shared={shared}
+        merged={merged}
+        view={view}
+        learner={learner}
+        index={index}
+        conceptId={concept?.id}
+        objectiveId={block && (block.kind === "clip" || block.kind === "check") ? block.objectiveId : undefined}
+        go={go}
+      />
     </div>
   );
 }

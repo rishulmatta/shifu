@@ -80,3 +80,10 @@ describe("coachPrompt", () => {
     expect(p.trim().endsWith("The learner's message: explain the basics")).toBe(true);
   });
 });
+
+describe("coachPrompt for the basics control", () => {
+  it("points the coach at the objective the learner is stuck on", () => {
+    expect(coachPrompt(ctx, "I'm missing the basics", "bayes-rule/2")).toContain(`pressed "I'm missing the basics" on bayes-rule/2`);
+    expect(coachPrompt(ctx, "hello")).not.toContain("pressed");
+  });
+});

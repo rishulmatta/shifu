@@ -105,3 +105,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   4–9 s for under a cent; "ask me more questions" added three checked questions in about 10 s; a
   prerequisite built from the two test transcripts in 6 s. Building one from YouTube needs the
   SearchAPI key.
+- The coach moved into a floating window (an ink launcher with the ensō mark; a full-screen sheet
+  on phones), with coach controls under every clip and answered question. "More practice on
+  this" skips the model's decision and goes straight to writing questions (about 10 s end to end);
+  "I'm missing the basics" asks only for the foundation that objective lacks. Each reply has a
+  card showing where the change lands: questions as squares after an insertion caret, or a new
+  prerequisite as a node growing in front of the concept that needs it with the build steps
+  filling in; "Show on map" opens the map with it pulsing. Checked in headless Chrome at desktop
+  and phone sizes.

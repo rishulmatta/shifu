@@ -170,6 +170,22 @@
   animation: halo 2.4s ease-in-out infinite;
 }
 
+.added {
+  fill: none;
+  stroke: var(--vermilion);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+  stroke-linecap: round;
+}
+
+.focus {
+  stroke-width: 2.5;
+  stroke-dasharray: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: focus 1.1s ease-in-out 4;
+}
+
 .segment {
   fill: none;
   stroke-width: 6;
@@ -250,6 +266,13 @@
   }
 }
 
+@keyframes focus {
+  50% {
+    transform: scale(1.2);
+    opacity: 0.4;
+  }
+}
+
 @keyframes halo {
   50% {
     transform: scale(1.12);
@@ -262,7 +285,8 @@
   .edge,
   .line,
   .flow,
-  .halo {
+  .halo,
+  .focus {
     animation: none;
   }
 }

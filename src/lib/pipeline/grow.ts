@@ -4,7 +4,7 @@
 
 import { addUsage, type Usage, ZERO } from "../models/router";
 import type { OverlayPatch } from "../overlay";
-import type { BuildProgress } from "../store/types";
+import type { BuildProgress, BuildStep } from "../store/types";
 import type { CaptionLine, CheckItem, Concept, CoursePlan, Objective, ObjectiveId, Span } from "../types";
 import { conceptBlocks } from "./assemble";
 import { buildConcepts, type Sources } from "./build";
@@ -58,11 +58,11 @@ export async function growConcept(
   concept: Concept,
   before: string,
   sources: Sources,
-  onProgress: (message: string) => void,
+  onProgress: (message: string, step?: BuildStep) => void,
 ): Promise<{ patch: OverlayPatch; usage: Usage; warnings: string[] }> {
   const warnings: string[] = [];
   const report = async (p: Partial<BuildProgress>) => {
-    if (p.message) onProgress(p.message);
+    if (p.message) onProgress(p.message, p.step);
   };
   const withIt = { ...plan, concepts: [...plan.concepts, concept] };
   const built = await buildConcepts(withIt, [concept], `"${concept.title}"`, sources, report, (m) => warnings.push(m));

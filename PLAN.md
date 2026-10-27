@@ -177,6 +177,17 @@ teaches in the chat, and every reply comes with one visible change to the course
   browser.
 - **None:** a short reply for anything else, saying what the coach can do.
 
+Where it lives (28 Oct): a floating window opened from an ink "Coach" launcher bearing the ensō
+mark, bottom right (a full-screen sheet on phones), plus a row of coach controls under every clip
+and answered question: "More practice on this", "I'm missing the basics", "Skip, I know this".
+The controls name their objective, so "more practice" needs no model to decide and "missing the
+basics" asks the model only for the foundation that objective lacks. Each reply carries a card
+showing where the change lands: inserted questions as squares after a caret at the learner's
+place, like an insertion mark in a manuscript, or a new prerequisite as a node growing in front of
+the concept that needs it, with the build's four steps filling in beneath. "Start now" goes
+there; "Show on map" opens the full map with the new concept pulsing. Concepts the coach added
+keep a dotted vermilion ring on the map.
+
 Muse Spark 1.3 picks the change (low effort, about 5 s), reading the whole course with the
 learner's states, where they are and their recent misconceptions. The server checks that it names
 real objectives and playable concepts, and makes a smaller change or none rather than a wrong one.

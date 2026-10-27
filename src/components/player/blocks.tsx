@@ -7,6 +7,7 @@ import { useState } from "react";
 import type { Rating } from "@/lib/learner";
 import { clock } from "@/lib/course-view";
 import type { CardItem, CheckItem, Concept, Confidence, Module, Objective, Span, Video } from "@/lib/types";
+import { CoachControls } from "../coach/coach-controls";
 import styles from "./player.module.css";
 import { YouTubeClip } from "./youtube-clip";
 
@@ -91,6 +92,7 @@ export function ClipView(props: { objective: Objective; span: Span; video: Video
           {ended ? "Check yourself" : "Skip to the question"}
         </button>
       </div>
+      <CoachControls objectiveId={objective.id} controls={["basics", "skip"]} />
     </section>
   );
 }
@@ -199,6 +201,7 @@ export function CheckView(props: {
             Continue
           </button>
         </div>
+        <CoachControls objectiveId={item.objectiveId} controls={["practice", "basics"]} />
       </section>
     );
   }
@@ -249,6 +252,7 @@ export function CheckView(props: {
           </button>
         )}
       </div>
+      {phase !== "ask" && phase !== "again" && <CoachControls objectiveId={asked.objectiveId} controls={["practice", "basics", "skip"]} />}
     </section>
   );
 }

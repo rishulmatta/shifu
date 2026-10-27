@@ -27,6 +27,10 @@ export function MindMap(props: {
   building?: boolean;
   /** Concepts being built right now (the coach adding one), whatever `building` says. */
   pending?: ReadonlySet<ConceptId>;
+  /** Concepts the coach added for this learner: ringed in dotted vermilion. */
+  added?: ReadonlySet<ConceptId>;
+  /** A concept to pick out with a pulse, as "Show on map" does. */
+  focusId?: ConceptId;
   currentConceptId?: ConceptId;
   onSelect?: (conceptId: ConceptId) => void;
   /** compact: always vertical, sized to its container (the progress panel). full: the big map. */
@@ -103,7 +107,8 @@ export function MindMap(props: {
           const current = n.id === currentConceptId;
           const solid = concept.objectives.filter((o) => states[o.id] === "solid").length;
           const select = open && props.onSelect ? () => props.onSelect!(n.id) : undefined;
-          const label = `${concept.title}: ${open ? `${STATE_LABEL[state]}, ${solid} of ${concept.objectives.length} objectives solid` : building ? "still building" : "no good clip found"}${current ? ", you are here" : ""}`;
+          const extra = props.added?.has(n.id);
+          const label = `${concept.title}${extra ? " (added for you)" : ""}: ${open ? `${STATE_LABEL[state]}, ${solid} of ${concept.objectives.length} objectives solid` : building ? "still building" : "no good clip found"}${current ? ", you are here" : ""}`;
           return (
             <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
               <g
@@ -123,6 +128,9 @@ export function MindMap(props: {
               >
                 <title>{label}</title>
                 {current && <circle r={layout.radius + 13} className={styles.halo} />}
+                {(extra || n.id === props.focusId) && (
+                  <circle r={layout.radius + 7} className={cx(styles.added, n.id === props.focusId && styles.focus)} />
+                )}
                 <circle r={layout.radius} className={cx(styles.face, styles[`face_${open ? state : "new"}`], current && styles.faceCurrent)} />
                 <Ring radius={layout.radius} states={concept.objectives.map((o) => (open ? (states[o.id] ?? "new") : "new"))} />
                 <text className={styles.number} dy="0.35em">

@@ -20,12 +20,27 @@ export interface Attempt {
   misconception?: string;
 }
 
-/** One message in the coach panel. A coach turn may carry what it changed and how that went. */
+/** What a coach turn changed in the course, shown as a card under the reply. */
+export interface CoachChange {
+  kind: "practice" | "prerequisite" | "reexplain" | "goto" | "skip";
+  status: "working" | "done" | "failed";
+  note: string;
+  /** Key of the first block it added, for "Start now". */
+  goTo?: string;
+  /** Practice: how many questions. */
+  count?: number;
+  /** Prerequisite: the new concept and the title of the one it comes before. */
+  concept?: { id: string; title: string };
+  before?: string;
+  /** While a prerequisite builds: 0 to 3, finding videos to writing questions. */
+  step?: number;
+}
+
+/** One message in the coach window. */
 export interface CoachTurn {
   from: "learner" | "coach";
   text: string;
-  /** For a coach turn that changed the course: what it did, shown under the reply. */
-  change?: { status: "working" | "done" | "failed"; note: string; goTo?: string };
+  change?: CoachChange;
 }
 
 export interface LearnerState {

@@ -23,6 +23,9 @@ export function MapDialog(props: {
   currentConceptId?: string;
   building: boolean;
   pending: ReadonlySet<string>;
+  added: ReadonlySet<string>;
+  /** A concept to pick out, from the coach's "Show on map". */
+  focusId?: string;
   onSelect: (conceptId: string) => void;
   onClose: () => void;
 }) {
@@ -56,6 +59,8 @@ export function MapDialog(props: {
         available={view.available}
         building={props.building}
         pending={props.pending}
+        added={props.added}
+        focusId={props.focusId}
         currentConceptId={props.currentConceptId}
         onSelect={props.onSelect}
       />
