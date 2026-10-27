@@ -43,6 +43,8 @@ export interface CoursePlan {
   goal: string;
   level: Level;
   minutesPerDay: number;
+  /** The learner's world as the goal describes it ("a stats exam", "marketing at work"), or "". */
+  context: string;
   modules: Module[];
   concepts: Concept[];
 }
@@ -94,7 +96,18 @@ interface ItemBase {
 }
 
 export type RecallItem =
-  | (ItemBase & { kind: "mcq"; prompt: string; options: string[]; answerIndex: number; explanation: string })
+  | (ItemBase & {
+      kind: "mcq";
+      prompt: string;
+      options: string[];
+      answerIndex: number;
+      explanation: string;
+      /**
+       * Per option, the misconception it stands for, said to a learner who picked it; "" for the
+       * answer. Absent on courses built before 27 Oct.
+       */
+      whyWrong?: string[];
+    })
   | (ItemBase & { kind: "card"; front: string; back: string });
 
 export type CheckItem = Extract<RecallItem, { kind: "mcq" }>;
@@ -139,9 +152,12 @@ export interface ObjectiveProgress {
   missStreak: number;
 }
 
+/** How sure the learner was, given with every answer (PLAN.md §3, "Teaching that works"). */
+export type Confidence = "guess" | "think" | "sure";
+
 export type MasteryEvent =
   /** `unaided`: answered without a re-explanation just before (first try in a lesson, quiz, review). */
-  | { kind: "check"; correct: boolean; unaided: boolean }
+  | { kind: "check"; correct: boolean; unaided: boolean; confidence?: Confidence }
   | { kind: "teachback"; verdict: "covered" | "missing" | "misconception" }
   /** A spaced review from the review queue. */
   | { kind: "review"; rating: "again" | "hard" | "good" | "easy" };

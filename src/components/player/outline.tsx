@@ -21,6 +21,7 @@ export function Outline(props: {
 }) {
   const { view, learner } = props;
   const s = view.summary(learner);
+  const cal = view.calibration(learner);
 
   return (
     <aside className={styles.aside} aria-label="Course progress">
@@ -44,6 +45,25 @@ export function Outline(props: {
         <p className={styles.muted}>
           {s.watchedMinutes} of {s.totalMinutes} min watched
         </p>
+        {cal.sure >= 3 && (
+          <p className={styles.calibration}>
+            When you were sure, you were right <strong>{cal.sureRight}</strong> of {cal.sure} times.
+          </p>
+        )}
+        {cal.surprises.length > 0 && (
+          <div className={styles.surprises}>
+            <p className={styles.eyebrow}>Sure, but wrong</p>
+            <ul>
+              {cal.surprises.map((id) => (
+                <li key={id}>
+                  <button className={styles.link} onClick={() => props.onJump(id.split("/")[0])}>
+                    {view.objective(id)?.text ?? id}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <ol className={styles.modules}>

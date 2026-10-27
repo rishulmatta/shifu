@@ -86,24 +86,25 @@ jumping past an unfinished prerequisite names it and offers to go there first, b
    missed or misunderstood, each with a rewatch button on the exact clip.
 2. A mixed quiz: questions from this module plus one or two from earlier modules.
 
-**Placement (Should).** Before module 1, one question per module. A module answered correctly is
-compressed: its clips become optional and one check question per concept confirms it.
+**The goal challenge** opens and closes the course (see "Teaching that works" below): 3–5
+challenges at the level of the learner's goal, tried cold before module 1 and again at the end.
+The cold attempt doubles as placement: a concept whose challenges were answered right gets a
+"you may know this already" note, and its clips can be skipped straight to the check question.
 
 **Finishing.** A course is complete when every concept has been studied and every module's
 teach-back done. It is mastered when every objective is solid.
 
 ```mermaid
 flowchart TD
-  S["Start: topic, goal, level, minutes a day"] --> P{"Placement check"}
-  P -->|"module known"| K["Compressed: one confirming question per concept"]
-  P -->|"new"| R["Due reviews first"]
-  K --> R
+  S["Start: topic, goal, level, minutes a day"] --> G["Goal challenge, cold: no answers shown"]
+  G --> R["Due reviews first"]
   R --> C["Next concept in prerequisite order"]
   C --> O["Objective: watch the clip"]
-  O --> Q{"Check question"}
+  O --> Q{"Check question + how sure?"}
   Q -->|"right"| N{"More objectives?"}
-  Q -->|"wrong"| X["Explain it differently: another creator"]
-  X --> Q2{"New question"}
+  Q -->|"wrong"| D["Name the misconception behind the pick"]
+  D --> X["Explain it differently: the creator who best addresses it"]
+  X --> Q2{"A question aimed at that misconception"}
   Q2 -->|"right"| N
   Q2 -->|"wrong again"| SH["Mark shaky, queue for review"]
   SH --> N
@@ -111,10 +112,54 @@ flowchart TD
   N -->|"no"| F["Flashcards for the concept"]
   F --> M{"End of module?"}
   M -->|"no"| C
-  M -->|"yes"| T["Teach it back by voice"]
+  M -->|"yes"| T["Teach it back to a student, who asks one follow-up"]
   T --> MQ["Mixed quiz: this module and earlier ones"]
-  MQ --> C
+  MQ --> E{"Last module?"}
+  E -->|"no"| C
+  E -->|"yes"| GF["Goal challenge again: before and after"]
 ```
+
+### Teaching that works
+
+Questions, flashcards and a mind map are the ingredients. These five decide when they're used and
+what Shifu reacts to. Each rests on a well-replicated finding, and each is something a playlist
+can't do. (Decided 27 Oct; "pause and predict" was considered and dropped.)
+
+1. **The goal challenge, before and after.** From the goal ("pass my stats exam"), Shifu writes
+   3–5 scenario questions that apply several objectives at once: what the learner came for, not
+   recall of one clip. Each names the objectives it draws on.
+   - **Cold, before module 1:** an "I don't know yet" option on each, and no answers shown, so
+     nothing is given away for the end.
+   - **Again at the end:** now with feedback, the misconception behind each wrong pick and a
+     rewatch link for each objective involved. The result is the headline: "Before: 1 of 5. Now:
+     4 of 5."
+   - Written right after the plan, in parallel with module 1, and kept only if a blind second
+     answer agrees with the key and finds no other defensible option. They aren't tied to a clip,
+     so there is no quote check; the README says so.
+2. **Wrong answers that diagnose.** Every distractor stands for a named misconception ("this mixes
+   up P(A|B) with P(B|A)"), stored with the question. A wrong pick shows it. Then "explain it
+   differently" goes to the server with that misconception: Muse Spark picks the alternate clip
+   that best addresses it and writes a question aimed at it, with the same quote and answer-blind
+   checks. The request starts the moment the learner answers, so it is usually ready by the time
+   they click. If it fails or there are no captions, the pre-built alternate question is used.
+3. **How sure are you?** The learner picks an answer, then taps Guessing, Think so or Sure to lock
+   it in. Confident errors are the ones learners correct best once told (the hypercorrection
+   effect), so they get their own treatment:
+   - sure and wrong: called out, and the objective goes straight to shaky (to the front of the
+     review queue) instead of waiting for a second miss;
+   - right but guessing: counts as progress, not as the unaided correct answer that solid needs;
+   - the progress tracker shows calibration ("when you were sure, you were right 8 of 10 times")
+     and lists the surprises.
+4. **You become the shifu.** The teach-back is to a curious student. After the explanation, the
+   student asks one follow-up question aimed at the biggest gap (or, if nothing is missing, a
+   "why" or "what if" that goes deeper), also told about misconceptions the learner showed earlier
+   in the module. The learner answers by voice or text; the answer is graded on that objective and
+   counts as teach-back evidence. Then the full report: covered, missing, not quite right, with
+   rewatch links. One question, one answer: it is not a chat.
+5. **Examples from your world.** The planner pulls the learner's context out of the goal ("my
+   marketing job", "a stats exam"). The quiz question for each objective (the second question from
+   its clip) is set in that world when it fits: near transfer after the clip, far transfer in the
+   quiz. The goal challenges use it too.
 
 ## 4. Architecture
 
@@ -200,8 +245,13 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
 1. **Plan** (Muse Spark 1.3, structured output). Input: topic, goal, level, time budget. Output:
    3–5 modules of 3–5 concepts each; prerequisite edges; 1–3 objectives per concept, phrased as
    things the learner can do ("compute a posterior from a prior and a likelihood"); 2–3 search
-   queries per concept; for each objective, the 2–4 points a good explanation must include. Total
-   watch time fits the learner's budget.
+   queries per concept; for each objective, the 2–4 points a good explanation must include; the
+   learner's context from the goal ("a stats exam", "my marketing job"). Total watch time fits the
+   learner's budget.
+
+   **1b. Goal challenges** (Muse Spark, in parallel with module 1): 3–5 scenario questions at the
+   level of the goal, each naming the objectives it draws on and a misconception per distractor;
+   kept only if a blind second answer agrees with the key and finds no other defensible option.
 
 2. **Discover** (YouTube Data API). Per concept: `search.list` (`type=video`,
    `videoEmbeddable=true`, `relevanceLanguage`, `safeSearch=strict`), then `videos.list` for
@@ -245,7 +295,8 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
 
 7. **Recall** (Muse Spark Open, fan-out per chosen span). 2–3 check questions (multiple choice with
    plausible distractors, or short answer) and 2–4 flashcards (basic or cloze), each with evidence
-   `{spanId, quote}`. Two checks:
+   `{spanId, quote}`. Every distractor carries the misconception it stands for, shown when it's
+   picked. The quiz question is set in the learner's context when it fits. Two checks:
    - **Quote check:** the quote must be in the span's transcript text, or the item is dropped.
    - **Answerability check:** a separate call answers the question from the span text alone,
      without the key. If it disagrees with the key or picks a distractor, drop the item and
@@ -292,8 +343,11 @@ Module 1 runs through every step first so the learner can start; the rest follow
 
 **Mechanics:**
 
-- **A miss** plays an alternate span, then a fresh question on the same objective (generated on
-  demand from the alternate if needed).
+- **A miss** names the misconception behind the pick, then plays the alternate span that best
+  addresses it and asks a question aimed at it, written on demand (`/api/courses/[slug]/retry`);
+  the pre-built alternate question is the fallback.
+- **Confidence:** every check and quiz answer carries Guessing, Think so or Sure. Sure and wrong
+  is a lapse (shaky at once); a correct guess is progress but not the unaided correct answer.
 - **Teach-back:** browser recorder → WAV encoded in the browser (16 kHz mono; the API takes WAV
   only) → upload → Muse Voice Transcribe (`POST /asr/transcribe`, `PUSH_TO_TALK`) → grader returns
   `{covered[], missing[], misconceptions[]}`, each tied to an objective and a span. Missing points
@@ -341,24 +395,21 @@ server-side.
   and mixed quiz.
 - Progress tracker (§7): course progress, mastery bar, resume at the exact block, the Today panel.
 - Mind map with per-objective mastery rings.
+- Teaching that works (§3), in this order: the goal challenge before and after, the student's
+  follow-up in the teach-back, wrong answers that diagnose, confidence, examples from the
+  learner's world.
 - Live deployment with 3 pre-built demo courses.
 
 **Should**
 
 - FSRS review queue.
-- Session summary, streak, and a "continue on another device" link.
-- Placement check: one question per module up front; modules the learner already knows are compressed.
+- Session summary.
 - Live build progress in the UI.
 
-**Stretch (only if every Must is solid by the end of day 7)**
+**Cut (27 Oct, to make room for "Teaching that works")**
 
-1. **Creator import.** An educator signs in with their Facebook Page or Instagram professional
-   account, and Shifu builds a course from their own videos. Muse Voice Transcribe supplies the
-   timestamps (turn-level only, so test how fine they are); Facebook embeds play clips with
-   `seek()`; Instagram embeds cannot seek, so reels play whole. Development mode with our own
-   accounts is enough for the demo; a public launch needs Meta app review.
-2. **Diagram flashcards.** Muse Image draws a labelled diagram of a concept from the clips; SAM 3.1
-   masks the labels; the learner names each part.
+- Streak and the "continue on another device" link.
+- Stretch: creator import from Facebook and Instagram, and diagram flashcards (Muse Image and SAM).
 
 ## 10. Schedule
 
@@ -384,11 +435,11 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 | Time | Shows |
 |---|---|
 | 0:00–0:20 | The problem: 40 videos on one topic, no structure, no idea what stuck |
-| 0:20–0:45 | Type a topic → outline and mind map appear; module 1 builds (sped up) |
-| 0:45–1:30 | Learn: clip → check question → miss → a different creator explains it → correct |
-| 1:30–2:10 | Teach it back by voice → covered and missing points → rewatch the exact moment |
-| 2:10–2:35 | Progress: the mind map's rings fill in, the Today panel, flashcards |
-| 2:35–3:00 | How it works: which Meta model does what, the verification checks, built in 9 days |
+| 0:20–0:40 | Type a topic and a goal → outline appears; the goal challenge, cold: 1 of 5 |
+| 0:40–1:25 | Learn: clip → "Sure" → wrong → Shifu names the misconception → the creator who best addresses it → a question aimed at it → right |
+| 1:25–2:05 | Teach it back by voice → the student asks about the gap → answer → covered, with rewatch links for the rest |
+| 2:05–2:30 | The goal challenge again: "Before: 1 of 5. Now: 4 of 5." Mind map rings, calibration |
+| 2:30–3:00 | How it works: which Meta model does what, the verification checks, built in 9 days |
 
 ## 12. Risks
 

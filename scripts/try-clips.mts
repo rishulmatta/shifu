@@ -1,5 +1,5 @@
 // Runs locate → verify → choose → recall on the two test transcripts and prints what each step kept,
-// what it dropped and why, and the cost. Run: pnpm try:clips
+// what it dropped and why, and the cost. Run: pnpm try:clips ["learner's world"]
 
 import { addUsage, ZERO } from "../src/lib/models/router";
 import { textInSeconds } from "../src/lib/pipeline/captions";
@@ -13,6 +13,7 @@ const objectives = bayesCourse.plan.concepts.find((c) => c.id === "bayes-rule")!
 const sources = [lecture, areaPicture];
 const videos = Object.fromEntries(sources.map((s) => [s.video.id, s.video]));
 const lines = Object.fromEntries(sources.map((s) => [s.video.id, s.lines]));
+const context = process.argv[2] ?? "a stats exam";
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 
 const started = Date.now();
@@ -39,10 +40,13 @@ for (const o of objectives) {
   }
   console.log(`\n## ${o.id}: ${spans.map((s) => `#${s.rank} ${s.videoId} ${clock(s.start)}–${clock(s.end)}`).join(", ")}`);
   const clip = (i: number) => spans[i] && { span: spans[i], text: textInSeconds(lines[spans[i].videoId], spans[i].start, spans[i].end) };
-  const recall = await writeRecall(o, clip(0)!, clip(1));
+  const recall = await writeRecall(o, clip(0)!, clip(1), context);
   usage = addUsage(usage, recall.usage);
   for (const item of recall.items) {
-    if (item.kind === "mcq") console.log(`  Q ${item.prompt}\n    ${item.options.map((x, i) => (i === item.answerIndex ? `[${x}]` : x)).join(" | ")}`);
+    if (item.kind === "mcq") {
+      console.log(`  Q ${item.prompt}\n    ${item.options.map((x, i) => (i === item.answerIndex ? `[${x}]` : x)).join(" | ")}`);
+      item.whyWrong?.forEach((w, i) => w && console.log(`      ✗ ${item.options[i]}: ${w}`));
+    }
     else console.log(`  Card: ${item.front} → ${item.back}`);
   }
   for (const d of recall.dropped) console.log(`  dropped: ${d}`);

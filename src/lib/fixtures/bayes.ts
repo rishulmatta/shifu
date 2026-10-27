@@ -1,7 +1,8 @@
 // A hand-written sample course for building the UI before the pipeline runs end to end
 // (PLAN.md §4, "Contract first"). The videos are real and embeddable (checked with YouTube's
 // oEmbed on 27 Oct 2026), but the clip times are illustrative guesses, not chosen from captions,
-// and the questions were written by hand. Evidence quotes are empty for the same reason.
+// and the questions (with the misconception behind each wrong option) were written by hand.
+// Evidence quotes are empty for the same reason.
 
 import { assembleTimeline } from "../pipeline/assemble";
 import type { Course, CoursePlan, RecallItem, Span, Video } from "../types";
@@ -21,6 +22,7 @@ const plan: CoursePlan = {
   goal: "Understand how evidence should change what I believe",
   level: "beginner",
   minutesPerDay: 20,
+  context: "",
   modules: [
     { index: 0, title: "Updating beliefs with evidence", conceptIds: ["priors-and-evidence", "bayes-rule"] },
     { index: 1, title: "Bayes in the wild", conceptIds: ["base-rates", "updating-gradually"] },
@@ -140,7 +142,7 @@ const spans: Span[] = [
 ];
 
 let n = 0;
-const mcq = (objectiveId: string, prompt: string, options: string[], answerIndex: number, explanation: string): RecallItem => ({
+const mcq = (objectiveId: string, prompt: string, options: string[], answerIndex: number, explanation: string, whyWrong: string[]): RecallItem => ({
   id: `item-${++n}`,
   kind: "mcq",
   objectiveId,
@@ -148,6 +150,7 @@ const mcq = (objectiveId: string, prompt: string, options: string[], answerIndex
   options,
   answerIndex,
   explanation,
+  whyWrong,
   evidence: { spanId: `${objectiveId}#0`, quote: "" },
 });
 const card = (objectiveId: string, front: string, back: string): RecallItem => ({
@@ -160,22 +163,102 @@ const card = (objectiveId: string, front: string, back: string): RecallItem => (
 });
 
 const items: RecallItem[] = [
-  mcq("priors-and-evidence/1", "What is a prior?", ["The evidence you collect", "What you believed before seeing the evidence", "The probability of the evidence", "The final answer"], 1, "A prior is your belief before the new evidence arrives."),
-  mcq("priors-and-evidence/1", "Two people see the same evidence but end up with different beliefs. The most likely reason?", ["One of them miscalculated", "They started from different priors", "The evidence was false", "Evidence can't change beliefs"], 1, "The same evidence moves different priors to different places."),
-  mcq("priors-and-evidence/1", "Why can't you judge evidence without a prior?", ["Evidence only says how much to shift, not where to start", "Priors are always 50%", "Evidence is always weak", "You can, priors are optional"], 0, "Evidence tells you how far to move; the prior says where you start."),
-  mcq("priors-and-evidence/2", "When is evidence strong for a hypothesis?", ["When it is surprising", "When it is much likelier if the hypothesis is true than if it is false", "When many people believe it", "When it is recent"], 1, "Strength is the ratio of how likely the evidence is under each hypothesis."),
-  mcq("priors-and-evidence/2", "Evidence that is about as likely whether or not the hypothesis is true should…", ["Barely move your belief", "Double your belief", "Make you certain", "Reverse your belief"], 0, "If both sides predict it equally, it carries almost no information."),
-  mcq("bayes-rule/1", "Prior 10%, likelihood of the evidence if true 80%, overall chance of the evidence 20%. The posterior?", ["8%", "16%", "40%", "80%"], 2, "0.10 × 0.80 ÷ 0.20 = 0.40."),
-  mcq("bayes-rule/1", "In Bayes' rule, what do you divide by?", ["The prior", "The likelihood", "The overall probability of the evidence", "One minus the prior"], 2, "Dividing by P(evidence) keeps the posterior a proper probability."),
-  mcq("bayes-rule/1", "If the evidence is certain whether or not the hypothesis holds, the posterior equals…", ["Zero", "The prior", "One", "The likelihood"], 1, "Evidence everyone expects can't change your belief."),
-  mcq("bayes-rule/2", "In the area picture, what does seeing the evidence do?", ["Adds new area", "Restricts you to the region where the evidence holds", "Removes the hypothesis", "Nothing"], 1, "You zoom in on the part of the space consistent with the evidence."),
-  mcq("bayes-rule/2", "The posterior in the area picture is…", ["The hypothesis's share of the region left after the evidence", "The whole area", "The area outside the evidence", "The prior's area"], 0, "It's the fraction of the restricted region where the hypothesis is true."),
-  mcq("base-rates/1", "A test is 90% accurate and the condition affects 1 in 1,000 people. After a positive result, is having it likely?", ["Yes, 90%", "Yes, about 50%", "No, it's still under 1%", "Exactly 10%"], 2, "False positives from the 999 healthy people swamp the one true positive."),
-  mcq("base-rates/1", "Why do false positives matter so much for rare conditions?", ["They're more common than true positives", "Tests are never accurate", "Rare conditions have no symptoms", "They don't"], 0, "With a low base rate, even a small false-positive rate produces more false alarms than real cases."),
-  mcq("base-rates/2", "Prior odds 1:99, Bayes factor 10. Posterior odds?", ["10:99", "1:990", "10:9", "1:9.9"], 0, "Multiply the prior odds by the Bayes factor: 1×10 : 99."),
-  mcq("base-rates/2", "The Bayes factor of a test is…", ["The prior odds", "The ratio of the true-positive rate to the false-positive rate", "The base rate", "The posterior probability"], 1, "It's the likelihood ratio: how much likelier a positive is if you have it."),
-  mcq("updating-gradually/1", "After one update, what becomes your new prior?", ["The old prior", "The posterior you just computed", "50%", "The likelihood"], 1, "Each posterior becomes the starting point for the next piece of evidence."),
-  mcq("updating-gradually/1", "Why can a belief held at 0% never change?", ["Zero times any likelihood is still zero", "Evidence is ignored", "It always changes", "Zero means unknown"], 0, "Bayes' rule multiplies by the prior, so a zero prior stays zero."),
+  mcq("priors-and-evidence/1", "What is a prior?", ["The evidence you collect", "What you believed before seeing the evidence", "The probability of the evidence", "The final answer"], 1, "A prior is your belief before the new evidence arrives.", [
+    "That's the data itself. The prior is what you believed before the data arrived.",
+    "",
+    "That's how likely the evidence is overall (the bottom of Bayes' rule), not your starting belief.",
+    "That's the posterior: where you end up after the evidence, not where you start.",
+  ]),
+  mcq("priors-and-evidence/1", "Two people see the same evidence but end up with different beliefs. The most likely reason?", ["One of them miscalculated", "They started from different priors", "The evidence was false", "Evidence can't change beliefs"], 1, "The same evidence moves different priors to different places.", [
+    "Both can calculate correctly: the same update applied to different starting points lands in different places.",
+    "",
+    "Nothing says the evidence was false; even true evidence leaves different priors in different places.",
+    "Evidence does change beliefs; it moves each person from wherever they started.",
+  ]),
+  mcq("priors-and-evidence/1", "Why can't you judge evidence without a prior?", ["Evidence only says how much to shift, not where to start", "Priors are always 50%", "Evidence is always weak", "You can, priors are optional"], 0, "Evidence tells you how far to move; the prior says where you start.", [
+    "",
+    "A prior can be anything. Assuming 50% is itself a prior, and often a bad one.",
+    "Evidence can be strong, but even strong evidence needs a starting point to move from.",
+    "Skipping the prior doesn't remove it: you end up using one without noticing.",
+  ]),
+  mcq("priors-and-evidence/2", "When is evidence strong for a hypothesis?", ["When it is surprising", "When it is much likelier if the hypothesis is true than if it is false", "When many people believe it", "When it is recent"], 1, "Strength is the ratio of how likely the evidence is under each hypothesis.", [
+    "Surprise alone isn't enough: what matters is whether the hypothesis makes it much likelier than the alternative does.",
+    "",
+    "That's popularity, not evidence. Strength comes from how differently the hypotheses predict it.",
+    "Recency doesn't change how well the evidence tells the hypotheses apart.",
+  ]),
+  mcq("priors-and-evidence/2", "Evidence that is about as likely whether or not the hypothesis is true should…", ["Barely move your belief", "Double your belief", "Make you certain", "Reverse your belief"], 0, "If both sides predict it equally, it carries almost no information.", [
+    "",
+    "Doubling your odds needs evidence about twice as likely under the hypothesis; here the ratio is about 1.",
+    "Certainty needs evidence that's impossible under the alternative; this is equally likely under both.",
+    "To push you the other way, the evidence would have to be likelier if the hypothesis were false.",
+  ]),
+  mcq("bayes-rule/1", "Prior 10%, likelihood of the evidence if true 80%, overall chance of the evidence 20%. The posterior?", ["8%", "16%", "40%", "80%"], 2, "0.10 × 0.80 ÷ 0.20 = 0.40.", [
+    "That's prior × likelihood without dividing by the overall chance of the evidence.",
+    "That multiplies the likelihood by the chance of the evidence; Bayes' rule multiplies by the prior and divides by the evidence.",
+    "",
+    "That's the likelihood: the chance of the evidence if the hypothesis is true, not the chance of the hypothesis given the evidence.",
+  ]),
+  mcq("bayes-rule/1", "In Bayes' rule, what do you divide by?", ["The prior", "The likelihood", "The overall probability of the evidence", "One minus the prior"], 2, "Dividing by P(evidence) keeps the posterior a proper probability.", [
+    "The prior is multiplied in, not divided by.",
+    "The likelihood is multiplied in too; the division scales by how likely the evidence is overall.",
+    "",
+    "One minus the prior is the chance the hypothesis is false. It appears inside P(evidence), not on its own.",
+  ]),
+  mcq("bayes-rule/1", "If the evidence is certain whether or not the hypothesis holds, the posterior equals…", ["Zero", "The prior", "One", "The likelihood"], 1, "Evidence everyone expects can't change your belief.", [
+    "Evidence that's certain either way can't rule the hypothesis out.",
+    "",
+    "A likelihood of 1 doesn't make the hypothesis certain, because the evidence was certain anyway.",
+    "The likelihood is 1 here, but the posterior is the prior × 1 ÷ 1.",
+  ]),
+  mcq("bayes-rule/2", "In the area picture, what does seeing the evidence do?", ["Adds new area", "Restricts you to the region where the evidence holds", "Removes the hypothesis", "Nothing"], 1, "You zoom in on the part of the space consistent with the evidence.", [
+    "Evidence never adds possibilities; it rules some out.",
+    "",
+    "The hypothesis survives wherever it overlaps the evidence; only the rest is ruled out.",
+    "Evidence always narrows the space, even when the hypothesis's share happens to stay the same.",
+  ]),
+  mcq("bayes-rule/2", "The posterior in the area picture is…", ["The hypothesis's share of the region left after the evidence", "The whole area", "The area outside the evidence", "The prior's area"], 0, "It's the fraction of the restricted region where the hypothesis is true.", [
+    "",
+    "The whole area is everything before the evidence; the posterior only looks inside what's left.",
+    "That's the part the evidence ruled out. The posterior lives inside the evidence region.",
+    "The prior is the hypothesis's share before the evidence; the posterior is its share after.",
+  ]),
+  mcq("base-rates/1", "A test is 90% accurate and the condition affects 1 in 1,000 people. After a positive result, is having it likely?", ["Yes, 90%", "Yes, about 50%", "No, it's still under 1%", "Exactly 10%"], 2, "False positives from the 999 healthy people swamp the one true positive.", [
+    "90% is the chance of a positive if you're ill, not the chance you're ill after a positive. It ignores how rare the condition is.",
+    "A coin flip feels fair, but the 999 healthy people produce about 100 false positives against one real case.",
+    "",
+    "10% is the false-positive rate, not the chance you have it.",
+  ]),
+  mcq("base-rates/1", "Why do false positives matter so much for rare conditions?", ["They're more common than true positives", "Tests are never accurate", "Rare conditions have no symptoms", "They don't"], 0, "With a low base rate, even a small false-positive rate produces more false alarms than real cases.", [
+    "",
+    "The test can be quite accurate; the problem is how many healthy people it's applied to.",
+    "Symptoms aren't part of this: it's the arithmetic of a small base rate.",
+    "They do: with a rare condition, false alarms can outnumber real cases many times over.",
+  ]),
+  mcq("base-rates/2", "Prior odds 1:99, Bayes factor 10. Posterior odds?", ["10:99", "1:990", "10:1", "11:99"], 0, "Multiply the prior odds by the Bayes factor: 1×10 : 99.", [
+    "",
+    "That divides the hypothesis's side by the Bayes factor; the odds form multiplies it.",
+    "That's the Bayes factor on its own, as if the prior odds didn't matter.",
+    "That adds the Bayes factor to the odds; the odds form multiplies.",
+  ]),
+  mcq("base-rates/2", "The Bayes factor of a test is…", ["The prior odds", "The ratio of the true-positive rate to the false-positive rate", "The base rate", "The posterior probability"], 1, "It's the likelihood ratio: how much likelier a positive is if you have it.", [
+    "Prior odds are where you start; the Bayes factor is how far the test moves them.",
+    "",
+    "The base rate is how common the condition is. It sets the prior, not the test's strength.",
+    "The posterior is the result; the Bayes factor is what you multiply by to get there.",
+  ]),
+  mcq("updating-gradually/1", "After one update, what becomes your new prior?", ["The old prior", "The posterior you just computed", "50%", "The likelihood"], 1, "Each posterior becomes the starting point for the next piece of evidence.", [
+    "Going back to the old prior throws away the evidence you've just used.",
+    "",
+    "Resetting to 50% ignores everything you've learned so far.",
+    "The likelihood describes the evidence, not your belief after it.",
+  ]),
+  mcq("updating-gradually/1", "Why can a belief held at 0% never change?", ["Zero times any likelihood is still zero", "Evidence is ignored", "It always changes", "Zero means unknown"], 0, "Bayes' rule multiplies by the prior, so a zero prior stays zero.", [
+    "",
+    "The evidence is used; it's the multiplication by zero that stops it having any effect.",
+    "Bayes' rule multiplies by the prior, so a prior of zero stays zero whatever you see.",
+    "0% isn't \"unknown\": it's certainty that the hypothesis is false.",
+  ]),
   card("priors-and-evidence/1", "Prior", "What you believed before seeing the new evidence."),
   card("priors-and-evidence/2", "When is evidence strong?", "When it's much likelier if the hypothesis is true than if it's false."),
   card("bayes-rule/1", "Bayes' rule in words", "Posterior = prior × likelihood ÷ probability of the evidence."),

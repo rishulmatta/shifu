@@ -3,6 +3,7 @@
 // - quote check: the supporting quote must appear in the clip's captions;
 // - answer-blind check: a separate call answers each question from the clip alone, without the key,
 //   and the question is dropped if it doesn't land on the keyed answer.
+// Every distractor carries the misconception it stands for, shown to a learner who picks it.
 
 import { z } from "zod";
 import { addUsage as add, generate, type Usage } from "../models/router";
@@ -11,7 +12,14 @@ import { quoteFound } from "./captions";
 
 export const RecallOutput = z.object({
   questions: z.array(
-    z.object({ prompt: z.string(), options: z.array(z.string()), answerIndex: z.number().int(), explanation: z.string(), quote: z.string() }),
+    z.object({
+      prompt: z.string(),
+      options: z.array(z.string()),
+      answerIndex: z.number().int(),
+      whyWrong: z.array(z.string()),
+      explanation: z.string(),
+      quote: z.string(),
+    }),
   ),
   cards: z.array(z.object({ front: z.string(), back: z.string(), quote: z.string() })),
 });
@@ -20,8 +28,9 @@ export const RECALL_SYSTEM = `You write recall practice for one learning objecti
 
 Questions: multiple choice with exactly 4 options and exactly one correct answer.
 - Test understanding of the objective, not trivia about the video: no questions about the speaker, the channel, the order things were said or on-screen details.
-- Distractors are plausible misconceptions a learner might hold, similar in length and style to the answer, and each is clearly wrong according to the clip, not merely less complete.
-- Options are plain text, without letters or numbers in front.
+- Distractors are plausible misconceptions a learner might hold, similar in length and style to the answer, and each is clearly wrong according to the clip, not merely less complete. Each distractor stands for a different misconception.
+- Options are plain text, without letters or numbers in front. Each states an answer only, never the working or reasoning behind it.
+- "whyWrong": one entry per option, in the same order: "" for the correct answer; for each distractor, one sentence of at most 25 words to a learner who picked it that names the misconception behind it ("That's the chance of a positive test if you're ill, not the chance you're ill after a positive test."). Name the confusion; don't just say it's wrong. Each distractor must be exactly what its misconception produces (for a number, the number that mistake gives).
 - "explanation": one or two sentences, in your own words, on why the answer is right.
 - "quote": 5 to 15 consecutive words copied exactly from the clip that support the answer.
 Cards: a short "front" (a term or a question) and a "back" of at most 25 words in your own words, with a "quote" as above.
@@ -46,8 +55,11 @@ export interface RecallResult {
   usage: Usage;
 }
 
-/** A stable shuffle, so the keyed answer isn't wherever the model likes to put it. */
-export function shuffleOptions(options: string[], answerIndex: number, seed: string) {
+/**
+ * A stable shuffle, so the keyed answer isn't wherever the model likes to put it. `whyWrong`
+ * moves with its option.
+ */
+export function shuffleOptions(options: string[], answerIndex: number, seed: string, whyWrong?: string[]) {
   let h = 2166136261;
   for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
   const order = options.map((_, i) => i);
@@ -56,17 +68,33 @@ export function shuffleOptions(options: string[], answerIndex: number, seed: str
     const j = h % (i + 1);
     [order[i], order[j]] = [order[j], order[i]];
   }
-  return { options: order.map((i) => options[i]), answerIndex: order.indexOf(answerIndex) };
+  return {
+    options: order.map((i) => options[i]),
+    answerIndex: order.indexOf(answerIndex),
+    ...(whyWrong && { whyWrong: order.map((i) => whyWrong[i]) }),
+  };
 }
 
-const userPrompt = (objective: Objective, clip: ClipText, questions: number, cards: number) =>
-  [
+function userPrompt(objective: Objective, clip: ClipText, want: Want) {
+  const lines = [
     `Objective: ${objective.text}`,
     `Must include: ${objective.mustInclude.join("; ")}`,
-    `Write ${questions} question(s) and ${cards} card(s).`,
-    "",
-    `Clip:\n${clip.text}`,
-  ].join("\n");
+    `Write ${want.questions} question(s) and ${want.cards} card(s).`,
+  ];
+  if (want.questions > 1 && want.context) {
+    lines.push(
+      `The learner's world: ${want.context}. Set the last question in a situation from that world if the idea genuinely applies there, without naming the world itself ("On your exam…"); the clip must still settle the answer. Otherwise keep it general.`,
+    );
+  }
+  return [...lines, "", `Clip:\n${clip.text}`].join("\n");
+}
+
+interface Want {
+  questions: number;
+  cards: number;
+  /** The learner's world (CoursePlan.context), or "". */
+  context: string;
+}
 
 async function answerBlind(clip: ClipText, q: Pick<CheckItem, "prompt" | "options">) {
   const options = q.options.map((o, i) => `${i}. ${o}`).join("\n");
@@ -78,12 +106,12 @@ async function answerBlind(clip: ClipText, q: Pick<CheckItem, "prompt" | "option
   });
 }
 
-async function fromClip(objective: Objective, clip: ClipText, want: { questions: number; cards: number }, tag: string) {
+async function fromClip(objective: Objective, clip: ClipText, want: Want, tag: string) {
   const out = await generate("recall", {
     name: "Recall",
     schema: RecallOutput,
     system: RECALL_SYSTEM,
-    user: userPrompt(objective, clip, want.questions, want.cards),
+    user: userPrompt(objective, clip, want),
   });
   let usage = out.usage;
   const dropped: string[] = [];
@@ -96,7 +124,7 @@ async function fromClip(objective: Objective, clip: ClipText, want: { questions:
     if (options.length !== 4 || !distinct || q.answerIndex < 0 || q.answerIndex > 3) return dropped.push(`malformed: ${q.prompt}`);
     if (!quoteFound(clip.text, q.quote)) return dropped.push(`quote not in clip: ${q.prompt}`);
     const id = `${objective.id}:${tag}q${i + 1}`;
-    const shuffled = shuffleOptions(options, q.answerIndex, id);
+    const shuffled = shuffleOptions(options, q.answerIndex, id, misconceptions(q.whyWrong, q.answerIndex));
     drafted.push({ id, kind: "mcq", objectiveId: objective.id, prompt: q.prompt, explanation: q.explanation, evidence: evidence(q.quote), ...shuffled });
   });
 
@@ -124,15 +152,20 @@ async function fromClip(objective: Objective, clip: ClipText, want: { questions:
   return { questions, cards, dropped, usage };
 }
 
+/** Four entries, "" for the answer, whatever the model sent. */
+export const misconceptions = (whyWrong: string[], answerIndex: number) =>
+  [0, 1, 2, 3].map((i) => (i === answerIndex ? "" : (whyWrong[i] ?? "").trim()));
+
 /**
- * The chosen clip gives the lesson check, the quiz question and the cards; the alternate clip
- * gives the question asked after "explain it differently". Returned in the order the timeline
- * uses them: lesson check, second-try question, quiz question, then cards.
+ * The chosen clip gives the lesson check, the quiz question (set in the learner's world when it
+ * fits) and the cards; the alternate clip gives the question asked after "explain it differently".
+ * Returned in the order the timeline uses them: lesson check, second-try question, quiz question,
+ * then cards.
  */
-export async function writeRecall(objective: Objective, chosen: ClipText, alternate?: ClipText): Promise<RecallResult> {
+export async function writeRecall(objective: Objective, chosen: ClipText, alternate?: ClipText, context = ""): Promise<RecallResult> {
   const [main, alt] = await Promise.all([
-    fromClip(objective, chosen, { questions: 2, cards: 2 }, ""),
-    alternate ? fromClip(objective, alternate, { questions: 1, cards: 0 }, "alt-") : undefined,
+    fromClip(objective, chosen, { questions: 2, cards: 2, context }, ""),
+    alternate ? fromClip(objective, alternate, { questions: 1, cards: 0, context: "" }, "alt-") : undefined,
   ]);
   const [lesson, quiz] = main.questions;
   const items: RecallItem[] = [lesson, alt?.questions[0], quiz].filter((q): q is CheckItem => !!q);

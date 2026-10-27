@@ -16,6 +16,7 @@ export interface PlanInput {
 const LIMITS = { modules: 4, conceptsPerModule: 4, objectives: 3, mustInclude: 4, queries: 3 };
 
 export const PlanOutput = z.object({
+  learnerContext: z.string(),
   modules: z.array(
     z.object({
       title: z.string(),
@@ -47,6 +48,7 @@ Rules:
 - "mustInclude": 2-4 short, specific points a good explanation of that objective has to contain. They are used to judge clips, so make them checkable.
 - "searchQueries": 2-3 YouTube searches that would find a focused explanation of this concept, not of the whole topic, in the plain words people actually search with.
 - Fit the learner's level and goal; skip what their level implies they already know.
+- "learnerContext": a few words for the learner's world as the goal describes it ("a stats exam", "marketing at work", "reading ML papers"), or "" if the goal doesn't say. Later steps set some practice questions there.
 - No medical, legal or financial advice.`;
 
 export const planPrompt = (input: PlanInput) =>
@@ -126,7 +128,15 @@ export function toCoursePlan(input: PlanInput, out: PlanOutput): { plan: CourseP
   }
 
   return {
-    plan: { topic: input.topic, goal: input.goal, level: input.level, minutesPerDay: input.minutesPerDay, modules, concepts },
+    plan: {
+      topic: input.topic,
+      goal: input.goal,
+      level: input.level,
+      minutesPerDay: input.minutesPerDay,
+      context: out.learnerContext.trim().slice(0, 80),
+      modules,
+      concepts,
+    },
     warnings,
   };
 }

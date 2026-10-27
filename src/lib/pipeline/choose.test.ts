@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Objective, Video } from "../types";
 import { chooseSpans } from "./choose";
 import type { Candidate } from "./locate";
-import { shuffleOptions, unlabel } from "./recall";
+import { misconceptions, shuffleOptions, unlabel } from "./recall";
 
 const objective: Objective = { id: "bayes-rule/1", conceptId: "bayes-rule", text: "Compute a posterior", mustInclude: ["multiply", "divide"] };
 const video = (id: string, channel: string): Video => ({ id, title: id, channel, durationS: 600 });
@@ -60,6 +60,12 @@ describe("shuffleOptions", () => {
     expect([...a.options].sort()).toEqual([...opts].sort());
   });
 
+  it("moves each misconception with its option", () => {
+    const whyWrong = ["", "why w1", "why w2", "why w3"];
+    const a = shuffleOptions(["right", "w1", "w2", "w3"], 0, "seed-2", whyWrong);
+    a.options.forEach((o, i) => expect(a.whyWrong?.[i]).toBe(o === "right" ? "" : `why ${o}`));
+  });
+
   it("spreads answers across positions", () => {
     const positions = new Set(Array.from({ length: 40 }, (_, i) => shuffleOptions(["r", "a", "b", "c"], 0, `q${i}`).answerIndex));
     expect(positions.size).toBe(4);
@@ -76,5 +82,12 @@ describe("unlabel", () => {
       "4 ways to see it",
       "A priori",
     ]);
+  });
+});
+
+describe("misconceptions", () => {
+  it("always gives four entries, blank for the answer, whatever the model sent", () => {
+    expect(misconceptions(["a", " b ", "c"], 1)).toEqual(["a", "", "c", ""]);
+    expect(misconceptions(["a", "b", "c", "d", "e"], 3)).toEqual(["a", "b", "c", ""]);
   });
 });

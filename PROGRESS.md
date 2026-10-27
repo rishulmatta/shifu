@@ -68,3 +68,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   graded per objective as covered, missing or not quite right, with a note, the learner's own
   words (checked against what they said) and a rewatch button on the exact clip; verdicts feed
   mastery. A planted misconception was caught on the first live run.
+- Planned "Teaching that works" (`PLAN.md` §3): the goal challenge before and after, a student who
+  asks a follow-up in the teach-back, wrong answers that diagnose, confidence, and examples from the
+  learner's world. Cut the streak, "continue on another device" and the stretch goals to make room.
+- Confidence and diagnosis: every answer is locked in with Guessing, Think so or Sure. A wrong
+  pick shows the misconception behind it, a confident miss goes straight to shaky, a lucky guess
+  doesn't count towards solid, and the tracker lists "sure, but wrong" objectives. The recall step
+  now writes a misconception per distractor and sets the quiz question in the learner's world
+  (tested live: a marketing context gave "the chance a clicker is a buyer").

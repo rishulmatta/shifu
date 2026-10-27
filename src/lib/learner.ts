@@ -5,9 +5,19 @@
 
 import { useSyncExternalStore } from "react";
 import { initialProgress, nextState } from "./mastery";
-import type { MasteryEvent, ObjectiveId, ObjectiveProgress } from "./types";
+import type { CheckItem, Confidence, MasteryEvent, ObjectiveId, ObjectiveProgress } from "./types";
 
 export type Rating = "again" | "hard" | "good" | "easy";
+
+/** One answered question, for calibration and for the teach-back student's follow-up. */
+export interface Attempt {
+  itemId: string;
+  objectiveId: ObjectiveId;
+  correct: boolean;
+  confidence: Confidence;
+  /** The misconception behind a wrong pick, when the question names one. */
+  misconception?: string;
+}
 
 export interface LearnerState {
   /** Index of the current block in the course timeline. */
@@ -20,9 +30,10 @@ export interface LearnerState {
   /** The learner's own rating of each flashcard, for the review scheduler. */
   cards: Record<string, Rating>;
   quizScores: Record<number, { correct: number; total: number }>;
+  attempts: Attempt[];
 }
 
-export const EMPTY: LearnerState = { position: 0, objectives: {}, answered: [], watched: [], cards: {}, quizScores: {} };
+export const EMPTY: LearnerState = { position: 0, objectives: {}, answered: [], watched: [], cards: {}, quizScores: {}, attempts: [] };
 
 const key = (slug: string) => `shifu:course:${slug}`;
 const memory = new Map<string, LearnerState>();
@@ -80,4 +91,12 @@ export function useLearner(slug: string): LearnerState {
 export function withEvidence(s: LearnerState, objectiveId: ObjectiveId, event: MasteryEvent): LearnerState {
   const prev = s.objectives[objectiveId] ?? initialProgress(objectiveId);
   return { ...s, objectives: { ...s.objectives, [objectiveId]: nextState(prev, event) } };
+}
+
+/** Records an answer to a check or quiz question: the attempt, and the mastery evidence it gives. */
+export function withAnswer(s: LearnerState, item: CheckItem, choice: number, confidence: Confidence, unaided: boolean): LearnerState {
+  const correct = choice === item.answerIndex;
+  const misconception = correct ? undefined : item.whyWrong?.[choice] || undefined;
+  const attempt: Attempt = { itemId: item.id, objectiveId: item.objectiveId, correct, confidence, ...(misconception && { misconception }) };
+  return withEvidence({ ...s, attempts: [...s.attempts, attempt] }, item.objectiveId, { kind: "check", correct, unaided, confidence });
 }

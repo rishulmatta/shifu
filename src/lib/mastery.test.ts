@@ -44,6 +44,17 @@ describe("nextState", () => {
     expect(run(right, covered, again).state).toBe("shaky");
   });
 
+  it("turns shaky at once on a confident miss", () => {
+    expect(run({ ...wrong, confidence: "sure" }).state).toBe("shaky");
+    expect(run({ ...wrong, confidence: "think" }).state).toBe("learning");
+    expect(run(right, covered, { ...wrong, confidence: "sure" }).state).toBe("shaky");
+  });
+
+  it("does not count a lucky guess towards solid", () => {
+    expect(run({ ...right, confidence: "guess" }, covered).state).toBe("learning");
+    expect(run({ ...right, confidence: "think" }, covered).state).toBe("solid");
+  });
+
   it("drops a solid objective to learning on a single miss", () => {
     expect(run(right, covered, wrong).state).toBe("learning");
   });

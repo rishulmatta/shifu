@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { CourseView } from "@/lib/course-view";
-import { update, useLearner, withEvidence } from "@/lib/learner";
+import { update, useLearner, withAnswer, withEvidence } from "@/lib/learner";
 import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
@@ -88,9 +88,7 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
         item={item}
         alternate={altSpan && altItem ? { span: altSpan, video: course.videos[altSpan.videoId], item: altItem } : undefined}
         answered={learner.answered.includes(index)}
-        onAnswer={(correct, unaided) =>
-          save((s) => markAnswered(withEvidence(s, block.objectiveId, { kind: "check", correct, unaided })))
-        }
+        onAnswer={(asked, choice, confidence, unaided) => save((s) => markAnswered(withAnswer(s, asked, choice, confidence, unaided)))}
         onContinue={next}
       />
     );
@@ -131,7 +129,7 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
         module={mod}
         items={block.itemIds.map((id) => view.items.get(id) as CheckItem)}
         done={learner.quizScores[index]}
-        onAnswer={(item, correct) => save((s) => withEvidence(s, item.objectiveId, { kind: "check", correct, unaided: true }))}
+        onAnswer={(item, choice, confidence) => save((s) => withAnswer(s, item, choice, confidence, true))}
         onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [index]: score } }))}
         onContinue={next}
       />

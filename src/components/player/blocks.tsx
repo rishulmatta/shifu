@@ -6,7 +6,7 @@
 import { useState } from "react";
 import type { Rating } from "@/lib/learner";
 import { clock } from "@/lib/course-view";
-import type { CardItem, CheckItem, Concept, Module, Objective, Span, Video } from "@/lib/types";
+import type { CardItem, CheckItem, Concept, Confidence, Module, Objective, Span, Video } from "@/lib/types";
 import styles from "./player.module.css";
 import { YouTubeClip } from "./youtube-clip";
 
@@ -97,10 +97,24 @@ export function ClipView(props: { objective: Objective; span: Span; video: Video
 
 // ── Multiple choice, shared by checks and quizzes ────────────────────────────────────────────
 
-function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (correct: boolean) => void }) {
+const CONFIDENCE: { value: Confidence; label: string }[] = [
+  { value: "guess", label: "Guessing" },
+  { value: "think", label: "Think so" },
+  { value: "sure", label: "Sure" },
+];
+
+/**
+ * Pick an option, then say how sure you are to lock it in (PLAN.md §3, "Teaching that works").
+ * A wrong pick shows the misconception behind it; a confident miss and a lucky guess are named.
+ */
+function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (choice: number, confidence: Confidence) => void }) {
   const { item } = props;
-  const [choice, setChoice] = useState<number | null>(props.reveal ? item.answerIndex : null);
-  const done = choice !== null;
+  const [picked, setPicked] = useState<number | null>(props.reveal ? item.answerIndex : null);
+  const [confidence, setConfidence] = useState<Confidence | null>(null);
+  const done = !!props.reveal || confidence !== null;
+  const correct = picked === item.answerIndex;
+  const diagnosis = done && !correct && picked !== null ? item.whyWrong?.[picked] : undefined;
+
   return (
     <>
       <h2 className={styles.title}>{item.prompt}</h2>
@@ -109,20 +123,49 @@ function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (correct
           <button
             key={i}
             disabled={done}
+            aria-pressed={done ? undefined : picked === i}
             className={cx(
               styles.option,
+              !done && picked === i && styles.picked,
               done && i === item.answerIndex && styles.right,
-              done && i === choice && i !== item.answerIndex && styles.wrong,
+              done && i === picked && !correct && styles.wrong,
             )}
-            onClick={() => {
-              setChoice(i);
-              props.onAnswer(i === item.answerIndex);
-            }}
+            onClick={() => setPicked(i)}
           >
             {option}
           </button>
         ))}
       </div>
+      {!done && picked !== null && (
+        <div className={styles.confidence}>
+          <span className={styles.muted}>How sure are you?</span>
+          {CONFIDENCE.map((c) => (
+            <button
+              key={c.value}
+              className={styles.secondary}
+              onClick={() => {
+                setConfidence(c.value);
+                props.onAnswer(picked, c.value);
+              }}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {diagnosis && (
+        <p className={styles.diagnosis}>
+          <strong>Not quite.</strong> {diagnosis}
+        </p>
+      )}
+      {done && !correct && confidence === "sure" && (
+        <p className={styles.note}>
+          You were sure about this one. Confident mistakes are the easiest to fix once you see them, so it comes back first in your review.
+        </p>
+      )}
+      {done && correct && confidence === "guess" && (
+        <p className={styles.muted}>Right, though you were guessing. It will come back to make sure it stuck.</p>
+      )}
       {done && <p className={styles.explanation}>{item.explanation}</p>}
     </>
   );
@@ -137,13 +180,14 @@ export function CheckView(props: {
   /** A different creator's span and a second question, when the course has them. */
   alternate?: { span: Span; video: Video; item: CheckItem };
   answered: boolean;
-  onAnswer: (correct: boolean, unaided: boolean) => void;
+  onAnswer: (item: CheckItem, choice: number, confidence: Confidence, unaided: boolean) => void;
   onContinue: () => void;
 }) {
   const { item, alternate } = props;
   // Decided once: answering marks the block answered, which must not cut this attempt short.
   const [revisit] = useState(props.answered);
   const [phase, setPhase] = useState<CheckPhase>("ask");
+  const [sure, setSure] = useState(false);
 
   if (revisit) {
     return (
@@ -176,18 +220,21 @@ export function CheckView(props: {
   }
 
   const second = phase === "again" || phase === "again-right" || phase === "again-wrong";
+  const asked = second && alternate ? alternate.item : item;
   return (
     <section className={styles.card}>
       <p className={styles.eyebrow}>{second ? "Check · second try" : "Check"}</p>
       <Question
         key={second ? "second" : "first"}
-        item={second && alternate ? alternate.item : item}
-        onAnswer={(correct) => {
-          props.onAnswer(correct, !second);
+        item={asked}
+        onAnswer={(choice, confidence) => {
+          const correct = choice === asked.answerIndex;
+          props.onAnswer(asked, choice, confidence, !second);
+          setSure(confidence === "sure");
           setPhase(second ? (correct ? "again-right" : "again-wrong") : correct ? "right" : "wrong");
         }}
       />
-      {phase === "again-wrong" && (
+      {phase === "again-wrong" && !sure && (
         <p className={styles.note}>Marked shaky. It will come back in your review, so keep going.</p>
       )}
       <div className={styles.actions}>
@@ -267,7 +314,7 @@ export function QuizView(props: {
   module: Module;
   items: CheckItem[];
   done?: { correct: number; total: number };
-  onAnswer: (item: CheckItem, correct: boolean) => void;
+  onAnswer: (item: CheckItem, choice: number, confidence: Confidence) => void;
   onFinish: (score: { correct: number; total: number }) => void;
   onContinue: () => void;
 }) {
@@ -305,9 +352,9 @@ export function QuizView(props: {
       <Question
         key={item.id}
         item={item}
-        onAnswer={(ok) => {
-          props.onAnswer(item, ok);
-          if (ok) setCorrect(correct + 1);
+        onAnswer={(choice, confidence) => {
+          props.onAnswer(item, choice, confidence);
+          if (choice === item.answerIndex) setCorrect(correct + 1);
           setAnswered(true);
         }}
       />

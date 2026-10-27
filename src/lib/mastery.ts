@@ -9,10 +9,11 @@ export function initialProgress(objectiveId: ObjectiveId): ObjectiveProgress {
 
 /**
  * Applies one piece of evidence. The latest evidence wins:
- * - two misses in a row, a teach-back that misses the point, or a forgotten review → shaky
- *   (and the evidence for solid starts again);
+ * - two misses in a row, a confident miss, a teach-back that misses the point, or a forgotten
+ *   review → shaky (and the evidence for solid starts again);
  * - from shaky, any good evidence lifts to learning, never straight to solid;
- * - solid needs an unaided correct answer and a later confirmation (teach-back or spaced review).
+ * - solid needs an unaided correct answer and a later confirmation (teach-back or spaced review);
+ *   a right answer the learner called a guess is progress, not that correct answer.
  */
 export function nextState(p: ObjectiveProgress, e: MasteryEvent): ObjectiveProgress {
   let { correct, confirmed, missStreak } = p;
@@ -24,11 +25,12 @@ export function nextState(p: ObjectiveProgress, e: MasteryEvent): ObjectiveProgr
       if (e.correct) {
         missStreak = 0;
         good = true;
-        if (e.unaided) correct = true;
+        if (e.unaided && e.confidence !== "guess") correct = true;
       } else {
         missStreak += 1;
         correct = false;
-        lapse = missStreak >= 2;
+        // Sure and wrong is a misconception, not a gap: it goes to the front of the review at once.
+        lapse = missStreak >= 2 || e.confidence === "sure";
       }
       break;
     case "teachback":

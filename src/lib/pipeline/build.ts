@@ -126,7 +126,7 @@ async function buildModule(plan: CoursePlan, moduleIndex: number, sources: Sourc
     LIMITS.parallel,
     (o) => {
       const mine = spans.filter((s) => s.objectiveId === o.id);
-      return writeRecall(o, clip(mine.find((s) => s.rank === 0))!, clip(mine.find((s) => s.rank === 1)));
+      return writeRecall(o, clip(mine.find((s) => s.rank === 0))!, clip(mine.find((s) => s.rank === 1)), plan.context);
     },
     (o, e) => warn(`questions for ${o.id} failed: ${String(e)}`),
   );

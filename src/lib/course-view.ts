@@ -67,6 +67,16 @@ export class CourseView {
       .filter((c): c is Concept => !!c && !this.studied(learner, c));
   }
 
+  /** How often "Sure" was right, and the objectives where it wasn't (PLAN.md §3, confidence). */
+  calibration(learner: LearnerState) {
+    const sure = learner.attempts.filter((a) => a.confidence === "sure");
+    return {
+      sure: sure.length,
+      sureRight: sure.filter((a) => a.correct).length,
+      surprises: [...new Set(sure.filter((a) => !a.correct).map((a) => a.objectiveId))],
+    };
+  }
+
   summary(learner: LearnerState) {
     const concepts = this.course.plan.concepts.filter((c) => this.available.has(c.id));
     const objectives = concepts.flatMap((c) => c.objectives);
