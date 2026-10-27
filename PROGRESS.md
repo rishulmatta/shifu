@@ -87,3 +87,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   40 runs Muse Voice Transcribe never lost or invented a word, only stuttered, so it stays first
   with stutters collapsed; Muse Spark Open's transcripts sometimes said "(silence)" or added a
   sentence nobody said, so it is the fallback.
+- Mind map: every concept and its prerequisites, each ringed with one segment per objective in its
+  mastery colour, the current concept haloed, lines that flow once the concept they start from is
+  solid, and nodes that pop in (so a concept added later grows into the map). A compact map sits
+  at the top of the progress panel, the "Mind map" button opens it full size for presenting, and
+  the build screen shows it as soon as the course is planned. Hand-drawn SVG with a tested layout:
+  modules left to right (top to bottom on phones), neighbours joined by straight arrows, longer
+  links routed round the concepts in between. Checked in headless Chrome, light and dark, desktop
+  and phone.

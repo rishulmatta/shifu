@@ -180,7 +180,7 @@ Postgres (new): courses, transcript cache, spans, recall items, learner state
 
 **Stack:** Next.js 16 (App Router), React 19, TypeScript strict, Postgres via `pg` on a new
 project, a new Vercel project, Vercel Workflow for the build pipeline (`after()` locally), zod for
-every model output, `ts-fsrs` for scheduling, `@xyflow/react` for the mind map, the YouTube IFrame
+every model output, `ts-fsrs` for scheduling, hand-drawn SVG for the mind map (no graph library), the YouTube IFrame
 API for playback.
 
 **No accounts for the hackathon.** An anonymous learner id lives in a cookie and courses have
@@ -199,7 +199,7 @@ open instantly.
 
 | Agent | Does |
 |---|---|
-| Muse Code | **Day 1:** reviews this plan with its `/plan` and `/grilling` skills; the useful changes are folded in here. **Days 2–4:** builds two small, self-contained modules: the mind map component (`@xyflow/react`; each concept node a ring with one segment per objective, coloured by mastery state as in §7; fed by the fixture course) and the FSRS scheduling module (a `ts-fsrs` wrapper) with its tests |
+| Muse Code | **Day 1:** reviews this plan with its `/plan` and `/grilling` skills; the useful changes are folded in here. **Days 2–4:** builds a small, self-contained module: the FSRS scheduling module (a `ts-fsrs` wrapper) with its tests. The mind map was its other task; Claude Code built it on 28 Oct so it could anchor the demo |
 | Claude Code | everything else |
 
 - **Contract first.** On day 2, fix the shared types (course, concept, objective, span, recall

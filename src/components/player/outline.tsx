@@ -6,6 +6,7 @@
 import type { CourseView } from "@/lib/course-view";
 import type { LearnerState } from "@/lib/learner";
 import type { MasteryState } from "@/lib/types";
+import { MindMap } from "../mind-map/mind-map";
 import styles from "./player.module.css";
 
 const STATES: MasteryState[] = ["solid", "learning", "shaky", "new"];
@@ -18,6 +19,7 @@ export function Outline(props: {
   /** Whether later modules are still being built, which decides how unavailable concepts are labelled. */
   building: boolean;
   onJump: (conceptId: string) => void;
+  onOpenMap: () => void;
 }) {
   const { view, learner } = props;
   const s = view.summary(learner);
@@ -25,6 +27,23 @@ export function Outline(props: {
 
   return (
     <aside className={styles.aside} aria-label="Course progress">
+      <div className={styles.mapCard}>
+        <div className={styles.mapCardHead}>
+          <p className={styles.eyebrow}>Mind map</p>
+          <button className={styles.link} onClick={props.onOpenMap}>
+            Expand
+          </button>
+        </div>
+        <MindMap
+          variant="compact"
+          plan={view.course.plan}
+          states={view.objectiveStates(learner)}
+          available={view.available}
+          building={props.building}
+          currentConceptId={props.currentConceptId}
+          onSelect={props.onJump}
+        />
+      </div>
       <div className={styles.progress}>
         <p className={styles.eyebrow}>Your progress</p>
         <p className={styles.stat}>

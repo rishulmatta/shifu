@@ -1,11 +1,14 @@
 # Muse Code tasks
 
-Two small, self-contained modules for Muse Code to build (PLAN.md §4, "Who builds what"). Each
+Small, self-contained modules for Muse Code to build (PLAN.md §4, "Who builds what"). Each
 works on its own branch, commits its own work, and is merged when done. Read `AGENTS.md` and
 `PLAN.md` §3 and §7 first. The shared shapes are in `src/lib/types.ts`; the mastery rules in
 `src/lib/mastery.ts`.
 
-## Task 1: the mind map (`src/components/mind-map/`)
+## Task 1: the mind map (`src/components/mind-map/`): done by Claude Code, 28 Oct
+
+Taken over so it could anchor the demo; kept here as the spec it was built to (hand-drawn SVG in
+the end, not `@xyflow/react`).
 
 A component that shows a course's concepts and their prerequisites as a graph, each concept ringed
 by how well the learner knows its objectives.

@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { BuildProgress, BuildStep } from "@/lib/store";
 import type { CoursePlan } from "@/lib/types";
 import { Mark } from "../mark";
+import { MindMap } from "../mind-map/mind-map";
 import styles from "./build.module.css";
 import { useBuildProgress } from "./use-build-progress";
 
@@ -62,6 +63,11 @@ export function BuildView(props: { slug: string; topic: string; progress: BuildP
                 {p.modulesTotal > 0 && ` · ${p.modulesReady} of ${p.modulesTotal} modules ready`}
               </p>
               <p className={styles.muted}>Module 1 opens as soon as it&apos;s ready; the rest keeps building while you learn.</p>
+              {props.plan && (
+                <div className={styles.map}>
+                  <MindMap plan={props.plan} states={{}} available={new Set()} building />
+                </div>
+              )}
             </>
           )}
         </section>

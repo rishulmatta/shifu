@@ -588,3 +588,96 @@
     flex-basis: 100%;
   }
 }
+
+/* ── Mind map ── */
+
+.mapButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 7px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mapButton:hover {
+  border-color: var(--vermilion);
+}
+
+.mapCard {
+  padding: 16px 16px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.mapCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.mapCardHead .link {
+  font-size: 0.85rem;
+}
+
+.mapDialog {
+  width: min(1180px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.25);
+  overflow: auto;
+}
+
+.mapDialog::backdrop {
+  background: color-mix(in srgb, var(--ink) 35%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.mapHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.mapHead .title {
+  margin-bottom: 4px;
+}
+
+.mapFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.mapLegend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  list-style: none;
+}
+
+@media (max-width: 900px) {
+  .mapDialog {
+    padding: 16px;
+  }
+}

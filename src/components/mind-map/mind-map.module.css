@@ -1,0 +1,268 @@
+.map {
+  --map-bg: var(--paper);
+  width: 100%;
+}
+
+.compact {
+  --map-bg: var(--surface);
+}
+
+.svg {
+  display: block;
+  height: auto;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.full .svg {
+  max-height: 72dvh;
+}
+
+.dot {
+  fill: var(--rule);
+}
+
+/* ── Modules ── */
+
+/* A thin outline in the background colour keeps text legible where a line passes behind it. */
+.module,
+.label {
+  paint-order: stroke;
+  stroke: var(--map-bg);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.module {
+  fill: var(--ink);
+  text-anchor: middle;
+  font-size: 13px;
+}
+
+.moduleStart {
+  text-anchor: start;
+  font-size: 11px;
+}
+
+.moduleIndex {
+  fill: var(--muted);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moduleTitle {
+  font-weight: 600;
+}
+
+.moduleStart tspan:last-child {
+  fill: var(--ink);
+  font-weight: 600;
+}
+
+/* ── Prerequisite lines ── */
+
+.edge {
+  animation: fade 400ms ease backwards;
+}
+
+.line {
+  fill: none;
+  stroke: var(--state-new);
+  stroke-width: 1.6;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw 700ms ease-out backwards;
+  animation-delay: inherit;
+}
+
+.lineSolid {
+  stroke: var(--state-solid);
+  stroke-width: 2.2;
+}
+
+.linePending {
+  stroke-dasharray: 0.02 0.02;
+  animation: none;
+  opacity: 0.6;
+}
+
+.flow {
+  fill: none;
+  stroke: color-mix(in srgb, var(--state-solid) 70%, var(--paper));
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 2 12;
+  animation: flow 1.4s linear infinite;
+}
+
+.arrow_muted {
+  fill: var(--state-new);
+}
+
+.arrow_solid {
+  fill: var(--state-solid);
+}
+
+/* ── Concepts ── */
+
+.node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 520ms cubic-bezier(0.2, 0.8, 0.25, 1.25) backwards;
+  transition: transform 180ms ease;
+  outline: none;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover,
+.clickable:focus-visible {
+  transform: scale(1.07);
+}
+
+.clickable:focus-visible .face {
+  stroke: var(--vermilion);
+  stroke-width: 2;
+}
+
+.closed {
+  opacity: 0.55;
+}
+
+.face {
+  fill: var(--surface);
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.closed .face {
+  stroke: var(--state-new);
+  stroke-dasharray: 3 4;
+}
+
+.face_learning {
+  fill: color-mix(in srgb, var(--state-learning) 14%, var(--surface));
+}
+
+.face_shaky {
+  fill: color-mix(in srgb, var(--state-shaky) 13%, var(--surface));
+}
+
+.face_solid {
+  fill: color-mix(in srgb, var(--state-solid) 20%, var(--surface));
+}
+
+.faceCurrent {
+  stroke: var(--vermilion);
+  stroke-width: 1.5;
+}
+
+.halo {
+  fill: color-mix(in srgb, var(--vermilion) 12%, transparent);
+  stroke: color-mix(in srgb, var(--vermilion) 55%, transparent);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: halo 2.4s ease-in-out infinite;
+}
+
+.segment {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke 400ms ease;
+}
+
+.seg_new {
+  stroke: var(--state-new);
+  stroke-width: 2;
+  opacity: 0.7;
+}
+
+.seg_learning {
+  stroke: var(--state-learning);
+}
+
+.seg_shaky {
+  stroke: var(--state-shaky);
+}
+
+.seg_solid {
+  stroke: var(--state-solid);
+}
+
+.number {
+  fill: var(--ink);
+  font-size: 15px;
+  font-weight: 650;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.compact .number {
+  font-size: 12px;
+}
+
+.label {
+  fill: var(--ink);
+  font-size: 13px;
+  font-weight: 550;
+  text-anchor: middle;
+}
+
+.labelSmall {
+  font-size: 11px;
+}
+
+.note {
+  fill: var(--muted);
+  font-size: 0.85em;
+  font-style: italic;
+  font-weight: 400;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes halo {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node,
+  .edge,
+  .line,
+  .flow,
+  .halo {
+    animation: none;
+  }
+}

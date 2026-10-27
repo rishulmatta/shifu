@@ -124,6 +124,10 @@
   gap: 16px;
 }
 
+.map {
+  margin-top: 32px;
+}
+
 .outline ul li {
   color: var(--muted);
 }

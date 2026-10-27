@@ -109,8 +109,8 @@ Built in public during the [Meta Global AI Developer Hackathon](https://cerebral
 
 Everything in this repository was written during the hackathon, and the git history starts on
 27 October 2026. Shifu is built with Claude Code and Meta's Muse Code. Muse Code's part is a review
-of the plan, the mind map component and the spaced-repetition scheduler; this section will list
-exactly what each tool did as the work lands.
+of the plan and the spaced-repetition scheduler; this section will list exactly what each tool did
+as the work lands.
 
 ## Rights and sources
 

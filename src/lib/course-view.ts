@@ -52,6 +52,11 @@ export class CourseView {
     return learner.objectives[id]?.state ?? "new";
   }
 
+  /** Every objective's state, for the mind map. */
+  objectiveStates(learner: LearnerState): Record<ObjectiveId, MasteryState> {
+    return Object.fromEntries(Object.values(learner.objectives).map((p) => [p.objectiveId, p.state]));
+  }
+
   conceptState(learner: LearnerState, concept: Concept): MasteryState {
     return conceptState(concept.objectives.map((o) => this.objectiveState(learner, o.id)));
   }

@@ -4,13 +4,14 @@
 // resuming at the exact block where they stopped.
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CourseView } from "@/lib/course-view";
 import { update, useLearner, withAnswer, withEvidence } from "@/lib/learner";
 import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
 import { Mark } from "../mark";
+import { MapDialog } from "./map-dialog";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { Outline } from "./outline";
 import styles from "./player.module.css";
@@ -24,6 +25,7 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
   const index = Math.min(learner.position, timeline.length);
   const block = timeline[index];
   const concept = view.conceptAt(index);
+  const [mapOpen, setMapOpen] = useState(false);
 
   const save = (change: Parameters<typeof update>[1]) => update(course.slug, change);
   const go = (position: number) => {
@@ -144,7 +146,23 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
           <span>Shifu</span>
         </Link>
         <span className={styles.topic}>{course.plan.topic}</span>
+        <button className={styles.mapButton} onClick={() => setMapOpen(true)}>
+          <MapIcon /> Mind map
+        </button>
       </header>
+      {mapOpen && (
+        <MapDialog
+          view={view}
+          learner={learner}
+          currentConceptId={concept?.id}
+          building={!!build}
+          onSelect={(id) => {
+            setMapOpen(false);
+            go(view.introIndex(id));
+          }}
+          onClose={() => setMapOpen(false)}
+        />
+      )}
       <div className={styles.layout}>
         <main className={styles.main}>
           {build && <BuildBanner slug={course.slug} progress={build} />}
@@ -158,8 +176,26 @@ export function CoursePlayer({ course, build }: { course: Course; build?: BuildP
             </button>
           )}
         </main>
-        <Outline view={view} learner={learner} currentConceptId={concept?.id} building={!!build} onJump={(id) => go(view.introIndex(id))} />
+        <Outline
+          view={view}
+          learner={learner}
+          currentConceptId={concept?.id}
+          building={!!build}
+          onJump={(id) => go(view.introIndex(id))}
+          onOpenMap={() => setMapOpen(true)}
+        />
       </div>
     </div>
+  );
+}
+
+function MapIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="3.5" cy="4" r="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <circle cx="12.5" cy="4" r="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <circle cx="8" cy="12" r="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M5 5.4 L7 10.4 M11 5.4 L9 10.4" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
   );
 }
