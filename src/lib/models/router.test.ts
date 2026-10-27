@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { effortFor, PROVIDERS } from "./config";
 import { canRun, ChainError, generate, NoProviderError, toJsonSchema } from "./router";
 
 const schema = z.object({ answer: z.string() });
@@ -74,14 +75,20 @@ describe("generate", () => {
     await expect(generate("plan", req)).rejects.toBeInstanceOf(NoProviderError);
   });
 
-  it("sends reasoning effort only to providers known to accept it", async () => {
+  it("sends each rung's reasoning effort, rounded up to one the provider accepts", async () => {
     fetchMock.mockResolvedValueOnce(reply('{"answer":"42"}'));
     await generate("plan", req);
-    expect(bodyOf(0).reasoning_effort).toBeUndefined();
+    expect(bodyOf(0).reasoning_effort).toBe("medium");
+
+    vi.stubEnv("BASETEN_API_KEY", "");
+    fetchMock.mockResolvedValueOnce(reply('{"answer":"42"}'));
+    await generate("locate", req);
+    expect(bodyOf(1)).toMatchObject({ model: "muse-spark-1.3", reasoning_effort: "minimal" });
   });
 
   it("uses Modal only once it has both a proxy token and an endpoint URL", async () => {
-    vi.stubEnv("MODAL_PROXY_TOKEN", "wk-1.ws-2");
+    vi.stubEnv("MODAL_PROXY_TOKEN_ID", "wk-1");
+    vi.stubEnv("MODAL_PROXY_TOKEN_SECRET", "ws-2");
     fetchMock.mockImplementation(async () => reply("down", 503));
     await expect(generate("locate", req)).rejects.toBeInstanceOf(ChainError);
     expect(fetchMock.mock.calls.map((c) => String(c[0]))).not.toContainEqual(expect.stringContaining("modal"));
@@ -92,7 +99,8 @@ describe("generate", () => {
     const out = await generate("locate", req);
     expect(out.provider).toBe("modal");
     expect(urlOf(1)).toBe("https://shifu.modal.example/v1/chat/completions");
-    expect(bodyOf(1)).toMatchObject({ model: "meta-models/Muse-Spark-Open-816B-A42B", reasoning_effort: "none" });
+    expect(bodyOf(1)).toMatchObject({ model: "meta-models/Muse-Spark-Open-816B-A42B", reasoning_effort: "low" });
+    expect(fetchMock.mock.calls[1][1]?.headers).toMatchObject({ Authorization: "Bearer wk-1.ws-2" });
   });
 
   it("sends audio as a content part beside the text", async () => {
@@ -119,5 +127,14 @@ describe("toJsonSchema", () => {
     const out = toJsonSchema(z.object({ n: z.number().int().min(1).max(5) }));
     expect(out.$schema).toBeUndefined();
     expect(out).toMatchObject({ properties: { n: { type: "integer", minimum: 1, maximum: 5 } }, additionalProperties: false });
+  });
+});
+
+describe("effortFor", () => {
+  it("rounds up to an effort the provider accepts, or takes its highest", () => {
+    expect(effortFor(PROVIDERS.meta, "none")).toBe("minimal");
+    expect(effortFor(PROVIDERS.modal, "minimal")).toBe("low");
+    expect(effortFor(PROVIDERS.baseten, "none")).toBe("none");
+    expect(effortFor(PROVIDERS.baseten, "max")).toBe("medium");
   });
 });

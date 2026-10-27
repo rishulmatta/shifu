@@ -85,9 +85,9 @@ are in [`PLAN.md`](PLAN.md) §3 and §7.
 | Job | Model | Where |
 |---|---|---|
 | Design the course: modules, concepts, objectives and the prerequisite graph behind the mind map | Muse Spark 1.3 | Meta Model API |
-| Read every candidate video's captions and find the span that teaches each objective | Muse Spark Open | Baseten |
-| Write check questions and flashcards for every clip, then answer each one from the clip alone as a check | Muse Spark Open | Baseten |
-| Transcribe the learner's spoken explanation | Muse Voice Transcribe, or Muse Spark Open listening to the audio | Meta Model API, or Baseten |
+| Read every candidate video's captions and find the span that teaches each objective | Muse Spark Open | Baseten, then Modal |
+| Write check questions and flashcards for every clip, then answer each one from the clip alone as a check | Muse Spark Open | Baseten, then Modal |
+| Transcribe the learner's spoken explanation | Muse Voice Transcribe, with Muse Spark Open listening to the audio as the fallback | Meta Model API, Baseten or Modal |
 | Grade the explanation against the objectives and the clips | Muse Spark 1.3 | Meta Model API |
 
 ## Why you can trust a clip or a question

@@ -79,5 +79,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 - Voice without the Meta key: Muse Spark Open takes audio, so the teach-back transcribes on Baseten
   when there is no Meta key (or Muse Voice Transcribe fails). Tested live: about 7 s and $0.002 for
   30 seconds, wrong explanations kept as said; an echo of the last sentence (two runs in five) is
-  trimmed. Modal's $100 credit is wired in as a second Muse Spark Open provider after Baseten; it
-  turns on once its endpoint URL and proxy token are in `.env.local`.
+  trimmed. Modal's $100 credit is wired in as a second Muse Spark Open provider after Baseten.
+- All three providers live (28 Oct). Meta: Muse Spark 1.3 plans a course in 24 s for $0.03, and
+  the teach-back route transcribes with Muse Voice Transcribe and grades on Muse Spark 1.3 (a
+  planted "99% accurate means 99% sure" was caught). Modal: structured output and audio input
+  work. Each provider lists the reasoning efforts it accepts and the router rounds up to one. Over
+  40 runs Muse Voice Transcribe never lost or invented a word, only stuttered, so it stays first
+  with stutters collapsed; Muse Spark Open's transcripts sometimes said "(silence)" or added a
+  sentence nobody said, so it is the fallback.

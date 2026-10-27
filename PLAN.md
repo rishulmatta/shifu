@@ -235,18 +235,28 @@ and 32 MB per file.
 out per million). The model always reasons, reasoning tokens count as output, and at the default
 effort they dominate it, so every task sets `reasoning_effort` (§6, step 4). Tested 27 Oct:
 `json_schema` output works, and the reasoning comes back in a separate `reasoning_content` field.
-**Modal** ($100 credit, 28 Oct): a Shared Endpoint serves the same weights
-(`meta-models/Muse-Spark-Open-816B-A42B`) per token at the same price, with audio input. Every
-Muse Spark Open task tries Baseten first, then Modal, then Muse Spark 1.3 on Meta Model API (the
-order in `config.ts`). Modal's docs say the credits included with a plan don't pay for Shared
-Endpoint usage, so check that the hackathon credit does before relying on it. Self-hosting is out:
-the model needs four to eight Blackwell GPUs.
 
-**Speech on Muse Spark Open** (tested 28 Oct on Baseten): a 30-second spoken explanation came back
-verbatim in about 7 s for $0.002, a wrong explanation stayed wrong, but about two runs in five
-echoed the last sentence, so `trimEcho` cuts a tail that repeats the words before it. Telling the
-model the topic made it write the topic in as if it had been said, so it gets no hint. This is the
-teach-back's transcriber until the Meta key arrives, and its fallback after.
+**Meta Model API** ($150 credit, key live 28 Oct): Muse Spark 1.3 plans a full course as
+schema-checked JSON in about 24 s for $0.027, most of it reasoning. It takes `reasoning_effort`
+from `minimal` to `max` but rejects `none`.
+
+**Modal** ($100 credit, endpoint live 28 Oct): a Shared Endpoint serves the same weights
+(`meta-models/Muse-Spark-Open-816B-A42B`) per token at the same price. Tested: `json_schema`
+output, audio input, and `reasoning_effort` `low` to `xhigh` only; it reports reasoning tokens at
+the top level of `usage`. Every Muse Spark Open task tries Baseten first, then Modal, then Muse
+Spark 1.3 on Meta Model API (the order in `config.ts`); each provider lists the efforts it accepts
+and the router rounds a rung's effort up to one of them. Modal's docs say the credits included
+with a plan don't pay for Shared Endpoint usage, so check that the hackathon credit does before
+relying on it. Self-hosting is out: the model needs four to eight Blackwell GPUs.
+
+**Speech** (tested 28 Oct, 20 runs each on two recordings): Muse Voice Transcribe always had every
+word and nothing else, in 4–7 s, but stutters ("the the", "doesn't really doesn't really") in
+most runs, which `collapseStutters` removes; it hears "Bayes" as "base". Muse Spark Open, which
+takes audio input, is the fallback: verbatim in 2–7 s, but about half its runs echo the last
+sentence (`trimEcho` cuts that) and about one in ten says "(silence)", drops the recording, doubles
+a sentence or adds one nobody said ("This transcript was generated automatically…"). Telling it
+the topic made it write the topic in as if spoken, so it gets no hint. The test recordings are
+synthesised (`say`); a real voice in the browser is still to check.
 
 ## 6. The build pipeline
 
@@ -359,8 +369,9 @@ Module 1 runs through every step first so the learner can start; the rest follow
 - **Confidence:** every check and quiz answer carries Guessing, Think so or Sure. Sure and wrong
   is a lapse (shaky at once); a correct guess is progress but not the unaided correct answer.
 - **Teach-back:** browser recorder → WAV encoded in the browser (16 kHz mono; the API takes WAV
-  only) → upload → Muse Voice Transcribe (`POST /asr/transcribe`, `PUSH_TO_TALK`), or Muse Spark
-  Open listening to the WAV when there is no Meta key or it fails → grader returns
+  only) → upload → Muse Voice Transcribe (`POST /asr/transcribe`, `PUSH_TO_TALK`), stutters
+  collapsed, or Muse Spark Open listening to the WAV when there is no Meta key or it fails →
+  grader returns
   `{covered[], missing[], misconceptions[]}`, each tied to an objective and a span. Missing points
   become review items and offer "rewatch" on the exact clip.
 - **Review:** `ts-fsrs` schedules flashcards and objective checks; a review session interleaves

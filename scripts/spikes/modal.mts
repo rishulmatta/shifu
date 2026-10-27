@@ -8,9 +8,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const base = process.env.MODAL_BASE_URL;
-const key = process.env.MODAL_PROXY_TOKEN;
-if (!base || !key) throw new Error("MODAL_BASE_URL and MODAL_PROXY_TOKEN must be set (.env.local)");
-const headers = { Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+const id = process.env.MODAL_PROXY_TOKEN_ID;
+const secret = process.env.MODAL_PROXY_TOKEN_SECRET;
+if (!base || !id || !secret) {
+  throw new Error("MODAL_BASE_URL, MODAL_PROXY_TOKEN_ID and MODAL_PROXY_TOKEN_SECRET must be set (.env.local)");
+}
+const headers = { Authorization: `Bearer ${id}.${secret}`, "Content-Type": "application/json" };
 
 const models = await fetch(`${base}/models`, { headers });
 console.log(`models: ${models.status}`, models.ok ? (await models.json()).data?.map((m: { id: string }) => m.id) : "");
@@ -50,7 +53,7 @@ if (!path) {
 }
 await ask("audio input", {
   model,
-  reasoning_effort: "none",
+  reasoning_effort: "low",
   messages: [
     {
       role: "user",

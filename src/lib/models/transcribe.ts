@@ -1,10 +1,15 @@
-// Teach-back transcription (PLAN.md §7). Muse Voice Transcribe on Meta Model API goes first when its
-// key is set: the file endpoint takes WAV, at most 10 minutes and 32 MB; PUSH_TO_TALK treats the
-// whole clip as one turn, and asking for text/plain returns just the words, one turn per line.
-// Otherwise, or if it fails, Muse Spark Open listens to the WAV itself through the router (tested
-// 28 Oct on Baseten: a 30-second explanation comes back verbatim in about 7 s for $0.002, wrong
-// claims kept as said, but about two runs in five echo the last sentence, whole or cut short, so
-// that echo is trimmed. Telling it the topic made it worse: it wrote the topic in as if spoken).
+// Teach-back transcription (PLAN.md §7). Muse Voice Transcribe on Meta Model API goes first: its file
+// endpoint takes WAV, at most 10 minutes and 32 MB; PUSH_TO_TALK treats the whole clip as one turn,
+// and asking for text/plain returns just the words. Muse Spark Open, which takes audio input,
+// listens through the router when there is no Meta key or the call fails.
+//
+// Tested 28 Oct, 20 runs of each on the same two recordings:
+// - Muse Voice Transcribe always had every word and nothing else, about 4–7 s, but stutters ("the
+//   the", "doesn't really doesn't really") in most runs. collapseStutters fixes those.
+// - Muse Spark Open came back verbatim in 2–7 s, but about half its runs echo the last sentence
+//   (trimEcho cuts that), and about one in ten says "(silence)", drops the recording, doubles a
+//   sentence or adds one nobody said ("This transcript was generated automatically…"). Telling it
+//   the topic made it write the topic in as if spoken.
 
 import { z } from "zod";
 import { canRun, generate } from "./router";
@@ -27,15 +32,16 @@ async function museVoice(wav: Blob): Promise<string> {
     signal: AbortSignal.timeout(60_000),
   });
   if (!res.ok) throw new Error(`Transcription failed (${res.status})`);
-  return (await res.text()).replace(/^unknown:/gm, "");
+  return collapseStutters(tidy((await res.text()).replace(/^unknown:/gm, "")));
 }
 
-const Transcript = z.object({ text: z.string() });
+// Never empty: Muse Spark Open once returned "" for a full recording, and an empty reply fails
+// validation, so the router asks again or moves on.
+const Transcript = z.object({ text: z.string().min(1) });
 
 const LISTEN_SYSTEM = `You transcribe a learner's spoken explanation of an idea. Write exactly the words spoken, with
 light punctuation. Do not correct, complete or summarise what they said: a wrong or unfinished
-explanation must stay wrong or unfinished, because it is graded afterwards. If nothing is said,
-return an empty string.`;
+explanation must stay wrong or unfinished, because it is graded afterwards.`;
 
 async function sparkListens(wav: Blob): Promise<string> {
   const data = Buffer.from(await wav.arrayBuffer()).toString("base64");
@@ -47,7 +53,36 @@ async function sparkListens(wav: Blob): Promise<string> {
     audio: { data, format: "wav" },
     timeoutMs: 60_000,
   });
-  return out.data.text;
+  return trimEcho(tidy(out.data.text));
+}
+
+const tidy = (text: string) => text.replace(/\s+/g, " ").trim();
+const wordKey = (token: string) => token.toLowerCase().replace(/[^\p{L}\p{N}%']/gu, "");
+
+/**
+ * Collapses one to four words said twice in a row ("the the", "the chance of the chance of"), then
+ * tidies Muse Voice Transcribe's punctuation: doubled stops, a stray letter after the last one
+ * ("test.e"), and sentences that start in lower case.
+ */
+export function collapseStutters(text: string): string {
+  const kept: string[] = [];
+  for (const token of text.split(" ")) {
+    kept.push(token);
+    for (let n = 4; n >= 1; n--) {
+      if (kept.length < 2 * n) continue;
+      const first = kept.slice(-2 * n, -n).map(wordKey).join(" ");
+      if (first.trim() && first === kept.slice(-n).map(wordKey).join(" ")) {
+        kept.splice(-n, n);
+        break;
+      }
+    }
+  }
+  const out = kept
+    .join(" ")
+    .replace(/([.!?,])[.!?,]+/g, "$1")
+    .replace(/([.!?])[a-z]$/, "$1")
+    .replace(/([.!?] )([a-z])/g, (_, stop: string, letter: string) => stop + letter.toUpperCase());
+  return out.charAt(0).toUpperCase() + out.slice(1);
 }
 
 /**
@@ -58,7 +93,7 @@ async function sparkListens(wav: Blob): Promise<string> {
  */
 export function trimEcho(text: string): string {
   const tokens = text.split(" ");
-  const words = tokens.map((t) => t.toLowerCase().replace(/[^\p{L}\p{N}]/gu, ""));
+  const words = tokens.map(wordKey);
   const boundary = (i: number) => i === 0 || /[.,!?;]$/.test(tokens[i - 1]);
   const n = words.length;
   for (let start = Math.ceil(n / 3); start <= n - 3; start++) {
@@ -78,16 +113,11 @@ export function trimEcho(text: string): string {
 export async function transcribeWav(wav: Blob): Promise<string> {
   if (!canTranscribe()) throw new Error("Voice transcription needs a Meta, Baseten or Modal key");
   if (wav.size > MAX_BYTES) throw new Error("The recording is too large");
-  let text: string;
-  if (hasMuseVoice()) {
-    try {
-      text = await museVoice(wav);
-    } catch (e) {
-      if (!canRun("transcribe")) throw e;
-      text = await sparkListens(wav);
-    }
-  } else {
-    text = await sparkListens(wav);
+  if (!hasMuseVoice()) return sparkListens(wav);
+  try {
+    return await museVoice(wav);
+  } catch (e) {
+    if (!canRun("transcribe")) throw e;
+    return sparkListens(wav);
   }
-  return trimEcho(text.replace(/\s+/g, " ").trim());
 }

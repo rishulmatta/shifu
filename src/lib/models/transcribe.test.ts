@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { canTranscribe, transcribeWav, trimEcho } from "./transcribe";
+import { canTranscribe, collapseStutters, transcribeWav, trimEcho } from "./transcribe";
 
 const fetchMock = vi.fn<typeof fetch>();
 const wav = new Blob([new Uint8Array([82, 73, 70, 70])], { type: "audio/wav" });
@@ -11,7 +11,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("META_MODEL_API_KEY", "");
   vi.stubEnv("BASETEN_API_KEY", "");
-  vi.stubEnv("MODAL_PROXY_TOKEN", "");
+  vi.stubEnv("MODAL_PROXY_TOKEN_ID", "");
 });
 afterEach(() => {
   fetchMock.mockReset();
@@ -24,10 +24,11 @@ describe("transcribeWav", () => {
     expect(canTranscribe()).toBe(false);
   });
 
-  it("uses Muse Voice Transcribe when the Meta key is set", async () => {
+  it("uses Muse Voice Transcribe first, with its stutters collapsed", async () => {
     vi.stubEnv("META_MODEL_API_KEY", "meta-key");
-    fetchMock.mockResolvedValueOnce(new Response("unknown: the prior  is a belief\n"));
-    expect(await transcribeWav(wav)).toBe("the prior is a belief");
+    vi.stubEnv("BASETEN_API_KEY", "baseten-key");
+    fetchMock.mockResolvedValueOnce(new Response("unknown: so the prior  is is a belief..\n"));
+    expect(await transcribeWav(wav)).toBe("So the prior is a belief.");
     expect(String(fetchMock.mock.calls[0][0])).toContain("/asr/transcribe");
   });
 
@@ -44,6 +45,23 @@ describe("transcribeWav", () => {
     vi.stubEnv("BASETEN_API_KEY", "baseten-key");
     fetchMock.mockResolvedValueOnce(new Response("down", { status: 503 })).mockResolvedValueOnce(sparkReply("the prior"));
     expect(await transcribeWav(wav)).toBe("the prior");
+  });
+});
+
+describe("collapseStutters", () => {
+  it("collapses one to four words said twice in a row", () => {
+    expect(collapseStutters("so base base theorem is about updating")).toBe("So base theorem is about updating");
+    expect(collapseStutters("confusing the chance of the chance of a positive test")).toBe("Confusing the chance of a positive test");
+    expect(collapseStutters("the base rate doesn't really doesn't really matter")).toBe("The base rate doesn't really matter");
+    expect(collapseStutters("a 99% 99% chance")).toBe("A 99% chance");
+  });
+
+  it("keeps repeats that are not back to back, and tidies the punctuation", () => {
+    const said = "The chance of a positive test given the disease with the chance of the disease given a positive test.";
+    expect(collapseStutters(`${said}.`)).toBe(said);
+    expect(collapseStutters(`${said}e`)).toBe(said);
+    expect(collapseStutters("so it updates. and then it divides.,")).toBe("So it updates. And then it divides.");
+    expect(collapseStutters("How likely the thing is, and how likely the evidence is.")).toBe("How likely the thing is, and how likely the evidence is.");
   });
 });
 

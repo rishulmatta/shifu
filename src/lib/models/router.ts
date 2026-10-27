@@ -3,7 +3,7 @@
 // error, and moves to the next provider on a refusal, a timeout or a second bad answer.
 
 import { z } from "zod";
-import { baseUrlOf, CHAINS, isReady, PRICES, PROVIDERS, type Rung, type Task } from "./config";
+import { baseUrlOf, CHAINS, effortFor, isReady, keyOf, PRICES, PROVIDERS, type Rung, type Task } from "./config";
 
 export interface Usage {
   inputTokens: number;
@@ -83,12 +83,12 @@ async function call(rung: Rung, messages: Message[], name: string, jsonSchema: o
   const started = Date.now();
   const res = await fetch(`${baseUrlOf(provider)}/chat/completions`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${process.env[provider.keyEnv]}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${keyOf(provider)}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: rung.model,
       messages,
       response_format: { type: "json_schema", json_schema: { name, schema: jsonSchema, strict: true } },
-      ...(provider.effort && rung.effort && { reasoning_effort: rung.effort }),
+      ...(rung.effort && { reasoning_effort: effortFor(provider, rung.effort) }),
     }),
     signal: AbortSignal.timeout(timeoutMs),
   });
@@ -100,7 +100,8 @@ async function call(rung: Rung, messages: Message[], name: string, jsonSchema: o
   const usage: Usage = {
     inputTokens,
     outputTokens,
-    reasoningTokens: u.completion_tokens_details?.reasoning_tokens ?? 0,
+    // Modal reports reasoning at the top level of usage, the others under completion_tokens_details.
+    reasoningTokens: u.completion_tokens_details?.reasoning_tokens ?? u.reasoning_tokens ?? 0,
     costUsd: costOf(rung.model, inputTokens, u.prompt_tokens_details?.cached_tokens ?? 0, outputTokens),
   };
   return { content: String(body.choices?.[0]?.message?.content ?? ""), usage, ms: Date.now() - started };
