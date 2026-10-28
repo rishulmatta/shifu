@@ -797,3 +797,36 @@
 .progressHead {
   margin-top: 18px;
 }
+
+/* ── The student's question in the teach-back ── */
+
+.student {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 8px 0 4px;
+  padding: 16px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.studentMark {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--state-learning);
+  color: var(--paper);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.studentQuestion {
+  margin-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4;
+}

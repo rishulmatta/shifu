@@ -165,12 +165,14 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
   } else if (block.kind === "teachback") {
     const mod = course.plan.modules.find((m) => m.index === block.moduleIndex)!;
     const chosen = (id: string) => course.spans.find((s) => s.objectiveId === id && s.rank === 0);
+    const objectives = mod.conceptIds.flatMap((id) => view.concepts.get(id)?.objectives ?? []).filter((o) => chosen(o.id));
     body = (
       <TeachbackView
         key={index}
         slug={course.slug}
         module={mod}
-        objectives={mod.conceptIds.flatMap((id) => view.concepts.get(id)?.objectives ?? []).filter((o) => chosen(o.id))}
+        objectives={objectives}
+        misconceptions={learner.attempts.flatMap((a) => (a.misconception && objectives.some((o) => o.id === a.objectiveId) ? [a.misconception] : []))}
         clipFor={(id) => {
           const span = chosen(id);
           return span && { span, video: course.videos[span.videoId] };

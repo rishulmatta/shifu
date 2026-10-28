@@ -128,3 +128,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   with feedback, rewatch links and "Before: 2 of 4. Now: 4 of 4." A concept whose objectives were
   all right before starting says the learner may know it and offers to skip; the progress panel
   shows the goal and both scores. The sample course has four hand-written ones.
+- You become the shifu: after the teach-back is graded, a student who listened asks one question at
+  the biggest gap, written by the grader in the same call with the learner's recent misconceptions
+  in the module as clues. The learner answers out loud (45 s) or types; the answer is graded on
+  that objective alone and counts as teach-back evidence, and leads the report. Live: an
+  explanation that equated the posterior with the likelihood drew "Wait, so if a 90% accurate test
+  is positive, why aren't you 90% likely to be ill?"; a right answer was graded covered and "it
+  just stays 90%" a misconception. The recorder is now a hook shared by both. All five "Teaching
+  that works" features are built.

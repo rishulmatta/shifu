@@ -155,7 +155,10 @@ can't do. (Decided 27 Oct; "pause and predict" was considered and dropped.)
    "why" or "what if" that goes deeper), also told about misconceptions the learner showed earlier
    in the module. The learner answers by voice or text; the answer is graded on that objective and
    counts as teach-back evidence. Then the full report: covered, missing, not quite right, with
-   rewatch links. One question, one answer: it is not a chat.
+   rewatch links. One question, one answer: it is not a chat. Built 28 Oct: the grader writes the
+   question in the same call; tested live, an explanation that equated the posterior with the
+   likelihood drew "Wait, so if a 90% accurate test is positive, why aren't you 90% likely to be
+   ill?", a right answer was graded covered and "it stays 90%" a misconception.
 5. **Examples from your world.** The planner pulls the learner's context out of the goal ("my
    marketing job", "a stats exam"). The quiz question for each objective (the second question from
    its clip) is set in that world when it fits: near transfer after the clip, far transfer in the
