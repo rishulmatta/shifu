@@ -1,11 +1,9 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="public/brand/shifu-mark-dark.svg">
-    <img alt="Shifu" src="public/brand/shifu-mark-light.svg" width="128">
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/shifu-wordmark-dark.svg">
+    <img alt="Shifu" src="public/brand/shifu-wordmark-light.svg" width="320">
   </picture>
 </p>
-
-<h1 align="center">Shifu</h1>
 
 <p align="center">
   <strong>Any topic, taught by the best moments on YouTube, and checked until it sticks.</strong>

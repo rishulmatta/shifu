@@ -7,6 +7,7 @@ import type { BuildProgress, BuildStep } from "@/lib/store";
 import type { CoursePlan } from "@/lib/types";
 import { Mark } from "../mark";
 import { MindMap } from "../mind-map/mind-map";
+import { ThemeToggle } from "../theme-toggle";
 import styles from "./build.module.css";
 import { useBuildProgress } from "./use-build-progress";
 
@@ -20,21 +21,28 @@ const STEPS: { step: BuildStep; label: string; model?: string }[] = [
 
 const ORDER: BuildStep[] = ["queued", ...STEPS.map((s) => s.step), "ready"];
 
+const STATE_LABEL = { done: "done", now: "in progress", todo: "to do" } as const;
+
 export function BuildView(props: { slug: string; topic: string; progress: BuildProgress; plan: CoursePlan | null }) {
   const p = useBuildProgress(props.slug, props.progress);
   const at = ORDER.indexOf(p.step);
+  const failed = p.step === "failed";
 
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.brand}>
-        <Mark size={28} /> Shifu
-      </Link>
+      <header className={styles.header}>
+        <Link href="/" className={styles.brand}>
+          <Mark size={28} /> Shifu
+        </Link>
+        <ThemeToggle />
+      </header>
+
       <div className={styles.columns}>
-        <section>
-          <p className={styles.eyebrow}>{p.step === "failed" ? "Something went wrong" : "Building your course"}</p>
+        <section className={styles.main}>
+          <p className={`eyebrow ${styles.eyebrow}`}>{failed ? "Something went wrong" : "Building your course"}</p>
           <h1 className={styles.title}>{props.topic}</h1>
 
-          {p.step === "failed" ? (
+          {failed ? (
             <div className={styles.failed}>
               <p>{p.message}</p>
               <Link href="/" className={styles.button}>
@@ -44,15 +52,21 @@ export function BuildView(props: { slug: string; topic: string; progress: BuildP
           ) : (
             <>
               <ol className={styles.steps}>
-                {STEPS.map((s) => {
+                {STEPS.map((s, n) => {
                   const i = ORDER.indexOf(s.step);
                   const state = i < at ? "done" : i === at ? "now" : "todo";
                   return (
-                    <li key={s.step} className={styles[state]}>
-                      <span className={styles.marker} aria-hidden="true" />
-                      <span>
-                        {s.label}
-                        {s.model && <span className={styles.model}> · {s.model}</span>}
+                    <li key={s.step} className={`${styles.step} ${styles[state]}`} aria-current={state === "now" ? "step" : undefined}>
+                      <span className={styles.marker} style={{ animationDelay: `${n * 90}ms` }} aria-hidden="true" />
+                      <span className={styles.stepBody}>
+                        <span className={styles.label}>{s.label}</span>
+                        <span className={styles.srOnly}>, {STATE_LABEL[state]}</span>
+                        {s.model && (
+                          <span className={styles.model}>
+                            <span className={styles.srOnly}>, by </span>
+                            {s.model}
+                          </span>
+                        )}
                       </span>
                     </li>
                   );
@@ -65,6 +79,7 @@ export function BuildView(props: { slug: string; topic: string; progress: BuildP
               <p className={styles.muted}>Module 1 opens as soon as it&apos;s ready; the rest keeps building while you learn.</p>
               {props.plan && (
                 <div className={styles.map}>
+                  <p className={`eyebrow ${styles.cardEyebrow}`}>Your map, growing</p>
                   <MindMap plan={props.plan} states={{}} available={new Set()} building />
                 </div>
               )}
@@ -74,14 +89,15 @@ export function BuildView(props: { slug: string; topic: string; progress: BuildP
 
         {props.plan && (
           <aside className={styles.outline} aria-label="Course outline">
-            <p className={styles.eyebrow}>Your course</p>
-            <ol>
+            <p className={`eyebrow ${styles.cardEyebrow}`}>Your course</p>
+            <ol className={styles.modules}>
               {props.plan.modules.map((m) => (
-                <li key={m.index}>
+                <li key={m.index} className={styles.moduleItem} style={{ animationDelay: `${200 + m.index * 80}ms` }}>
                   <p className={styles.module}>
-                    {m.index + 1}. {m.title}
+                    <span className={styles.moduleIndex}>{m.index + 1}</span>
+                    {m.title}
                   </p>
-                  <ul>
+                  <ul className={styles.concepts}>
                     {m.conceptIds.map((id) => (
                       <li key={id}>{props.plan!.concepts.find((c) => c.id === id)?.title}</li>
                     ))}
@@ -102,7 +118,10 @@ export function BuildBanner(props: { slug: string; progress: BuildProgress }) {
   if (p.step === "ready" || p.step === "failed") return null;
   return (
     <p className={styles.banner} aria-live="polite">
-      <span className={styles.pulse} aria-hidden="true" /> {p.modulesReady} of {p.modulesTotal} modules ready · {p.message}
+      <span className={styles.pulse} aria-hidden="true" />
+      <span className={styles.bannerText}>
+        {p.modulesReady} of {p.modulesTotal} modules ready · {p.message}
+      </span>
     </p>
   );
 }

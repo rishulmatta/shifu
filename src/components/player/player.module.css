@@ -1,6 +1,12 @@
+/* The lesson (docs/design.md, "Lesson"): one card at a time on rice paper, the progress track as a
+   brushed line, the outline and the mind map to the right. Every animation starts from its hidden
+   state (fill-mode backwards) and ends on the static layout, so reduced motion loses nothing. */
+
 .shell {
   min-height: 100dvh;
 }
+
+/* ── Header ── */
 
 .header {
   position: sticky;
@@ -11,134 +17,258 @@
   gap: 16px;
   padding: 12px 24px;
   background: color-mix(in srgb, var(--paper) 92%, transparent);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
   border-bottom: 1px solid var(--rule);
 }
 
 .brand {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-size: 1.28rem;
+  font-weight: 560;
+  font-variation-settings: "opsz" 72, "SOFT" 30;
+  letter-spacing: -0.02em;
   text-decoration: none;
 }
 
+.brand:hover {
+  color: var(--ink);
+}
+
 .topic {
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--rule-strong);
   color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-variation-settings: "opsz" 24, "SOFT" 50;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.headerToggle {
+  margin-left: auto;
+}
+
+.mapButton {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+
+.mapButton:hover {
+  border-color: var(--vermilion);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Layout ── */
+
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 32px;
+  gap: 36px;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px 24px 120px;
 }
 
 .main {
   min-width: 0;
 }
 
+/* ── The progress track: one brushed line, the seal's red dot at its head ── */
+
 .track {
-  height: 4px;
-  margin-bottom: 20px;
-  border-radius: 2px;
-  background: var(--rule);
-  overflow: hidden;
+  position: relative;
+  height: 6px;
+  margin: 6px 0 26px;
+  /* A hand-pulled line: the ends are not quite even. */
+  border-radius: 2px 6px 4px 3px / 3px 4px 2px 5px;
+  background: color-mix(in srgb, var(--rule) 85%, var(--paper-deep));
 }
 
 .track span {
+  position: relative;
   display: block;
+  min-width: 6px;
   height: 100%;
-  background: var(--vermilion);
-  transition: width 300ms ease;
+  border-radius: 4px 2px 3px 5px / 5px 2px 4px 3px;
+  background: linear-gradient(90deg, var(--vermilion-deep), var(--vermilion) 55%, color-mix(in srgb, var(--vermilion) 88%, var(--gold)));
+  box-shadow: 0 0 12px light-dark(transparent, color-mix(in srgb, var(--vermilion) 55%, transparent));
+  transition: width 520ms var(--ease-out);
 }
 
-/* ── Cards ── */
+.track span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--vermilion);
+  box-shadow:
+    0 0 0 3px var(--paper),
+    0 0 10px light-dark(transparent, color-mix(in srgb, var(--vermilion) 70%, transparent));
+  transform: translateY(-50%) rotate(6deg);
+}
+
+/* ── Cards: one is the lesson ── */
 
 .card {
-  padding: 28px;
+  position: relative;
+  padding: 32px;
   border: 1px solid var(--rule);
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
+  /* Each block mounts fresh (key={index}), so this plays as the lesson moves on. */
+  animation: rise 320ms var(--ease-out) backwards;
 }
 
 .eyebrow {
-  margin-bottom: 8px;
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  color: var(--vermilion);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .title {
-  margin-bottom: 16px;
-  font-size: clamp(1.35rem, 3vw, 1.75rem);
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  margin-bottom: 18px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.18;
+  letter-spacing: -0.022em;
 }
 
 .lead {
   margin-bottom: 12px;
+  color: var(--ink-soft);
   font-size: 1.1rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .muted {
   color: var(--muted);
+  line-height: 1.55;
 }
 
 .objectives {
-  margin: 16px 0 0 20px;
-  line-height: 1.6;
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+  list-style: none;
+  line-height: 1.5;
+}
+
+.objectives li {
+  position: relative;
+  padding-left: 22px;
+}
+
+/* A small seal set off true, in place of a bullet. */
+.objectives li::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 1.5px;
+  background: var(--vermilion);
+  transform: rotate(6deg);
 }
 
 .note {
-  margin-top: 16px;
-  padding: 12px 14px;
+  margin-top: 18px;
+  padding: 13px 16px;
   border-left: 3px solid var(--vermilion);
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--vermilion) 8%, transparent);
-  line-height: 1.5;
+  border-radius: 4px var(--radius-field) var(--radius-field) 4px;
+  background: color-mix(in srgb, var(--vermilion) 7%, var(--surface));
+  line-height: 1.55;
+  animation: settle 280ms var(--ease-out) backwards;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 26px;
 }
 
 .primary,
 .secondary {
-  padding: 11px 20px;
+  padding: 11px 22px;
   border-radius: 999px;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
 }
 
+/* Ink on paper: the brush-black pill. */
 .primary {
   border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--paper);
 }
 
+.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--vermilion) 22%, transparent),
+    0 8px 20px -10px color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
 .secondary {
-  border: 1px solid var(--rule);
+  border: 1px solid var(--rule-strong);
   background: transparent;
   color: var(--ink);
 }
 
-.primary:hover,
-.secondary:hover {
+.secondary:hover:not(:disabled) {
   border-color: var(--vermilion);
+  background: color-mix(in srgb, var(--vermilion) 6%, transparent);
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .link {
@@ -148,16 +278,29 @@
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
+.link:hover {
+  text-decoration-thickness: 2px;
+}
+
 .back {
-  margin-top: 16px;
+  margin-top: 18px;
+  padding: 6px 2px;
   border: none;
   background: none;
   color: var(--muted);
   font: inherit;
+  font-size: 0.92rem;
   cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+
+.back:hover {
+  color: var(--ink);
 }
 
 /* ── Video ── */
@@ -166,8 +309,9 @@
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius-field);
   background: #000;
+  box-shadow: 0 0 0 1px var(--rule), 0 14px 34px -18px rgb(0 0 0 / 0.55);
 }
 
 .frame iframe {
@@ -179,12 +323,24 @@
 }
 
 .credit {
-  margin-top: 10px;
-  font-size: 0.9rem;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .credit a {
-  color: var(--ink);
+  color: var(--ink-soft);
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+
+.credit a:hover {
+  text-decoration-color: var(--vermilion);
+}
+
+.credit .muted {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 /* ── Questions ── */
@@ -194,45 +350,212 @@
   gap: 10px;
 }
 
+/* A paper well; hovering lifts it and draws a red rule down its left edge. */
 .option {
-  padding: 14px 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px 14px 14px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: var(--radius-field);
   background: var(--paper);
   color: var(--ink);
   font: inherit;
   text-align: left;
-  line-height: 1.4;
+  line-height: 1.45;
   cursor: pointer;
+  transition:
+    transform 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+
+/* The marker: an empty ring, a dot when picked, a check or a cross once answered. */
+.option::before {
+  content: "";
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--rule-strong);
+  color: var(--paper);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  transition:
+    box-shadow 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+
+.option::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -1px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--vermilion);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  transition: transform 220ms var(--ease-out);
 }
 
 .option:hover:not(:disabled) {
-  border-color: var(--ink);
+  transform: translateY(-1px);
+  border-color: var(--rule-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.option:hover:not(:disabled)::after {
+  transform: scaleY(1);
+}
+
+.option:hover:not(:disabled)::before {
+  box-shadow: inset 0 0 0 1.5px var(--vermilion);
 }
 
 .option:disabled {
   cursor: default;
 }
 
+/* The options the learner didn't pick step back once it's answered. */
+.option:disabled:not(.right):not(.wrong) {
+  color: var(--muted);
+}
+
+.picked {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.picked::before,
+.option.picked:hover::before {
+  background: radial-gradient(circle, var(--ink) 0 5px, transparent 5.5px);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
 .right {
   border-color: var(--state-solid);
-  background: color-mix(in srgb, var(--state-solid) 14%, var(--paper));
+  background: color-mix(in srgb, var(--state-solid) 12%, var(--paper));
+}
+
+.right::before {
+  content: "✓";
+  background: var(--state-solid);
+  box-shadow: none;
 }
 
 .wrong {
   border-color: var(--state-shaky);
-  background: color-mix(in srgb, var(--state-shaky) 12%, var(--paper));
+  background: color-mix(in srgb, var(--state-shaky) 10%, var(--paper));
+  animation: shake 300ms var(--ease-out);
+}
+
+.wrong::before {
+  content: "✕";
+  background: var(--state-shaky);
+  box-shadow: none;
+}
+
+.unsure {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.explanation {
+  margin-top: 16px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  animation: settle 320ms var(--ease-out) 120ms backwards;
 }
 
 .focus {
-  margin-bottom: 16px;
-  padding: 10px 14px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
   border-left: 3px solid var(--vermilion);
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--vermilion) 7%, transparent);
-  line-height: 1.5;
+  border-radius: 4px var(--radius-field) var(--radius-field) 4px;
+  background: color-mix(in srgb, var(--vermilion) 7%, var(--surface));
+  line-height: 1.55;
 }
 
+/* The check seal stamped on a right answer, overhanging the card's corner like a chop on paper. */
+.seal {
+  position: absolute;
+  top: -16px;
+  right: 28px;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--vermilion-deep) 30%, transparent));
+}
+
+/* How sure: three pills. Hover tints them red; the one chosen fills. */
+.confidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  animation: settle 240ms var(--ease-out) backwards;
+}
+
+.confidence > span {
+  margin-right: 6px;
+}
+
+.pill {
+  padding: 8px 18px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.pill:hover:not(:disabled) {
+  border-color: var(--vermilion);
+  background: color-mix(in srgb, var(--vermilion) 10%, var(--paper));
+  transform: translateY(-1px);
+}
+
+.pill:disabled {
+  cursor: default;
+}
+
+.pill:disabled:not(.chosen) {
+  opacity: 0.55;
+}
+
+.chosen,
+.chosen:disabled {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.diagnosis {
+  margin-top: 16px;
+  padding: 13px 16px;
+  border-left: 3px solid var(--state-shaky);
+  border-radius: 4px var(--radius-field) var(--radius-field) 4px;
+  background: color-mix(in srgb, var(--state-shaky) 8%, var(--surface));
+  line-height: 1.55;
+  animation: slideIn 340ms var(--ease-out) 160ms backwards;
+}
+
+/* Waiting for the explanation aimed at the mistake: a brush stroke being laid under the title. */
 .spinner {
   display: inline-block;
   width: 12px;
@@ -245,83 +568,112 @@
   animation: spin 800ms linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.shimmer {
+  display: block;
+  width: min(320px, 70%);
+  height: 4px;
+  margin: -6px 0 18px;
+  border-radius: 1px 4px 3px 2px / 2px 3px 2px 4px;
+  background:
+    linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--vermilion) 85%, transparent) 45%, var(--vermilion) 55%, transparent 100%) no-repeat,
+    color-mix(in srgb, var(--vermilion) 14%, var(--rule));
+  background-size: 45% 100%, 100% 100%;
+  background-position: -60% 0, 0 0;
+  animation: shimmer 1.4s var(--ease-out) infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation: none;
-  }
-}
-
-.explanation {
-  margin-top: 14px;
-  line-height: 1.5;
-}
-
-.picked {
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
-}
-
-.confidence {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.confidence .secondary {
-  padding: 8px 16px;
-}
-
-.diagnosis {
-  margin-top: 14px;
-  padding: 12px 14px;
-  border-left: 3px solid var(--state-shaky);
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--state-shaky) 8%, transparent);
-  line-height: 1.5;
-}
-
-/* ── Flashcards ── */
+/* ── Flashcards: a real card, turned over ── */
 
 .flash {
-  display: grid;
-  gap: 14px;
-  place-content: center;
+  display: block;
   width: 100%;
-  min-height: 200px;
-  padding: 28px;
-  border: 1px solid var(--rule);
-  border-radius: 16px;
-  background: var(--paper);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-card);
+  background: none;
   color: var(--ink);
   font: inherit;
   text-align: center;
   cursor: pointer;
+  perspective: 1400px;
+  animation: rise 320ms var(--ease-out) backwards;
 }
 
 .flash:disabled {
   cursor: default;
 }
 
-.flipped {
-  border-color: var(--ink);
+.flash:focus-visible {
+  outline-offset: 4px;
+}
+
+.flashInner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 620ms var(--ease-out);
+}
+
+.flipped .flashInner {
+  transform: rotateY(180deg);
+}
+
+.flashFace {
+  grid-area: 1 / 1;
+  display: grid;
+  place-content: center;
+  gap: 14px;
+  min-height: 220px;
+  padding: 32px 28px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition:
+    border-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
+}
+
+.flash:hover:not(:disabled) .flashFace {
+  border-color: var(--rule-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.flashBackFace {
+  border-color: var(--rule-strong);
+  background:
+    linear-gradient(90deg, transparent 0 18px, color-mix(in srgb, var(--vermilion) 30%, transparent) 18px 19px, transparent 19px) no-repeat,
+    var(--surface-raised);
+  box-shadow: var(--shadow-card);
+  transform: rotateY(180deg);
 }
 
 .flashFront {
-  font-size: 1.3rem;
-  font-weight: 650;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.6vw, 1.6rem);
+  font-weight: 500;
+  font-variation-settings: "opsz" 72, "SOFT" 30;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.flashBackFace .flashFront {
+  color: var(--muted);
+  font-size: 1.05rem;
 }
 
 .flashBack {
-  font-size: 1.1rem;
-  line-height: 1.5;
+  max-width: 52ch;
+  font-size: 1.12rem;
+  line-height: 1.55;
+}
+
+.tap {
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .ratings {
@@ -329,53 +681,157 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 16px;
+  animation: settle 260ms var(--ease-out) 300ms backwards;
+}
+
+.rating {
+  padding: 10px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.rating:hover {
+  transform: translateY(-1px);
+  border-color: var(--ink);
+}
+
+.rating_again:hover {
+  border-color: var(--state-shaky);
+  background: color-mix(in srgb, var(--state-shaky) 12%, var(--paper));
+}
+
+.rating_hard:hover {
+  border-color: var(--state-learning);
+  background: color-mix(in srgb, var(--state-learning) 12%, var(--paper));
+}
+
+.rating_easy:hover {
+  border-color: var(--state-solid);
+  background: color-mix(in srgb, var(--state-solid) 14%, var(--paper));
 }
 
 /* ── Teach-back ── */
 
 .typed {
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .textarea {
   width: 100%;
-  padding: 14px;
+  padding: 14px 16px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: var(--radius-field);
   background: var(--paper);
   color: var(--ink);
   font: inherit;
-  line-height: 1.5;
+  line-height: 1.55;
   resize: vertical;
+  transition: border-color 160ms var(--ease-out);
 }
 
 .textarea:focus-visible {
+  border-color: var(--vermilion);
   outline: 2px solid var(--vermilion);
   outline-offset: 2px;
 }
 
+.recorder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-field);
+  background: var(--paper);
+}
+
+/* The record glyph, with a red ring pulsing out from it while the mic is live. */
+.recordGlyph {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: var(--vermilion);
+}
+
+.recordGlyph::before,
+.recordGlyph::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 2px solid var(--vermilion);
+  border-radius: 50%;
+  opacity: 0;
+  animation: ring 1.4s var(--ease-out) infinite;
+}
+
+.recordGlyph::after {
+  animation-delay: 700ms;
+}
+
+.countdown {
+  min-width: 4ch;
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
 .recording {
-  align-self: center;
+  flex: 1 1 auto;
   color: var(--vermilion);
+  font-size: 0.9rem;
   font-weight: 600;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .graded {
   display: grid;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 18px;
   list-style: none;
 }
 
 .graded li {
   display: grid;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   border: 1px solid var(--rule);
   border-left-width: 4px;
-  border-radius: 10px;
+  border-radius: 6px var(--radius-field) var(--radius-field) 6px;
   background: var(--paper);
-  line-height: 1.45;
+  line-height: 1.5;
+  animation: rise 320ms var(--ease-out) backwards;
+}
+
+.graded li:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.graded li:nth-child(3) {
+  animation-delay: 140ms;
+}
+
+.graded li:nth-child(n + 4) {
+  animation-delay: 210ms;
 }
 
 .graded .link {
@@ -385,22 +841,33 @@
 }
 
 .verdict_covered {
+  --verdict: var(--state-solid);
   border-left-color: var(--state-solid) !important;
 }
 
 .verdict_missing {
+  --verdict: var(--state-learning);
   border-left-color: var(--state-learning) !important;
 }
 
 .verdict_misconception {
+  --verdict: var(--state-shaky);
   border-left-color: var(--state-shaky) !important;
 }
 
+/* The verdict as a small chop: tinted, ruled and set a hair off true. */
 .verdict {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  justify-self: start;
+  padding: 3px 8px 2px;
+  border: 1.5px solid var(--verdict, var(--vermilion));
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--verdict, var(--vermilion)) 14%, var(--paper));
+  color: color-mix(in srgb, var(--verdict, var(--vermilion)) 50%, var(--ink));
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  transform: rotate(-1.5deg);
 }
 
 .gradedObjective {
@@ -413,56 +880,206 @@
 }
 
 .transcript {
-  margin-top: 16px;
+  margin-top: 18px;
   color: var(--muted);
 }
 
 .transcript summary {
   cursor: pointer;
+  font-weight: 600;
 }
 
 .transcript p {
   margin-top: 8px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* ── Progress tracker ── */
+/* ── The student's question in the teach-back ── */
 
-.calibration {
-  margin-top: 10px;
-  font-size: 0.9rem;
+.student {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 8px 0 4px;
+  padding: 18px 20px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-field);
+  background: var(--paper);
 }
 
-.surprises {
-  margin-top: 14px;
-}
-
-.surprises ul {
+.studentMark {
   display: grid;
-  gap: 6px;
-  list-style: none;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variation-settings: "opsz" 72, "SOFT" 60;
+  line-height: 1;
+  animation: lift 420ms var(--ease-spring) 120ms backwards;
 }
 
-.surprises .link {
-  padding: 0;
-  font-size: 0.85rem;
+.studentQuestion {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.4vw, 1.4rem);
   font-weight: 500;
-  text-align: left;
+  font-variation-settings: "opsz" 72, "SOFT" 30;
+  line-height: 1.32;
+  letter-spacing: -0.012em;
 }
+
+/* ── Goal challenge ── */
+
+.rewatch {
+  margin-top: 16px;
+  line-height: 1.6;
+}
+
+.rewatch .link {
+  padding: 0;
+}
+
+/* The headline of the course: before and now, the numbers large. */
+.result {
+  margin-bottom: 22px;
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-variant-numeric: lining-nums;
+}
+
+.resultBefore,
+.resultNow {
+  display: block;
+}
+
+.resultBefore {
+  color: var(--muted);
+}
+
+.scoreRows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.scoreLabel {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.scoreDots {
+  display: flex;
+  gap: 10px;
+}
+
+.scoreRight,
+.scoreMiss {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+/* Every dot starts as an empty ring; the right ones fill, left to right (delays inline). */
+.scoreRight {
+  background: var(--state-solid);
+  animation: fillDot 420ms var(--ease-spring) backwards;
+}
+
+.scoreMiss {
+  box-shadow: inset 0 0 0 2px var(--state-new);
+}
+
+/* ── Course complete ── */
+
+.complete {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 24px;
+  align-items: center;
+}
+
+.complete > :not(.completeSeal) {
+  grid-column: 2;
+}
+
+.completeSeal {
+  grid-row: 1 / span 3;
+  align-self: start;
+  margin-top: 4px;
+}
+
+.complete .actions {
+  grid-column: 1 / -1;
+}
+
+/* ── Outline and progress ── */
 
 .aside {
   align-self: start;
   position: sticky;
-  top: 80px;
+  top: 84px;
   display: grid;
-  gap: 24px;
+  gap: 22px;
+}
+
+.mapCard,
+.progress {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.mapCard {
+  padding: 18px 18px 10px;
 }
 
 .progress {
-  padding: 20px;
-  border: 1px solid var(--rule);
-  border-radius: 16px;
-  background: var(--surface);
+  padding: 20px 22px;
+}
+
+.mapCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.mapCardHead .link {
+  font-size: 0.85rem;
+}
+
+.goal {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-variation-settings: "opsz" 36, "SOFT" 30;
+  line-height: 1.35;
+}
+
+.goalScore {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.goalScore strong {
+  color: var(--state-solid);
+}
+
+.progressHead {
+  margin-top: 20px;
 }
 
 .stat {
@@ -474,12 +1091,13 @@
   gap: 2px;
   height: 10px;
   overflow: hidden;
-  border-radius: 5px;
+  border-radius: 3px 6px 5px 4px / 4px 5px 3px 6px;
   background: var(--rule);
 }
 
 .bar span {
   min-width: 4px;
+  transition: flex-grow 400ms var(--ease-out);
 }
 
 .seg_solid {
@@ -501,21 +1119,30 @@
 .legend {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-  margin: 12px 0;
+  gap: 5px 12px;
+  margin: 14px 0;
   list-style: none;
   font-size: 0.85rem;
 }
 
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .dot {
   display: inline-block;
+  flex-shrink: 0;
   width: 9px;
   height: 9px;
   border-radius: 50%;
 }
 
+/* An objective going solid stamps its dot. */
 .dot_solid {
   background: var(--state-solid);
+  animation: dotPop 360ms var(--ease-spring);
 }
 
 .dot_learning {
@@ -531,17 +1158,42 @@
   box-shadow: inset 0 0 0 1.5px var(--state-new);
 }
 
+.calibration {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.surprises {
+  margin-top: 16px;
+}
+
+.surprises ul {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+}
+
+.surprises .link {
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+}
+
 .modules {
   display: grid;
-  gap: 18px;
+  gap: 20px;
+  padding: 0 4px;
   list-style: none;
 }
 
 .moduleTitle {
-  margin-bottom: 6px;
-  font-size: 0.85rem;
-  font-weight: 650;
+  margin: 0 0 6px 10px;
   color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .concepts {
@@ -557,16 +1209,18 @@
   width: 100%;
   padding: 8px 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: var(--ink);
   font: inherit;
+  font-size: 0.95rem;
   text-align: left;
   cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
 }
 
 .concept:hover {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
 }
 
 .unavailable {
@@ -585,7 +1239,10 @@
 
 .current {
   background: var(--surface);
-  box-shadow: inset 3px 0 0 var(--vermilion);
+  box-shadow:
+    inset 3px 0 0 var(--vermilion),
+    0 1px 2px light-dark(rgb(31 26 23 / 0.06), rgb(0 0 0 / 0.3));
+  font-weight: 600;
 }
 
 .dots {
@@ -594,90 +1251,30 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    padding: 16px;
-  }
-
-  .aside {
-    position: static;
-  }
-
-  .header {
-    padding: 12px 16px;
-  }
-
-  .card {
-    padding: 20px;
-  }
-
-  .ratings {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .confidence > span {
-    flex-basis: 100%;
-  }
-}
-
-/* ── Mind map ── */
-
-.mapButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  padding: 7px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.mapButton:hover {
-  border-color: var(--vermilion);
-}
-
-.mapCard {
-  padding: 16px 16px 8px;
-  border: 1px solid var(--rule);
-  border-radius: 16px;
-  background: var(--surface);
-}
-
-.mapCardHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.mapCardHead .link {
-  font-size: 0.85rem;
-}
+/* ── Mind map dialog ── */
 
 .mapDialog {
   width: min(1180px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   margin: auto;
-  padding: 24px;
+  padding: 26px;
   border: 1px solid var(--rule);
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--paper);
   color: var(--ink);
-  box-shadow: 0 24px 80px rgb(0 0 0 / 0.25);
+  box-shadow: var(--shadow-float);
   overflow: auto;
 }
 
+.mapDialog[open] {
+  animation: dialogIn 260ms var(--ease-out) backwards;
+}
+
 .mapDialog::backdrop {
-  background: color-mix(in srgb, var(--ink) 35%, transparent);
-  backdrop-filter: blur(3px);
+  background: color-mix(in srgb, var(--paper-deep) 45%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fadeIn 260ms var(--ease-out) backwards;
 }
 
 .mapHead {
@@ -697,7 +1294,9 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px 24px;
-  margin-top: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
   font-size: 0.85rem;
 }
 
@@ -709,124 +1308,220 @@
   list-style: none;
 }
 
-@media (max-width: 900px) {
-  .mapDialog {
-    padding: 16px;
-  }
+.mapLegend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+
+/* ── Responsive ── */
 
 @media (min-width: 901px) {
   .aside {
-    max-height: calc(100dvh - 96px);
+    max-height: calc(100dvh - 100px);
+    /* Room for the cards' shadows inside the scroll box. */
+    margin: -6px -16px 0;
+    padding: 6px 16px 24px;
     overflow-y: auto;
     scrollbar-width: thin;
   }
 }
 
-/* ── Goal challenge ── */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 18px 16px 110px;
+  }
 
-.unsure {
-  border-style: dashed;
-  color: var(--muted);
+  .aside {
+    position: static;
+  }
+
+  .header {
+    gap: 10px;
+    padding: 10px 16px;
+  }
+
+  .card {
+    padding: 24px 20px;
+  }
+
+  .seal {
+    right: 16px;
+  }
+
+  .ratings {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .confidence > span {
+    flex-basis: 100%;
+  }
+
+  .mapDialog {
+    padding: 16px;
+  }
 }
 
-.rewatch {
-  margin-top: 14px;
-  line-height: 1.6;
+@media (max-width: 560px) {
+  .topic {
+    padding-left: 10px;
+    font-size: 0.95rem;
+  }
+
+  /* The mark alone; the name goes to leave the topic room. */
+  .brand > span + span {
+    display: none;
+  }
+
+  .mapButton {
+    padding: 8px 12px;
+  }
+
+  .complete {
+    grid-template-columns: 1fr;
+  }
+
+  .complete > :not(.completeSeal),
+  .completeSeal {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }
 
-.rewatch .link {
-  padding: 0;
+/* ── Motion ── */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
-.result {
-  margin-bottom: 18px;
-  font-size: clamp(1.6rem, 4vw, 2.3rem);
-  line-height: 1.15;
-  letter-spacing: -0.025em;
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
-.scoreRows {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 10px 14px;
-  margin-bottom: 20px;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }
 
-.scoreLabel {
-  color: var(--muted);
-  font-size: 0.85rem;
+@keyframes lift {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
 }
 
-.scoreDots {
-  display: flex;
-  gap: 8px;
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  16% {
+    transform: translateX(-4px);
+  }
+  33% {
+    transform: translateX(4px);
+  }
+  50% {
+    transform: translateX(-4px);
+  }
+  66% {
+    transform: translateX(4px);
+  }
+  83% {
+    transform: translateX(-4px);
+  }
 }
 
-.scoreRight,
-.scoreMiss {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.scoreRight {
-  background: var(--state-solid);
+@keyframes shimmer {
+  to {
+    background-position: 170% 0, 0 0;
+  }
 }
 
-.scoreMiss {
-  box-shadow: inset 0 0 0 2px var(--state-new);
+@keyframes ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
 }
 
-.goal {
-  margin-bottom: 6px;
-  line-height: 1.4;
+@keyframes fillDot {
+  from {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 2px var(--state-new);
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.18);
+  }
 }
 
-.goalScore {
-  margin-bottom: 4px;
-  color: var(--muted);
-  font-size: 0.88rem;
+@keyframes dotPop {
+  50% {
+    transform: scale(1.5);
+  }
 }
 
-.goalScore strong {
-  color: var(--state-solid);
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 }
 
-.progressHead {
-  margin-top: 18px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
 }
 
-/* ── The student's question in the teach-back ── */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .note,
+  .explanation,
+  .confidence,
+  .diagnosis,
+  .wrong,
+  .flash,
+  .ratings,
+  .graded li,
+  .studentMark,
+  .scoreRight,
+  .dot_solid,
+  .mapDialog[open],
+  .mapDialog::backdrop,
+  .spinner,
+  .shimmer,
+  .recordGlyph::before,
+  .recordGlyph::after {
+    animation: none;
+  }
 
-.student {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  margin: 8px 0 4px;
-  padding: 16px 18px;
-  border: 1px solid var(--rule);
-  border-radius: 14px;
-  background: var(--paper);
-}
-
-.studentMark {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--state-learning);
-  color: var(--paper);
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.studentQuestion {
-  margin-top: 4px;
-  font-size: 1.15rem;
-  font-weight: 600;
-  line-height: 1.4;
+  .flashInner {
+    transition: none;
+  }
 }

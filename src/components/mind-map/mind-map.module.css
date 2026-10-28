@@ -19,7 +19,14 @@
 }
 
 .dot {
-  fill: var(--rule);
+  fill: var(--rule-strong);
+  opacity: 0.6;
+}
+
+/* The soft lift under every node face (an feDropShadow in the SVG defs). */
+.shadow {
+  flood-color: light-dark(rgb(31 26 23 / 0.18), rgb(0 0 0 / 0.55));
+  flood-opacity: 1;
 }
 
 /* ── Modules ── */
@@ -41,24 +48,27 @@
 
 .moduleStart {
   text-anchor: start;
-  font-size: 11px;
 }
 
+/* The eyebrow style: small caps in the master's red. */
 .moduleIndex {
-  fill: var(--muted);
+  fill: var(--vermilion);
   font-size: 10.5px;
   font-weight: 650;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .moduleTitle {
-  font-weight: 600;
+  fill: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
-.moduleStart tspan:last-child {
-  fill: var(--ink);
-  font-weight: 600;
+.moduleStart .moduleTitle {
+  font-size: 13px;
 }
 
 /* ── Prerequisite lines ── */
@@ -161,10 +171,11 @@
   stroke-width: 1.5;
 }
 
+/* A vermilion ink ring with a faint wash inside it. */
 .halo {
-  fill: color-mix(in srgb, var(--vermilion) 12%, transparent);
-  stroke: color-mix(in srgb, var(--vermilion) 55%, transparent);
-  stroke-width: 1.5;
+  fill: color-mix(in srgb, var(--vermilion) 7%, transparent);
+  stroke: color-mix(in srgb, var(--vermilion) 75%, transparent);
+  stroke-width: 1.75;
   transform-box: fill-box;
   transform-origin: center;
   animation: halo 2.4s ease-in-out infinite;
@@ -241,6 +252,28 @@
   font-weight: 400;
 }
 
+/* The seal comes down on a concept as it turns solid (docs/design.md: the brush draws, the seal stamps). */
+.stamp {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: stamp 480ms var(--ease-stamp) both;
+}
+
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: scale(2) rotate(8deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 @keyframes pop {
   from {
     opacity: 0;
@@ -286,7 +319,8 @@
   .line,
   .flow,
   .halo,
-  .focus {
+  .focus,
+  .stamp {
     animation: none;
   }
 }

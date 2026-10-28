@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import type { Challenge, CheckItem, Concept, Confidence } from "@/lib/types";
+import { Seal } from "../mark";
 import { Question } from "./blocks";
 import styles from "./player.module.css";
 
@@ -188,32 +189,42 @@ function Result(props: Parameters<typeof ChallengeView>[0]) {
   const before = score(challenges, props.answers.before);
   const now = score(challenges, props.answers.after) ?? 0;
   const n = challenges.length;
-  const row = (answers?: Answers) =>
+  // The dots fill left to right, 80 ms apart, the "Now" row after the "Before" row.
+  const row = (answers: Answers | undefined, from: number) =>
     challenges.map((c, i) => (
-      <span key={c.id} className={answers?.[i] === c.answerIndex ? styles.scoreRight : styles.scoreMiss} title={c.prompt} />
+      <span
+        key={c.id}
+        className={answers?.[i] === c.answerIndex ? styles.scoreRight : styles.scoreMiss}
+        title={c.prompt}
+        style={{ animationDelay: `${from + i * 80}ms` }}
+      />
     ));
+  const nowFrom = before !== undefined ? 360 + n * 80 + 200 : 360;
   const missed = challenges.filter((c, i) => props.answers.after?.[i] !== c.answerIndex);
   const behind = [...new Map(missed.flatMap((c) => c.objectiveIds.flatMap((id) => props.conceptOf(id) ?? [])).map((c) => [c.id, c])).values()];
   return (
     <section className={styles.card}>
       <p className={styles.eyebrow}>Goal challenge</p>
+      {now === n && n > 0 && <Seal size={56} stamp label="Every one right" className={styles.seal} />}
       <h2 className={styles.result}>
         {before !== undefined && (
-          <>
+          <span className={styles.resultBefore}>
             Before: {before} of {n}.{" "}
-          </>
+          </span>
         )}
-        Now: {now} of {n}.
+        <span className={styles.resultNow}>
+          Now: {now} of {n}.
+        </span>
       </h2>
       <div className={styles.scoreRows} role="img" aria-label={`${before !== undefined ? `Before ${before} of ${n}, ` : ""}now ${now} of ${n}`}>
         {before !== undefined && (
           <>
             <span className={styles.scoreLabel}>Before</span>
-            <span className={styles.scoreDots}>{row(props.answers.before)}</span>
+            <span className={styles.scoreDots}>{row(props.answers.before, 360)}</span>
           </>
         )}
         <span className={styles.scoreLabel}>Now</span>
-        <span className={styles.scoreDots}>{row(props.answers.after)}</span>
+        <span className={styles.scoreDots}>{row(props.answers.after, nowFrom)}</span>
       </div>
       <p className={styles.lead}>&ldquo;{props.goal}&rdquo;</p>
       {missed.length > 0 ? (

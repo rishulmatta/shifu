@@ -248,14 +248,19 @@ function Respond(props: {
 }) {
   const { recorder, labels } = props;
   if (recorder.recording) {
+    const left = Math.max(0, props.limit - Math.floor(recorder.seconds));
     return (
-      <div className={styles.actions}>
-        <button className={styles.primary} onClick={recorder.stop}>
-          ■ Stop · {Math.floor(recorder.seconds)} s
-        </button>
+      <div className={styles.recorder}>
+        <span className={styles.recordGlyph} aria-hidden="true" />
+        <span className={styles.countdown} aria-hidden="true">
+          {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
+        </span>
         <span className={styles.recording} aria-live="polite">
           Recording, up to {props.limit} s
         </span>
+        <button className={styles.primary} onClick={recorder.stop}>
+          ■ Stop · <span className={styles.mono}>{Math.floor(recorder.seconds)}</span> s
+        </button>
       </div>
     );
   }

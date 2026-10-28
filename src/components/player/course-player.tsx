@@ -11,7 +11,8 @@ import { mergeCourse } from "@/lib/overlay";
 import type { BuildProgress } from "@/lib/store";
 import type { CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
-import { Mark } from "../mark";
+import { Mark, Seal } from "../mark";
+import { ThemeToggle } from "../theme-toggle";
 import { MAP_EVENT } from "../coach/ask";
 import { Coach } from "../coach/coach";
 import { ChallengeView } from "./challenge";
@@ -59,7 +60,8 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
   if (!block) {
     const s = view.summary(learner);
     body = (
-      <section className={styles.card}>
+      <section className={`${styles.card} ${styles.complete}`}>
+        <Seal size={72} stamp className={styles.completeSeal} />
         <p className={styles.eyebrow}>Course complete</p>
         <h2 className={styles.title}>You finished {course.plan.topic}.</h2>
         <p className={styles.lead}>
@@ -220,6 +222,7 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
           <span>Shifu</span>
         </Link>
         <span className={styles.topic}>{course.plan.topic}</span>
+        <ThemeToggle className={styles.headerToggle} />
         <button className={styles.mapButton} onClick={() => setMap({})}>
           <MapIcon /> Mind map
         </button>

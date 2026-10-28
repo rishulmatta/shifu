@@ -1,64 +1,109 @@
-// Generates the Shifu mark (an ensō brush circle around a play triangle) from one geometry:
-// public/brand/shifu-mark-{light,dark}.svg, src/app/icon.svg and src/components/mark-path.ts.
+// Generates the Shifu mark from one geometry: an ensō brush circle (the master's single stroke),
+// a vermilion seal stamped inside it with a play triangle cut out (the master's chop on a clip
+// worth watching), and the ink flecks where the brush lifts off.
+// Writes public/brand/shifu-mark-{light,dark}.svg, public/brand/shifu-wordmark-{light,dark}.svg,
+// src/app/icon.svg and src/components/mark-path.ts.
 // Run: node scripts/brand.mts
 
 import { writeFileSync } from "node:fs";
 
 const C = 100; // centre of the 200 × 200 view box
 const R = 72; // radius of the stroke's centre line
-const START = -10; // degrees; SVG angles grow clockwise
-const END = 324;
+const START = -24; // degrees; SVG angles grow clockwise. The brush lands upper right…
+const END = 312; // …and lifts just short of where it landed, leaving the ensō open.
 const STEP = 2;
 
-/** Brush width along the stroke: a heavy landing, an even body, a long tapering lift. */
+/** Brush width along the stroke: a heavy, slightly splayed landing, an even body, a long tapering lift. */
 function width(t: number) {
-  if (t < 0.06) return 15 + 2 * (1 - t / 0.06);
-  if (t < 0.72) return 15 - 2 * ((t - 0.06) / 0.66);
-  return 1.2 + 11.8 * (1 - (t - 0.72) / 0.28) ** 1.6;
+  if (t < 0.05) return 17 + 3 * (1 - t / 0.05);
+  if (t < 0.68) return 17 - 3.5 * ((t - 0.05) / 0.63);
+  return 0.9 + 12.6 * (1 - (t - 0.68) / 0.32) ** 1.7;
 }
 
-const point = (deg: number, r: number) => {
-  const a = (deg * Math.PI) / 180;
-  return `${(C + r * Math.cos(a)).toFixed(1)} ${(C + r * Math.sin(a)).toFixed(1)}`;
-};
+const rad = (deg: number) => (deg * Math.PI) / 180;
+const point = (deg: number, r: number) => `${(C + r * Math.cos(rad(deg))).toFixed(1)} ${(C + r * Math.sin(rad(deg))).toFixed(1)}`;
 
 const outer: string[] = [];
 const inner: string[] = [];
 for (let deg = START; deg <= END; deg += STEP) {
   const t = (deg - START) / (END - START);
-  const r = R + 1.2 * Math.sin((deg * 3 * Math.PI) / 180); // a slight hand-drawn wobble
+  // A hand-drawn wobble, and a slight lean: the stroke is a touch heavier low left, as a brush is.
+  const r = R + 1.4 * Math.sin(rad(deg * 3)) + 0.8 * Math.cos(rad(deg - 120));
   outer.push(point(deg, r + width(t) / 2));
   inner.push(point(deg, r - width(t) / 2));
 }
 const cap = width(0) / 2;
 const enso = `M${outer.join("L")}L${inner.reverse().join("L")}A${cap} ${cap} 0 0 1 ${outer[0]}Z`;
-const play = "M84 70L134 100L84 130Z";
 
-const svg = (ink: string, seal: string) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Shifu">
-  <path d="${enso}" fill="${ink}"/>
-  <path d="${play}" fill="${seal}" stroke="${seal}" stroke-width="8" stroke-linejoin="round"/>
-</svg>
-`;
+// Flecks of ink just past the lift, as from a dry brush.
+const flecks = [
+  { deg: END + 9, r: R + 3, size: 2.6 },
+  { deg: END + 16, r: R - 4, size: 1.7 },
+  { deg: END + 13, r: R + 11, size: 1.2 },
+].map((f) => {
+  const [x, y] = point(f.deg, f.r).split(" ");
+  return { x, y, size: f.size };
+});
+const fleckSvg = flecks.map((f) => `<circle cx="${f.x}" cy="${f.y}" r="${f.size}"/>`).join("");
+
+// The seal: a square chop, set a few degrees off true as a hand stamps it, with the play triangle
+// cut through it (fill-rule evenodd), so the paper shows through.
+const SEAL = 64;
+const TILT = -6;
+const seal = (() => {
+  const h = SEAL / 2;
+  const rx = 7;
+  const rot = (x: number, y: number) => {
+    const a = rad(TILT);
+    return `${(C + x * Math.cos(a) - y * Math.sin(a)).toFixed(1)} ${(C + x * Math.sin(a) + y * Math.cos(a)).toFixed(1)}`;
+  };
+  // Rounded square as straight edges and corner arcs, in the rotated frame.
+  const square =
+    `M${rot(-h + rx, -h)}L${rot(h - rx, -h)}A${rx} ${rx} 0 0 1 ${rot(h, -h + rx)}` +
+    `L${rot(h, h - rx)}A${rx} ${rx} 0 0 1 ${rot(h - rx, h)}L${rot(-h + rx, h)}A${rx} ${rx} 0 0 1 ${rot(-h, h - rx)}` +
+    `L${rot(-h, -h + rx)}A${rx} ${rx} 0 0 1 ${rot(-h + rx, -h)}Z`;
+  // The play triangle, nudged right so it sits at the optical centre.
+  const tri = `M${rot(-11, -17)}L${rot(19, 0)}L${rot(-11, 17)}Z`;
+  return square + tri;
+})();
+
+const markBody = (ink: string, red: string) =>
+  `  <g fill="${ink}"><path d="${enso}"/>${fleckSvg}</g>\n  <path d="${seal}" fill="${red}" fill-rule="evenodd"/>`;
+
+const svg = (ink: string, red: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Shifu">\n${markBody(ink, red)}\n</svg>\n`;
+
+const wordmark = (ink: string, red: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 200" role="img" aria-label="Shifu">\n${markBody(ink, red)}\n` +
+  `  <text x="228" y="140" fill="${ink}" font-family="Fraunces, 'Iowan Old Style', Georgia, serif" font-size="128" font-weight="500" letter-spacing="-4">Shifu</text>\n</svg>\n`;
 
 const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <style>
     .ink { fill: #221d1a; }
-    .seal { fill: #c8432b; stroke: #c8432b; }
+    .seal { fill: #c8432b; }
     @media (prefers-color-scheme: dark) {
       .ink { fill: #efe7da; }
-      .seal { fill: #e2583e; stroke: #e2583e; }
+      .seal { fill: #e2583e; }
     }
   </style>
-  <path class="ink" d="${enso}"/>
-  <path class="seal" d="${play}" stroke-width="8" stroke-linejoin="round"/>
+  <g class="ink"><path d="${enso}"/>${fleckSvg}</g>
+  <path class="seal" d="${seal}" fill-rule="evenodd"/>
 </svg>
 `;
 
 writeFileSync("public/brand/shifu-mark-light.svg", svg("#221d1a", "#c8432b"));
 writeFileSync("public/brand/shifu-mark-dark.svg", svg("#efe7da", "#e2583e"));
+writeFileSync("public/brand/shifu-wordmark-light.svg", wordmark("#221d1a", "#c8432b"));
+writeFileSync("public/brand/shifu-wordmark-dark.svg", wordmark("#efe7da", "#e2583e"));
 writeFileSync("src/app/icon.svg", icon);
 writeFileSync(
   "src/components/mark-path.ts",
-  `// Generated by scripts/brand.mts. Do not edit by hand.\nexport const ENSO_PATH = "${enso}";\nexport const PLAY_PATH = "${play}";\n`,
+  `// Generated by scripts/brand.mts. Do not edit by hand.\n` +
+    `export const ENSO_PATH = "${enso}";\n` +
+    `export const SEAL_PATH = "${seal}";\n` +
+    `/** Ink flecks past the brush's lift: [cx, cy, r]. */\n` +
+    `export const FLECKS: [number, number, number][] = ${JSON.stringify(flecks.map((f) => [+f.x, +f.y, f.size]))};\n` +
+    `/** Where the brush lands, in degrees clockwise from 3 o'clock; the ensō draws on from here. */\n` +
+    `export const ENSO_START = ${START};\n`,
 );
-console.log(`ensō path: ${enso.length} characters`);
+console.log(`ensō path: ${enso.length} characters; seal: ${seal.length}`);

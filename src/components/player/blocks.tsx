@@ -8,6 +8,7 @@ import type { Rating } from "@/lib/learner";
 import { clock } from "@/lib/course-view";
 import type { CardItem, CheckItem, Concept, Confidence, Module, Objective, Span, Video } from "@/lib/types";
 import { CoachControls } from "../coach/coach-controls";
+import { Seal } from "../mark";
 import styles from "./player.module.css";
 import { YouTubeClip } from "./youtube-clip";
 
@@ -130,6 +131,8 @@ export function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (
 
   return (
     <>
+      {/* The check seal comes down on a right answer (not on a revisit, which shows the answer either way). */}
+      {done && correct && !props.reveal && <Seal size={44} stamp label="Correct" className={styles.seal} />}
       <h2 className={styles.title}>{item.prompt}</h2>
       <div className={styles.options}>
         {item.options.map((option, i) => (
@@ -149,13 +152,16 @@ export function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (
           </button>
         ))}
       </div>
-      {!done && picked !== null && (
+      {/* Stays after answering, disabled, with the chosen one filled: a record of how sure you were. */}
+      {picked !== null && (!done || confidence !== null) && (
         <div className={styles.confidence}>
           <span className={styles.muted}>How sure are you?</span>
           {CONFIDENCE.map((c) => (
             <button
               key={c.value}
-              className={styles.secondary}
+              className={cx(styles.pill, confidence === c.value && styles.chosen)}
+              disabled={done}
+              aria-pressed={done ? confidence === c.value : undefined}
               onClick={() => {
                 setConfidence(c.value);
                 props.onAnswer(picked, c.value);
@@ -245,6 +251,7 @@ export function CheckView(props: {
       <section className={styles.card}>
         <p className={styles.eyebrow}>Explain it differently</p>
         <h2 className={styles.title}>Finding the explanation that fits your answer</h2>
+        <span className={styles.shimmer} aria-hidden="true" />
         <p className={styles.muted}>
           <span className={styles.spinner} aria-hidden="true" /> Picking the creator who clears this up best.
         </p>
@@ -357,16 +364,25 @@ export function CardsView(props: { concept: Concept; cards: CardItem[]; onRate: 
       <p className={styles.eyebrow}>
         Flashcards · {index + 1} of {cards.length}
       </p>
-      <button className={cx(styles.flash, flipped && styles.flipped)} onClick={() => setFlipped(true)} disabled={flipped}>
-        <span className={styles.flashFront}>{card.front}</span>
-        {flipped ? <span className={styles.flashBack}>{card.back}</span> : <span className={styles.muted}>Tap to reveal</span>}
+      {/* Keyed by card, so the next card arrives face up instead of turning back over. */}
+      <button key={card.id} className={cx(styles.flash, flipped && styles.flipped)} onClick={() => setFlipped(true)} disabled={flipped}>
+        <span className={styles.flashInner}>
+          <span className={styles.flashFace} aria-hidden={flipped || undefined}>
+            <span className={styles.flashFront}>{card.front}</span>
+            <span className={styles.tap}>Tap to reveal</span>
+          </span>
+          <span className={cx(styles.flashFace, styles.flashBackFace)} aria-hidden={!flipped || undefined}>
+            <span className={styles.flashFront}>{card.front}</span>
+            {flipped && <span className={styles.flashBack}>{card.back}</span>}
+          </span>
+        </span>
       </button>
       {flipped && (
         <div className={styles.ratings}>
           {RATINGS.map((r) => (
             <button
               key={r}
-              className={styles.secondary}
+              className={cx(styles.rating, styles[`rating_${r}`])}
               onClick={() => {
                 props.onRate(card.id, r);
                 setFlipped(false);

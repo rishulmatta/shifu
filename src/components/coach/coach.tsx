@@ -326,7 +326,7 @@ export function Coach(props: Props) {
       )}
 
       <button
-        className={`${styles.launcher} ${open ? styles.launcherOpen : ""}`}
+        className={`${styles.launcher} ${open ? styles.launcherOpen : ""} ${working ? styles.launcherWorking : ""}`}
         onClick={() => toggle(!open)}
         aria-expanded={open}
         aria-label={open ? "Close the coach" : "Open the coach"}

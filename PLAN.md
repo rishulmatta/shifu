@@ -26,6 +26,8 @@ tells you which 90 seconds of which video teaches the thing you are missing.
   make the ambition visible (span verification, answerability checks, graded teach-back) and never
   break on camera.
 - **Name:** working title. PlayShifu is an existing kids' edtech brand; check before a public launch.
+- **Look:** the martial-arts master in ink painting: rice paper, an ensō brush stroke, a vermilion
+  seal. The spec is `docs/design.md`; `scripts/brand.mts` generates every brand asset.
 
 ## 2. Ground rules
 

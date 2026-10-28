@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BuildView } from "@/components/build/build-view";
+import { Mark } from "@/components/mark";
 import { CoursePlayer } from "@/components/player/course-player";
 import { getCourseRecord } from "@/lib/courses";
 
@@ -25,7 +26,14 @@ async function Course({ params }: { params: PageProps<"/c/[slug]">["params"] }) 
 
 export default function CoursePage(props: PageProps<"/c/[slug]">) {
   return (
-    <Suspense fallback={<main className="intro">Loading the course…</main>}>
+    <Suspense
+      fallback={
+        <main className="intro">
+          <Mark size={72} animate />
+          <p>Loading the course…</p>
+        </main>
+      }
+    >
       <Course params={props.params} />
     </Suspense>
   );

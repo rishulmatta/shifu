@@ -15,15 +15,25 @@
   color: var(--paper);
   font: inherit;
   font-weight: 650;
-  box-shadow:
-    0 1px 2px color-mix(in srgb, var(--ink) 30%, transparent),
-    0 10px 28px color-mix(in srgb, var(--ink) 22%, transparent);
+  --lift: 0 1px 2px rgb(0 0 0 / 0.25), 0 10px 28px -6px light-dark(rgb(31 26 23 / 0.4), rgb(0 0 0 / 0.7));
+  box-shadow: var(--lift), 0 0 0 1px light-dark(transparent, var(--rule-strong));
   cursor: pointer;
-  transition: transform 160ms ease;
+  transition:
+    transform 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
 }
 
 .launcher:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.2),
+    0 16px 36px -8px light-dark(rgb(31 26 23 / 0.45), rgb(0 0 0 / 0.8)),
+    0 0 0 1px light-dark(transparent, var(--rule-strong));
+}
+
+/* While the coach works, the launcher breathes a red glow. */
+.launcherWorking {
+  animation: glow 1.4s ease-in-out infinite;
 }
 
 .launcher:focus-visible {
@@ -31,6 +41,7 @@
   outline-offset: 3px;
 }
 
+/* The mark on a paper disc, inked. */
 .seal {
   position: relative;
   display: grid;
@@ -38,6 +49,8 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
 }
 
 /* While the coach works, a vermilion stroke runs round the ensō. */
@@ -60,6 +73,7 @@
   border: 2px solid var(--ink);
   border-radius: 50%;
   background: var(--vermilion);
+  animation: badge 460ms var(--ease-spring) backwards;
 }
 
 /* ── Window ── */
@@ -74,14 +88,12 @@
   width: 400px;
   max-height: min(640px, calc(100dvh - 120px));
   border: 1px solid var(--rule);
-  border-radius: 20px;
+  border-radius: 22px;
   background: var(--surface);
   color: var(--ink);
-  box-shadow:
-    0 2px 6px color-mix(in srgb, var(--ink) 10%, transparent),
-    0 24px 64px color-mix(in srgb, var(--ink) 22%, transparent);
+  box-shadow: var(--shadow-float);
   transform-origin: bottom right;
-  animation: open 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: open 240ms var(--ease-out) backwards;
   overflow: hidden;
 }
 
@@ -104,7 +116,7 @@
 }
 
 .title {
-  font-size: 1rem;
+  font-size: 1.15rem;
   line-height: 1.2;
 }
 
@@ -163,12 +175,14 @@
   border-radius: 16px 16px 4px 16px;
   background: var(--ink);
   color: var(--paper);
+  animation: turn 260ms var(--ease-out) backwards;
 }
 
 .theirs {
   align-self: stretch;
   display: grid;
   gap: 10px;
+  animation: turn 260ms var(--ease-out) backwards;
 }
 
 /* ── The change a reply made ── */
@@ -176,9 +190,10 @@
 .card {
   display: grid;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 16px;
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-left: 2px solid var(--vermilion);
+  border-radius: 4px 14px 14px 4px;
   background: var(--paper);
 }
 
@@ -299,7 +314,7 @@
 
 .newNode_done {
   fill: color-mix(in srgb, var(--vermilion) 14%, var(--surface));
-  animation: pop 480ms cubic-bezier(0.2, 0.8, 0.25, 1.4);
+  animation: stamp 480ms var(--ease-stamp) backwards;
 }
 
 .newNode_failed {
@@ -437,20 +452,30 @@
 }
 
 .chip {
-  padding: 6px 11px;
-  border: 1px solid var(--rule);
+  padding: 6px 12px;
+  border: 1px solid var(--rule-strong);
   border-radius: 999px;
   background: var(--paper);
   color: var(--ink);
   font: inherit;
   font-size: 0.82rem;
   cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
 }
 
-.chip:hover:not(:disabled),
+.chip:hover:not(:disabled) {
+  border-color: var(--vermilion);
+  background: color-mix(in srgb, var(--vermilion) 7%, var(--paper));
+  transform: translateY(-1px);
+}
+
 .chip:focus-visible {
   border-color: var(--vermilion);
-  outline: none;
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
 }
 
 .chip:disabled,
@@ -464,6 +489,7 @@
   gap: 8px;
 }
 
+/* A paper well; focus rings it in red. */
 .input {
   flex: 1;
   min-width: 0;
@@ -474,11 +500,21 @@
   color: var(--ink);
   font: inherit;
   font-size: 0.94rem;
+  box-shadow: inset 0 1px 2px light-dark(rgb(31 26 23 / 0.06), rgb(0 0 0 / 0.3));
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 }
 
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus,
 .input:focus-visible {
-  outline: 2px solid var(--vermilion);
-  outline-offset: 1px;
+  border-color: var(--vermilion);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vermilion) 28%, transparent);
 }
 
 .send {
@@ -492,6 +528,11 @@
   background: var(--ink);
   color: var(--paper);
   cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+
+.send:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .send:focus-visible {
@@ -534,20 +575,30 @@
 }
 
 .control {
-  padding: 6px 12px;
-  border: 1px solid var(--rule);
+  padding: 6px 13px;
+  border: 1px solid var(--rule-strong);
   border-radius: 999px;
-  background: transparent;
+  background: var(--paper);
   color: var(--ink);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
 }
 
-.control:hover,
+.control:hover {
+  border-color: var(--vermilion);
+  background: color-mix(in srgb, var(--vermilion) 7%, var(--paper));
+  transform: translateY(-1px);
+}
+
 .control:focus-visible {
   border-color: var(--vermilion);
-  outline: none;
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
 }
 
 @keyframes open {
@@ -582,9 +633,42 @@
   }
 }
 
-@keyframes pop {
-  40% {
-    transform: scale(1.18);
+@keyframes turn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes badge {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: var(--lift), 0 0 0 0 color-mix(in srgb, var(--vermilion) 25%, transparent);
+  }
+  50% {
+    box-shadow: var(--lift), 0 0 0 7px color-mix(in srgb, var(--vermilion) 25%, transparent), 0 0 28px 4px color-mix(in srgb, var(--vermilion) 25%, transparent);
+  }
+}
+
+/* The seal's stamp (mark.module.css), for a new concept landing in the path. */
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: scale(2.1) rotate(8deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
   }
 }
 
@@ -617,7 +701,11 @@
   .linkWorking,
   .stepNow,
   .sealWorking::after,
-  .spinner {
+  .spinner,
+  .launcherWorking,
+  .badge,
+  .mine,
+  .theirs {
     animation: none;
   }
 }

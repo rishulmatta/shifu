@@ -7,11 +7,15 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { conceptState } from "@/lib/mastery";
+import { SEAL_PATH } from "../mark-path";
 import type { Concept, ConceptId, CoursePlan, MasteryState, ObjectiveId } from "@/lib/types";
 import { layoutMap, wrap, type MapLayout, type MapNode, type Orientation } from "./layout";
 import styles from "./mind-map.module.css";
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(" ");
+
+/** The seal's outline alone (without the play triangle), stamped on a concept once it is solid. */
+const SEAL_SQUARE = SEAL_PATH.slice(0, SEAL_PATH.indexOf("M", 1));
 
 const STATE_LABEL: Record<MasteryState, string> = { new: "not started", learning: "learning", shaky: "shaky", solid: "solid" };
 
@@ -67,6 +71,9 @@ export function MindMap(props: {
         aria-label={`Mind map of ${plan.topic}: ${layout.nodes.length} concepts`}
       >
         <defs>
+          <filter id={`shadow-${uid}`} x="-30%" y="-30%" width="160%" height="170%" colorInterpolationFilters="sRGB">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="2.2" className={styles.shadow} />
+          </filter>
           <pattern id={`dots-${uid}`} width="22" height="22" patternUnits="userSpaceOnUse">
             <circle cx="2" cy="2" r="1.1" className={styles.dot} />
           </pattern>
@@ -131,11 +138,25 @@ export function MindMap(props: {
                 {(extra || n.id === props.focusId) && (
                   <circle r={layout.radius + 7} className={cx(styles.added, n.id === props.focusId && styles.focus)} />
                 )}
-                <circle r={layout.radius} className={cx(styles.face, styles[`face_${open ? state : "new"}`], current && styles.faceCurrent)} />
+                <circle
+                  r={layout.radius}
+                  filter={`url(#shadow-${uid})`}
+                  className={cx(styles.face, styles[`face_${open ? state : "new"}`], current && styles.faceCurrent)}
+                />
                 <Ring radius={layout.radius} states={concept.objectives.map((o) => (open ? (states[o.id] ?? "new") : "new"))} />
-                <text className={styles.number} dy="0.35em">
-                  {state === "solid" && open ? "✓" : numbers.get(n.id)}
-                </text>
+                {state === "solid" && open ? (
+                  // Keyed by state so the seal stamps down the moment the concept turns solid.
+                  <g transform={`scale(${((0.42 * layout.radius) / 30).toFixed(3)}) translate(-100 -100)`} pointerEvents="none">
+                    <g key="seal" className={styles.stamp} style={{ animationDelay: `${(numbers.get(n.id)! - 1) * 70 + 320}ms` }}>
+                      <path d={SEAL_SQUARE} fill="var(--vermilion)" />
+                      <path d="M70 104 L91 124 L131 78" fill="none" stroke="var(--paper)" strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" />
+                    </g>
+                  </g>
+                ) : (
+                  <text className={styles.number} dy="0.35em">
+                    {numbers.get(n.id)}
+                  </text>
+                )}
                 <Label layout={layout} node={n} note={open ? undefined : building ? "building…" : "no clip found"} />
               </g>
             </g>
@@ -188,7 +209,7 @@ function ModuleLabel(props: { layout: MapLayout; index: number; title: string; x
     <text x={props.x} y={props.y} className={cx(styles.module, vertical && styles.moduleStart)}>
       <tspan className={styles.moduleIndex}>Module {props.index + 1}</tspan>
       {vertical ? (
-        <tspan dx="8">{wrap(props.title, props.layout.width - 90, 6.4, 1)[0]}</tspan>
+        <tspan dx="8" className={styles.moduleTitle}>{wrap(props.title, props.layout.width - 90, 6.4, 1)[0]}</tspan>
       ) : (
         lines.map((l, i) => (
           <tspan key={i} x={props.x} dy={i === 0 ? "1.35em" : "1.2em"} className={styles.moduleTitle}>
