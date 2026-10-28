@@ -162,3 +162,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   launcher breathes while it works. An Open Graph image for links, the wordmark in the README.
   Everything respects reduced motion. Checked in headless Chrome, both schemes, desktop and phone;
   `pnpm test`, `typecheck`, `lint` and `build` pass.
+
+### Thu 29 Oct
+
+- Live at https://shifu-nine.vercel.app. Postgres is a Railway service reached over its public TCP
+  proxy (the store creates its tables on first use); the Vercel project carries the model, SearchAPI
+  and database keys for production and preview, with `PG_POOL_MAX=3` so serverless instances share
+  Railway's connection budget. The home page, Open Graph image and favicon serve from the deploy;
+  no runtime errors in the first hour.

@@ -560,7 +560,7 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 - [ ] **Get the SearchAPI key** (100 free requests, then $40 for 10,000): real builds, the demo
       courses and the coach's new concepts need it.
 - [ ] Check that the Modal credit covers Shared Endpoint usage.
-- [ ] Vercel project for the live deployment (Postgres is on Railway, done Wed 28 Oct).
+- [x] Vercel project for the live deployment: https://shifu-nine.vercel.app (Thu 29 Oct), Postgres on Railway.
 - [ ] Muse Code: the review scheduler (`docs/muse-code-tasks.md`, Task 2) and its review of this plan.
 - [ ] Pick the 3 demo topics (§13) and pre-build them.
 - [ ] Join the Discord and post in #intros.
