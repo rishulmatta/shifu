@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { type PlanOutput, targetMinutes, toCoursePlan } from "./plan";
+import { bayesCourse } from "../fixtures/bayes";
+import { toChallenge } from "./challenge";
 
 const input = { topic: "Bayes' theorem", goal: "understand it", level: "beginner", minutesPerDay: 20 } as const;
 const concept = (id: string, prerequisites: string[] = [], objectives = 1) => ({
@@ -81,5 +83,29 @@ describe("targetMinutes", () => {
     expect(targetMinutes(5)).toBe(30);
     expect(targetMinutes(15)).toBe(60);
     expect(targetMinutes(60)).toBe(90);
+  });
+});
+
+describe("toChallenge", () => {
+  const draft = {
+    prompt: "1% have it; the test catches 90% and flags 10% of the rest. You test positive. How likely?",
+    options: ["A) About 8%", "About 90%", "About 1%", "About 50%"],
+    answerIndex: 0,
+    whyWrong: ["", "Sensitivity, not the posterior.", "The prior alone.", "Even odds from nowhere."],
+    explanation: "9 in 108.",
+    objectiveIds: ["base-rates/1", "made-up/1", "base-rates/1", "bayes-rule/1"],
+  };
+
+  it("keeps real objectives once, strips option letters, and moves misconceptions with their options", () => {
+    const c = toChallenge(bayesCourse.plan, draft, "challenge-1");
+    if (typeof c === "string") throw new Error(c);
+    expect(c.objectiveIds).toEqual(["base-rates/1", "bayes-rule/1"]);
+    expect(c.options[c.answerIndex]).toBe("About 8%");
+    expect(c.whyWrong[c.options.indexOf("About 1%")]).toBe("The prior alone.");
+  });
+
+  it("drops a challenge with no known objective or without four distinct options", () => {
+    expect(toChallenge(bayesCourse.plan, { ...draft, objectiveIds: ["made-up/1"] }, "x")).toMatch(/^no known objectives/);
+    expect(toChallenge(bayesCourse.plan, { ...draft, options: ["a", "a", "b", "c"] }, "x")).toMatch(/^malformed/);
   });
 });

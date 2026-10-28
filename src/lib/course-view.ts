@@ -72,6 +72,21 @@ export class CourseView {
       .filter((c): c is Concept => !!c && !this.studied(learner, c));
   }
 
+  /** The goal challenge's score at one stage, or undefined if it wasn't taken. */
+  challengeScore(learner: LearnerState, stage: "before" | "after") {
+    const answers = learner.challenge[stage];
+    const challenges = this.course.challenges ?? [];
+    if (!answers?.length || !challenges.length) return undefined;
+    return { right: challenges.filter((c, i) => answers[i] === c.answerIndex).length, of: challenges.length };
+  }
+
+  /** Every objective of the concept was in a goal challenge the learner got right before starting. */
+  knownBefore(learner: LearnerState, concept: Concept) {
+    const answers = learner.challenge.before ?? [];
+    const right = new Set((this.course.challenges ?? []).flatMap((c, i) => (answers[i] === c.answerIndex ? c.objectiveIds : [])));
+    return concept.objectives.length > 0 && concept.objectives.every((o) => right.has(o.id));
+  }
+
   /** How often "Sure" was right, and the objectives where it wasn't (PLAN.md §3, confidence). */
   calibration(learner: LearnerState) {
     const sure = learner.attempts.filter((a) => a.confidence === "sure");

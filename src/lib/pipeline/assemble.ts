@@ -18,14 +18,20 @@ export function checksFor(items: RecallItem[], objectiveId: ObjectiveId) {
  * Each objective's check questions are used in order: the first after the clip, the second after
  * "explain it differently" (the player picks it), the third (or else the second) in the quiz.
  */
-export function assembleTimeline(plan: CoursePlan, spans: Span[], items: RecallItem[]): Block[] {
+export function assembleTimeline(
+  plan: CoursePlan,
+  spans: Span[],
+  items: RecallItem[],
+  /** Whether the goal challenge opens the course, and whether it closes it (once all is built). */
+  challenge: { before: boolean; after: boolean } = { before: false, after: false },
+): Block[] {
   const concepts = new Map(plan.concepts.map((c) => [c.id, c]));
   const quizPick = (id: ObjectiveId) => {
     const checks = checksFor(items, id);
     return checks[2] ?? checks[1] ?? checks[0];
   };
 
-  const blocks: Block[] = [];
+  const blocks: Block[] = challenge.before ? [{ kind: "challenge", stage: "before" }] : [];
   const taught: ObjectiveId[] = [];
 
   for (const mod of [...plan.modules].sort((a, b) => a.index - b.index)) {
@@ -45,6 +51,7 @@ export function assembleTimeline(plan: CoursePlan, spans: Span[], items: RecallI
     blocks.push({ kind: "quiz", moduleIndex: mod.index, itemIds: quiz.map((i) => i.id) });
     taught.push(...inModule);
   }
+  if (challenge.after && blocks.some((b) => b.kind === "clip")) blocks.push({ kind: "challenge", stage: "after" });
   return blocks;
 }
 

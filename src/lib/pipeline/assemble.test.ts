@@ -6,7 +6,15 @@ const kinds = bayesCourse.timeline.map((b) => b.kind);
 
 describe("assembleTimeline", () => {
   it("opens each concept with an intro, then a clip and a check per objective", () => {
-    expect(kinds.slice(0, 6)).toEqual(["intro", "clip", "check", "clip", "check", "cards"]);
+    expect(kinds.slice(1, 7)).toEqual(["intro", "clip", "check", "clip", "check", "cards"]);
+  });
+
+  it("puts the goal challenge first and, once the course is built, last", () => {
+    expect(bayesCourse.timeline[0]).toEqual({ kind: "challenge", stage: "before" });
+    expect(bayesCourse.timeline.at(-1)).toEqual({ kind: "challenge", stage: "after" });
+    const { plan, spans, items } = bayesCourse;
+    expect(assembleTimeline(plan, spans, items).some((b) => b.kind === "challenge")).toBe(false);
+    expect(assembleTimeline(plan, [], items, { before: true, after: true })).toEqual([{ kind: "challenge", stage: "before" }]);
   });
 
   it("ends every module with a teach-back and a quiz", () => {

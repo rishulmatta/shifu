@@ -119,3 +119,12 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   same misconception (the learner's own wrong answer is one of its distractors), with the quote and
   answer-blind checks. About 5 s live; the player waits up to 8 s for it and otherwise uses the
   pre-built alternate, as it does when a course has no captions for the alternates.
+- The goal challenge, before and after: right after the plan, Muse Spark 1.3 writes 3 to 5
+  scenario questions from the learner's goal, each needing two or three objectives, with a named
+  misconception per distractor; each is answered blind and kept only if that answer agrees and no
+  other option is defensible. Live on two goals ("pass my stats exam", "pay off my credit card or
+  invest"): 4 and 5 kept in about 35 s for $0.05, every key right when checked by hand. The course
+  opens with them cold ("I don't know yet" allowed, nothing revealed) and closes with them again,
+  with feedback, rewatch links and "Before: 2 of 4. Now: 4 of 4." A concept whose objectives were
+  all right before starting says the learner may know it and offers to skip; the progress panel
+  shows the goal and both scores. The sample course has four hand-written ones.

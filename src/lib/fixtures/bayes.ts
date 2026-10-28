@@ -5,7 +5,7 @@
 // Evidence quotes are empty for the same reason.
 
 import { assembleTimeline } from "../pipeline/assemble";
-import type { Course, CoursePlan, RecallItem, Span, Video } from "../types";
+import type { Challenge, Course, CoursePlan, RecallItem, Span, Video } from "../types";
 
 const videos: Record<string, Video> = {
   BrK7X_XlGB8: { id: "BrK7X_XlGB8", title: "A visual guide to Bayesian thinking", channel: "Julia Galef", durationS: 685 },
@@ -268,6 +268,75 @@ const items: RecallItem[] = [
   card("updating-gradually/1", "Why never hold 0% or 100%?", "Those priors can't be moved by any evidence."),
 ];
 
+/** Hand-written, in the shape the challenge step produces (PLAN.md §6, step 1b). */
+const challenges: Challenge[] = [
+  {
+    id: "challenge-1",
+    prompt:
+      "A friend shows you 100 cards: 20 red and 80 blue. 15 of the red cards and 20 of the blue ones have a star on the back. You're handed a card with a star. How likely is it to be red?",
+    options: ["About 43%", "About 20%", "About 75%", "About 15%"],
+    answerIndex: 0,
+    whyWrong: [
+      "",
+      "That's the share of red cards before you saw the star: the star is evidence you left out.",
+      "That's the share of red cards with a star, the condition the wrong way round.",
+      "That's red-and-starred out of all 100 cards, not out of the 35 starred ones.",
+    ],
+    explanation: "Of the 35 starred cards, 15 are red: 15 out of 35 is about 43%.",
+    objectiveIds: ["bayes-rule/2", "priors-and-evidence/1"],
+  },
+  {
+    id: "challenge-2",
+    prompt:
+      "1% of people have a virus. A test is positive for 9 in 10 people who have it and for 1 in 10 who don't. You test positive. How likely is it that you have the virus?",
+    options: ["About 90%", "About 8%", "About 1%", "About 50%"],
+    answerIndex: 1,
+    whyWrong: [
+      "That's how often the test catches the virus, not how likely you are to have it after a positive.",
+      "",
+      "That's the chance before the test: a positive result is real evidence.",
+      "A positive doesn't make it even odds; the many healthy people produce most of the positives.",
+    ],
+    explanation: "Out of 1,000 people, 9 of the 10 with the virus test positive and so do about 99 of the 990 without it: 9 in 108, about 8%.",
+    objectiveIds: ["base-rates/1", "bayes-rule/1"],
+  },
+  {
+    id: "challenge-3",
+    prompt:
+      "1 email in 10 is spam, so the odds an email is spam start at 1 to 9. A filter flags spam 4 times as often as normal mail. An email gets flagged. What are the odds it's spam now?",
+    options: ["4 to 1", "1 to 9", "4 to 9", "5 to 9"],
+    answerIndex: 2,
+    whyWrong: [
+      "That's the Bayes factor alone, with the starting odds dropped.",
+      "That's the starting odds, as if the flag told you nothing.",
+      "",
+      "That adds the Bayes factor to the starting odds instead of multiplying.",
+    ],
+    explanation: "Posterior odds are the prior odds times the Bayes factor: 1 to 9 times 4 is 4 to 9.",
+    objectiveIds: ["base-rates/2", "priors-and-evidence/2"],
+  },
+  {
+    id: "challenge-4",
+    prompt:
+      "You start 10% sure a coin is biased towards heads. A long run of heads moves you to 30%. Then a second, similar run of heads comes in. What should your belief do?",
+    options: [
+      "Jump to 100%: two runs prove it",
+      "Go back to 10% and update to 30% again",
+      "Stay at 30%: the second run adds nothing",
+      "Start from 30% and move higher",
+    ],
+    answerIndex: 3,
+    whyWrong: [
+      "Two pieces of evidence make it more likely, not certain.",
+      "That throws away what the first run already told you.",
+      "A second run is new evidence, so it should move you further.",
+      "",
+    ],
+    explanation: "Each update's posterior is the next one's prior, so the second run starts from 30% and pushes higher.",
+    objectiveIds: ["updating-gradually/1", "priors-and-evidence/2"],
+  },
+];
+
 export const bayesCourse: Course = {
   id: "fixture-bayes",
   slug: "bayes-sample",
@@ -276,5 +345,6 @@ export const bayesCourse: Course = {
   videos,
   spans,
   items,
-  timeline: assembleTimeline(plan, spans, items),
+  challenges,
+  timeline: assembleTimeline(plan, spans, items, { before: true, after: true }),
 };

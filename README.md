@@ -47,6 +47,9 @@ order with recall practice woven in.
     <td valign="top"><strong>Progress that means something</strong><br>An objective counts as solid only when you get it right and it holds up later, in review or in your own words.</td>
   </tr>
   <tr>
+    <td valign="top" colspan="2"><strong>Your goal, before and after</strong><br>The course opens with your goal as a few scenario questions you take cold, with "I don't know yet" allowed and nothing given away. You take them again at the end and see how far you've come: "Before: 1 of 4. Now: 4 of 4."</td>
+  </tr>
+  <tr>
     <td valign="top" colspan="2"><strong>A coach that reshapes the course</strong><br>Say "ask me more questions" or "explain the basics first" and the course changes: checked practice questions come next, or a new prerequisite concept is built from fresh clips and grows into your mind map. The coach never lectures in a chat; every reply is a change you can see.</td>
   </tr>
 </table>

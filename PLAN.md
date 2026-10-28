@@ -307,6 +307,10 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
    **1b. Goal challenges** (Muse Spark, in parallel with module 1): 3–5 scenario questions at the
    level of the goal, each naming the objectives it draws on and a misconception per distractor;
    kept only if a blind second answer agrees with the key and finds no other defensible option.
+   Built 28 Oct (`challenge.ts`): Muse Spark 1.3 at medium effort, the blind answer on Muse Spark
+   Open at low. Tested on two courses with different goals: 4 and 5 kept, about 35 s and $0.05,
+   every key checked by hand. The "before" block opens the course once module 1 is saved; the
+   "after" block is added when the whole course is built.
 
 2. **Discover** (YouTube Data API). Per concept: `search.list` (`type=video`,
    `videoEmbeddable=true`, `relevanceLanguage`, `safeSearch=strict`), then `videos.list` for

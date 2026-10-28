@@ -59,6 +59,8 @@ export interface LearnerState {
   /** What the coach added for this learner, and the conversation. */
   overlay: Overlay;
   coach: CoachTurn[];
+  /** Goal-challenge answers by challenge, before the course and after it; null is "I don't know yet". */
+  challenge: { before?: (number | null)[]; after?: (number | null)[] };
 }
 
 export const EMPTY: LearnerState = {
@@ -71,6 +73,7 @@ export const EMPTY: LearnerState = {
   attempts: [],
   overlay: NO_OVERLAY,
   coach: [],
+  challenge: {},
 };
 
 /**

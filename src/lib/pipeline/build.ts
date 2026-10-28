@@ -9,6 +9,7 @@ import type { VideoHit } from "../sources/youtube";
 import type { BuildProgress, CourseRecord, Store } from "../store/types";
 import type { CaptionLine, Concept, Course, CoursePlan, Objective, RecallItem, Span, Video } from "../types";
 import { assembleTimeline } from "./assemble";
+import { writeChallenges } from "./challenge";
 import { textInSeconds } from "./captions";
 import { chooseSpans } from "./choose";
 import { type Candidate, locateInVideo } from "./locate";
@@ -172,6 +173,21 @@ export async function buildCourse(slug: string, input: PlanInput, sources: Sourc
     await store.updateCourse(slug, { course });
     await report({ modulesTotal: plan.modules.length, costUsd: planned.usage.costUsd });
 
+    // The goal challenge is written while module 1 builds, and opens the course once it's there.
+    let challenges: Promise<void> | undefined = writeChallenges(plan).then(
+      async (r) => {
+        r.dropped.forEach((d) => warn(`goal challenge dropped: ${d}`));
+        if (r.challenges.length) course.challenges = r.challenges;
+        await report({ costUsd: progress.costUsd + r.usage.costUsd });
+      },
+      (e) => warn(`goal challenge failed: ${String(e)}`),
+    );
+    const timeline = (built: number[], done: boolean) =>
+      assembleTimeline({ ...plan, modules: plan.modules.filter((x) => built.includes(x.index)) }, course.spans, course.items, {
+        before: !!course.challenges?.length,
+        after: done && !!course.challenges?.length,
+      });
+
     const built: number[] = [];
     for (const m of plan.modules) {
       const r = await buildModule(plan, m.index, sources, report, warn);
@@ -179,12 +195,15 @@ export async function buildCourse(slug: string, input: PlanInput, sources: Sourc
       course.spans.push(...r.spans);
       course.items.push(...r.items);
       built.push(m.index);
-      course.timeline = assembleTimeline({ ...plan, modules: plan.modules.filter((x) => built.includes(x.index)) }, course.spans, course.items);
+      if (challenges) await challenges;
+      challenges = undefined;
+      course.timeline = timeline(built, false);
       await store.updateCourse(slug, { course });
       await report({ modulesReady: built.length, costUsd: progress.costUsd + r.usage.costUsd });
     }
 
     if (!course.timeline.some((b) => b.kind === "clip")) throw new Error("No clips were found for any objective");
+    course.timeline = timeline(built, true);
     course.status = "ready";
     await store.updateCourse(slug, { course });
     await report({ step: "ready", message: "Ready" });

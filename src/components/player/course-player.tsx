@@ -14,6 +14,7 @@ import { BuildBanner } from "../build/build-view";
 import { Mark } from "../mark";
 import { MAP_EVENT } from "../coach/ask";
 import { Coach } from "../coach/coach";
+import { ChallengeView } from "./challenge";
 import { MapDialog } from "./map-dialog";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { Outline } from "./outline";
@@ -82,8 +83,34 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
         moduleCount={course.plan.modules.length}
         buildsOn={c.prerequisites.map((id) => view.concepts.get(id)!).filter(Boolean)}
         unfinished={view.unfinishedPrerequisites(learner, c).filter((p) => view.available.has(p.id))}
+        known={view.knownBefore(learner, c)}
+        onSkip={() => {
+          const after = timeline.findIndex((b, i) => i > index && b.kind === "intro");
+          go(after < 0 ? timeline.length : after);
+        }}
         onStart={next}
         onGoTo={(id) => go(view.introIndex(id))}
+      />
+    );
+  } else if (block.kind === "challenge") {
+    const stage = block.stage;
+    body = (
+      <ChallengeView
+        key={index}
+        stage={stage}
+        goal={course.plan.goal}
+        challenges={course.challenges ?? []}
+        answers={learner.challenge}
+        conceptOf={(id) => view.concepts.get(id.split("/")[0])}
+        onAnswer={(i, choice) =>
+          save((s) => {
+            const answers = [...(s.challenge[stage] ?? [])];
+            answers[i] = choice;
+            return { ...s, challenge: { ...s.challenge, [stage]: answers } };
+          })
+        }
+        onRewatch={(conceptId) => go(view.introIndex(conceptId))}
+        onContinue={next}
       />
     );
   } else if (block.kind === "clip") {

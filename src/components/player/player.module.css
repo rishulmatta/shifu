@@ -722,3 +722,78 @@
     scrollbar-width: thin;
   }
 }
+
+/* ── Goal challenge ── */
+
+.unsure {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.rewatch {
+  margin-top: 14px;
+  line-height: 1.6;
+}
+
+.rewatch .link {
+  padding: 0;
+}
+
+.result {
+  margin-bottom: 18px;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.scoreRows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 20px;
+}
+
+.scoreLabel {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.scoreDots {
+  display: flex;
+  gap: 8px;
+}
+
+.scoreRight,
+.scoreMiss {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.scoreRight {
+  background: var(--state-solid);
+}
+
+.scoreMiss {
+  box-shadow: inset 0 0 0 2px var(--state-new);
+}
+
+.goal {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.goalScore {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.goalScore strong {
+  color: var(--state-solid);
+}
+
+.progressHead {
+  margin-top: 18px;
+}

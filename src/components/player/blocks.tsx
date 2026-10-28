@@ -34,6 +34,9 @@ export function IntroView(props: {
   moduleCount: number;
   buildsOn: Concept[];
   unfinished: Concept[];
+  /** The learner got this concept's goal challenges right before starting. */
+  known?: boolean;
+  onSkip?: () => void;
   onStart: () => void;
   onGoTo: (conceptId: string) => void;
 }) {
@@ -51,6 +54,14 @@ export function IntroView(props: {
           <li key={o.id}>{o.text}</li>
         ))}
       </ul>
+      {props.known && (
+        <div className={styles.note}>
+          You got this right in the goal challenge, so you may know it already.{" "}
+          <button className={styles.link} onClick={props.onSkip}>
+            Skip to the next concept
+          </button>
+        </div>
+      )}
       {unfinished.length > 0 && (
         <div className={styles.note}>
           This builds on <strong>{unfinished.map((c) => c.title).join(", ")}</strong>, which you haven&apos;t finished.{" "}
@@ -109,7 +120,7 @@ const CONFIDENCE: { value: Confidence; label: string }[] = [
  * Pick an option, then say how sure you are to lock it in (PLAN.md §3, "Teaching that works").
  * A wrong pick shows the misconception behind it; a confident miss and a lucky guess are named.
  */
-function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (choice: number, confidence: Confidence) => void }) {
+export function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (choice: number, confidence: Confidence) => void }) {
   const { item } = props;
   const [picked, setPicked] = useState<number | null>(props.reveal ? item.answerIndex : null);
   const [confidence, setConfidence] = useState<Confidence | null>(null);

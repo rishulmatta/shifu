@@ -113,6 +113,22 @@ export type RecallItem =
 export type CheckItem = Extract<RecallItem, { kind: "mcq" }>;
 export type CardItem = Extract<RecallItem, { kind: "card" }>;
 
+/**
+ * A goal challenge (PLAN.md §3, "Teaching that works" 1): a scenario from the learner's goal that
+ * needs several objectives at once, taken cold before module 1 and again at the end. Not tied to a
+ * clip, so it has no quote; it is kept only when a blind second answer agrees with its key.
+ */
+export interface Challenge {
+  id: string;
+  prompt: string;
+  options: string[];
+  answerIndex: number;
+  /** Per option, the misconception it stands for; "" for the answer. */
+  whyWrong: string[];
+  explanation: string;
+  objectiveIds: ObjectiveId[];
+}
+
 // ── The course timeline (PLAN.md §3) ─────────────────────────────────────────────────────────
 
 export type Block =
@@ -121,6 +137,8 @@ export type Block =
   | { kind: "check"; objectiveId: ObjectiveId; itemId: string }
   | { kind: "cards"; conceptId: ConceptId; itemIds: string[] }
   | { kind: "teachback"; moduleIndex: number }
+  /** The goal challenge: before module 1, and again once the whole course is built. */
+  | { kind: "challenge"; stage: "before" | "after" }
   | { kind: "quiz"; moduleIndex: number; itemIds: string[] }
   /** Extra questions the coach wrote for this learner (PLAN.md §3, "The course coach"). */
   | { kind: "practice"; conceptId: ConceptId; itemIds: string[] };
@@ -136,6 +154,8 @@ export interface Course {
   videos: Record<string, Video>;
   spans: Span[];
   items: RecallItem[];
+  /** Absent on courses built before 28 Oct, or when none passed their check. */
+  challenges?: Challenge[];
   timeline: Block[];
 }
 

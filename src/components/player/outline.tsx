@@ -27,6 +27,8 @@ export function Outline(props: {
   const { view, learner } = props;
   const s = view.summary(learner);
   const cal = view.calibration(learner);
+  const before = view.challengeScore(learner, "before");
+  const after = view.challengeScore(learner, "after");
 
   return (
     <aside className={styles.aside} aria-label="Course progress">
@@ -50,7 +52,16 @@ export function Outline(props: {
         />
       </div>
       <div className={styles.progress}>
-        <p className={styles.eyebrow}>Your progress</p>
+        <p className={styles.eyebrow}>Your goal</p>
+        <p className={styles.goal}>{view.course.plan.goal}</p>
+        {(before || after) && (
+          <p className={styles.goalScore}>
+            Goal challenge: {before && `${before.right} of ${before.of} before`}
+            {before && after && ", "}
+            {after && <strong>{`${after.right} of ${after.of} now`}</strong>}
+          </p>
+        )}
+        <p className={`${styles.eyebrow} ${styles.progressHead}`}>Your progress</p>
         <p className={styles.stat}>
           <strong>{s.studied}</strong> of {s.concepts} concepts studied
         </p>
