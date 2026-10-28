@@ -141,3 +141,8 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   is positive, why aren't you 90% likely to be ill?"; a right answer was graded covered and "it
   just stays 90%" a misconception. The recorder is now a hook shared by both. All five "Teaching
   that works" features are built.
+- Review scheduler (Muse Code): `src/lib/review.ts` wraps `ts-fsrs` (default parameters, request
+  retention 0.9) with `newCard`, `rate`, `due` (oldest first) and `estimateMinutes` (15 s a card,
+  30 s a check), storing FSRS state as plain JSON for `localStorage`. Eleven fixed-date tests in
+  `src/lib/review.test.ts`; `pnpm test`, `pnpm typecheck` and `pnpm lint` pass. Wiring it into the
+  learner state, the review queue and the Today panel is Claude Code's next step.

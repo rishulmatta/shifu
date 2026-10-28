@@ -37,7 +37,7 @@ by how well the learner knows its objectives.
   asked; the first deliverable is the component plus a story page at `/dev/mind-map` that renders
   the sample course with a few hand-set states.
 
-## Task 2: the review scheduler (`src/lib/review.ts`)
+## Task 2: the review scheduler (`src/lib/review.ts`): done by Muse Code, 28 Oct
 
 Spaced repetition for flashcards and objective checks, wrapping `ts-fsrs`.
 
