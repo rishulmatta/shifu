@@ -111,6 +111,27 @@ async function answerBlind(clip: ClipText, q: Pick<CheckItem, "prompt" | "option
   });
 }
 
+export type DraftQuestion = z.infer<typeof RecallOutput>["questions"][number];
+
+/** A drafted question as a check item, or why it was dropped: it needs four distinct options, a keyed answer and a quote found in the clip. */
+export function toCheckItem(objective: Objective, clip: ClipText, q: DraftQuestion, id: string): CheckItem | string {
+  const options = q.options.map(unlabel);
+  const distinct = new Set(options.map((o) => o.toLowerCase())).size === 4;
+  if (options.length !== 4 || !distinct || q.answerIndex < 0 || q.answerIndex > 3) return `malformed: ${q.prompt}`;
+  if (!quoteFound(clip.text, q.quote)) return `quote not in clip: ${q.prompt}`;
+  const shuffled = shuffleOptions(options, q.answerIndex, id, misconceptions(q.whyWrong, q.answerIndex));
+  return { id, kind: "mcq", objectiveId: objective.id, prompt: q.prompt, explanation: q.explanation, evidence: { spanId: clip.span.id, quote: q.quote }, ...shuffled };
+}
+
+/** The answer-blind check: `dropped` says why when the clip alone doesn't land on the key, or backs a second option. */
+export async function blindCheck(clip: ClipText, item: CheckItem): Promise<{ dropped?: string; usage: Usage }> {
+  const check = await answerBlind(clip, item);
+  const { answerIndex, alsoDefensible } = check.data;
+  if (answerIndex !== item.answerIndex) return { dropped: `answer-blind check picked another option: ${item.prompt}`, usage: check.usage };
+  if (alsoDefensible.some((j) => j !== answerIndex && j >= 0 && j < 4)) return { dropped: `more than one defensible answer: ${item.prompt}`, usage: check.usage };
+  return { usage: check.usage };
+}
+
 async function fromClip(objective: Objective, clip: ClipText, want: Want, tag: string) {
   const out = await generate("recall", {
     name: "Recall",
@@ -124,28 +145,16 @@ async function fromClip(objective: Objective, clip: ClipText, want: Want, tag: s
 
   const drafted: CheckItem[] = [];
   out.data.questions.slice(0, want.questions).forEach((q, i) => {
-    const options = q.options.map(unlabel);
-    const distinct = new Set(options.map((o) => o.toLowerCase())).size === 4;
-    if (options.length !== 4 || !distinct || q.answerIndex < 0 || q.answerIndex > 3) return dropped.push(`malformed: ${q.prompt}`);
-    if (!quoteFound(clip.text, q.quote)) return dropped.push(`quote not in clip: ${q.prompt}`);
-    const id = `${objective.id}:${tag}q${i + 1}`;
-    const shuffled = shuffleOptions(options, q.answerIndex, id, misconceptions(q.whyWrong, q.answerIndex));
-    drafted.push({ id, kind: "mcq", objectiveId: objective.id, prompt: q.prompt, explanation: q.explanation, evidence: evidence(q.quote), ...shuffled });
+    const item = toCheckItem(objective, clip, q, `${objective.id}:${tag}q${i + 1}`);
+    if (typeof item === "string") dropped.push(item);
+    else drafted.push(item);
   });
 
-  const checks = await Promise.all(drafted.map((q) => answerBlind(clip, q)));
+  const checks = await Promise.all(drafted.map((q) => blindCheck(clip, q)));
   const questions = drafted.filter((q, i) => {
     usage = add(usage, checks[i].usage);
-    const { answerIndex, alsoDefensible } = checks[i].data;
-    if (answerIndex !== q.answerIndex) {
-      dropped.push(`answer-blind check picked another option: ${q.prompt}`);
-      return false;
-    }
-    if (alsoDefensible.some((j) => j !== answerIndex && j >= 0 && j < 4)) {
-      dropped.push(`more than one defensible answer: ${q.prompt}`);
-      return false;
-    }
-    return true;
+    if (checks[i].dropped) dropped.push(checks[i].dropped!);
+    return !checks[i].dropped;
   });
 
   const cards: CardItem[] = [];

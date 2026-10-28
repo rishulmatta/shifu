@@ -102,10 +102,23 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
     const item = view.items.get(block.itemId) as CheckItem;
     const altSpan = view.alternate(block.objectiveId);
     const altItem = view.checks(block.objectiveId).find((i) => i.id !== item.id) as CheckItem | undefined;
+    // Aimed at the wrong pick: the server picks the alternate clip that clears up its misconception.
+    const target = async (asked: CheckItem, choice: number) => {
+      const res = await fetch(`/api/courses/${course.slug}/retry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: asked.id, choice }),
+      });
+      if (!res.ok) return undefined;
+      const r = (await res.json()) as { spanId: string; focus: string; item: CheckItem };
+      const span = view.spans.get(r.spanId);
+      return span && { span, video: course.videos[span.videoId], item: r.item, focus: r.focus };
+    };
     body = (
       <CheckView
         key={index}
         item={item}
+        target={altSpan ? target : undefined}
         alternate={altSpan && altItem ? { span: altSpan, video: course.videos[altSpan.videoId], item: altItem } : undefined}
         answered={learner.answered.includes(key)}
         onAnswer={(asked, choice, confidence, unaided) => save((s) => markAnswered(withAnswer(s, asked, choice, confidence, unaided)))}

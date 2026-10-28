@@ -3,7 +3,7 @@
 // One view per timeline block (PLAN.md §3). Each view gets what it needs and reports back through
 // callbacks; the player owns progress and position.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Rating } from "@/lib/learner";
 import { clock } from "@/lib/course-view";
 import type { CardItem, CheckItem, Concept, Confidence, Module, Objective, Span, Video } from "@/lib/types";
@@ -177,19 +177,42 @@ function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (choice:
 
 type CheckPhase = "ask" | "right" | "wrong" | "reexplain" | "again" | "again-right" | "again-wrong";
 
+/** Another creator's clip and a question after it; `focus` says what to watch for when it's aimed at a mistake. */
+export interface Reexplanation {
+  span: Span;
+  video: Video;
+  item: CheckItem;
+  focus?: string;
+}
+
+/** How long "Explain it differently" waits for the explanation aimed at the mistake before using the pre-built one. */
+const TARGET_WAIT_MS = 8_000;
+
 export function CheckView(props: {
   item: CheckItem;
-  /** A different creator's span and a second question, when the course has them. */
-  alternate?: { span: Span; video: Video; item: CheckItem };
+  /** The pre-built re-explanation, when the course has one. */
+  alternate?: Reexplanation;
+  /** Asks for a re-explanation aimed at a wrong pick (PLAN.md §3); undefined when there isn't one. */
+  target?: (item: CheckItem, choice: number) => Promise<Reexplanation | undefined>;
   answered: boolean;
   onAnswer: (item: CheckItem, choice: number, confidence: Confidence, unaided: boolean) => void;
   onContinue: () => void;
 }) {
-  const { item, alternate } = props;
+  const { item } = props;
   // Decided once: answering marks the block answered, which must not cut this attempt short.
   const [revisit] = useState(props.answered);
   const [phase, setPhase] = useState<CheckPhase>("ask");
   const [sure, setSure] = useState(false);
+  // Requested the moment the first answer is wrong, so it's usually ready by the time it's asked for.
+  const [targeted, setTargeted] = useState<Reexplanation | "pending" | undefined>();
+  const waiting = phase === "reexplain" && targeted === "pending";
+  useEffect(() => {
+    if (!waiting) return;
+    const timer = setTimeout(() => setTargeted(undefined), TARGET_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [waiting]);
+  const alternate = targeted && targeted !== "pending" ? targeted : props.alternate;
+  const canReexplain = !!alternate || targeted === "pending";
 
   if (revisit) {
     return (
@@ -206,11 +229,43 @@ export function CheckView(props: {
     );
   }
 
+  if (waiting) {
+    return (
+      <section className={styles.card}>
+        <p className={styles.eyebrow}>Explain it differently</p>
+        <h2 className={styles.title}>Finding the explanation that fits your answer</h2>
+        <p className={styles.muted}>
+          <span className={styles.spinner} aria-hidden="true" /> Picking the creator who clears this up best.
+        </p>
+      </section>
+    );
+  }
+
+  if (phase === "reexplain" && !alternate) {
+    return (
+      <section className={styles.card}>
+        <p className={styles.eyebrow}>Explain it differently</p>
+        <h2 className={styles.title}>No other explanation of this one is ready yet</h2>
+        <p className={styles.muted}>It comes back in your review, so keep going.</p>
+        <div className={styles.actions}>
+          <button className={styles.primary} onClick={props.onContinue}>
+            Continue
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   if (phase === "reexplain" && alternate) {
     return (
       <section className={styles.card}>
         <p className={styles.eyebrow}>Explain it differently</p>
         <h2 className={styles.title}>Here&apos;s the same idea from {alternate.video.channel}</h2>
+        {alternate.focus && (
+          <p className={styles.focus}>
+            <strong>Watch for this:</strong> {alternate.focus}
+          </p>
+        )}
         <YouTubeClip videoId={alternate.video.id} start={alternate.span.start} end={alternate.span.end} />
         <Credit video={alternate.video} span={alternate.span} />
         <div className={styles.actions}>
@@ -233,6 +288,10 @@ export function CheckView(props: {
         onAnswer={(choice, confidence) => {
           const correct = choice === asked.answerIndex;
           props.onAnswer(asked, choice, confidence, !second);
+          if (!second && !correct && props.target) {
+            setTargeted("pending");
+            props.target(asked, choice).then(setTargeted, () => setTargeted(undefined));
+          }
           setSure(confidence === "sure");
           setPhase(second ? (correct ? "again-right" : "again-wrong") : correct ? "right" : "wrong");
         }}
@@ -241,13 +300,13 @@ export function CheckView(props: {
         <p className={styles.note}>Marked shaky. It will come back in your review, so keep going.</p>
       )}
       <div className={styles.actions}>
-        {phase === "wrong" && alternate && (
+        {phase === "wrong" && canReexplain && (
           <button className={styles.primary} onClick={() => setPhase("reexplain")}>
             Explain it differently
           </button>
         )}
         {phase !== "ask" && phase !== "again" && (
-          <button className={phase === "wrong" && alternate ? styles.secondary : styles.primary} onClick={props.onContinue}>
+          <button className={phase === "wrong" && canReexplain ? styles.secondary : styles.primary} onClick={props.onContinue}>
             Continue
           </button>
         )}

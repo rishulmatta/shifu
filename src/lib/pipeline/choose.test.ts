@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Objective, Video } from "../types";
 import { chooseSpans } from "./choose";
 import type { Candidate } from "./locate";
-import { misconceptions, shuffleOptions, unlabel } from "./recall";
+import { misconceptions, shuffleOptions, toCheckItem, unlabel } from "./recall";
 
 const objective: Objective = { id: "bayes-rule/1", conceptId: "bayes-rule", text: "Compute a posterior", mustInclude: ["multiply", "divide"] };
 const video = (id: string, channel: string): Video => ({ id, title: id, channel, durationS: 600 });
@@ -89,5 +89,34 @@ describe("misconceptions", () => {
   it("always gives four entries, blank for the answer, whatever the model sent", () => {
     expect(misconceptions(["a", " b ", "c"], 1)).toEqual(["a", "", "c", ""]);
     expect(misconceptions(["a", "b", "c", "d", "e"], 3)).toEqual(["a", "b", "c", ""]);
+  });
+});
+
+describe("toCheckItem", () => {
+  const objective = { id: "bayes-rule/1", conceptId: "bayes-rule", text: "Compute a posterior", mustInclude: [] };
+  const clip = {
+    span: { id: "s#0", objectiveId: "bayes-rule/1", videoId: "v", start: 0, end: 60, rank: 0 as const, covers: [], selfContained: true },
+    text: "so most positive results come from people who do not have it at all",
+  };
+  const q = {
+    prompt: "Why do most positives come from healthy people?",
+    options: ["A) They are the many", "The test is broken", "Sick people test negative", "Positives are random"],
+    answerIndex: 0,
+    whyWrong: ["", "Nothing says the test is broken.", "Most sick people test positive.", "Positives follow the rates."],
+    explanation: "Healthy people far outnumber sick ones.",
+    quote: "most positive results come from people who do not have it",
+  };
+
+  it("keeps a well-formed question whose quote is in the clip, without option letters", () => {
+    const item = toCheckItem(objective, clip, q, "bayes-rule/1:t");
+    if (typeof item === "string") throw new Error(item);
+    expect(item.options).toContain("They are the many");
+    expect(item.whyWrong![item.answerIndex]).toBe("");
+    expect(item.evidence).toEqual({ spanId: "s#0", quote: q.quote });
+  });
+
+  it("says why it drops a malformed question or one quoting what the clip doesn't say", () => {
+    expect(toCheckItem(objective, clip, { ...q, options: q.options.slice(0, 3) }, "x")).toMatch(/^malformed/);
+    expect(toCheckItem(objective, clip, { ...q, quote: "the test is ninety nine percent accurate" }, "x")).toMatch(/^quote not in clip/);
   });
 });

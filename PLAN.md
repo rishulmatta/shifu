@@ -400,7 +400,10 @@ Module 1 runs through every step first so the learner can start; the rest follow
 
 - **A miss** names the misconception behind the pick, then plays the alternate span that best
   addresses it and asks a question aimed at it, written on demand (`/api/courses/[slug]/retry`);
-  the pre-built alternate question is the fallback.
+  the pre-built alternate question is the fallback. Built 28 Oct: the request starts when the
+  first answer is wrong, "Explain it differently" waits up to 8 s for it, and the clip comes with
+  a "Watch for this" line saying what to look for. Tested live: about 5 s; the new question carried
+  the learner's own mistake as a distractor and passed the quote and answer-blind checks.
 - **Confidence:** every check and quiz answer carries Guessing, Think so or Sure. Sure and wrong
   is a lapse (shaky at once); a correct guess is progress but not the unaided correct answer.
 - **Teach-back:** browser recorder → WAV encoded in the browser (16 kHz mono; the API takes WAV

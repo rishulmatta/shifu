@@ -113,3 +113,9 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   prerequisite as a node growing in front of the concept that needs it with the build steps
   filling in; "Show on map" opens the map with it pulsing. Checked in headless Chrome at desktop
   and phone sizes.
+- "Explain it differently" now aims at the mistake: the moment a first answer is wrong, the
+  server reads the other creators' clips for that objective, picks the one that best clears up the
+  misconception behind the pick, writes a "Watch for this" line and a new question aimed at the
+  same misconception (the learner's own wrong answer is one of its distractors), with the quote and
+  answer-blind checks. About 5 s live; the player waits up to 8 s for it and otherwise uses the
+  pre-built alternate, as it does when a course has no captions for the alternates.
