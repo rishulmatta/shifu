@@ -15,10 +15,15 @@ AEDT. `PLAN.md` is the plan: read it before working, and keep it current when a 
 
 - Everything in this repo is new work. Nothing is copied from other projects (Mixie, Interlocutor,
   ScoreFluent); borrowing their ideas is fine.
-- Meta's models do the real work: Muse Spark on Meta Model API, Muse Spark Open on Baseten, Muse
-  Voice Transcribe. Model ids live in config and env, not scattered through the code.
+- Meta's models do the real work: Muse Spark 1.3 and Muse Voice Transcribe on Meta Model API,
+  Muse Spark Open on Baseten with Modal as its second host. Model ids, prices and each task's
+  provider chain live in `src/lib/models/config.ts` and env, not scattered through the code.
+- `PROGRESS.md` is the build log: add an entry with every milestone commit. Commit Shifu work
+  straight to `main` and push.
+- Without `DATABASE_URL` the store is JSON files in `.data/` (git-ignored); learner progress lives
+  in the browser.
 - YouTube: captions come from the hosted transcript API and playback is the official IFrame embed.
   Never download video or audio, and never show caption text verbatim.
 - Secrets live in `.env.local` (names in `.env.example`). Never commit, print or log them.
 - `scripts/spikes/` holds throwaway checks of external APIs (`pnpm spike:*`).
-- Checks: `pnpm typecheck`, `pnpm lint`, `pnpm build`.
+- Checks: `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`.

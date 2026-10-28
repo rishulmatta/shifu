@@ -202,26 +202,28 @@ concepts a day in all.
 ## 4. Architecture
 
 ```
-browser: course player, mind map, recorder
+browser: course player, mind map, coach window, recorder
+   │  learner progress and the coach's additions live here (localStorage)
    │
 Next.js 16 on Vercel: route handlers and server actions
-   ├─ build workflow (durable steps, progress streamed to the UI)
-   │    plan → discover → transcripts → locate → verify → merge → recall → assemble
-   ├─ model router: task → (provider, model), with fallback
-   │    Meta Model API: Muse Spark 1.3, Muse Voice Transcribe (stretch: Muse Image, SAM 3.1)
-   │    Baseten: Muse Spark Open (meta-models/muse-spark-open-1026)
-   ├─ YouTube Data API v3: search, metadata, embeddable flag
-   └─ hosted transcript API: captions with timestamps
+   ├─ build, run after the response (after()); the build screen polls its progress
+   │    plan + goal challenge → discover → captions → locate → verify → choose → recall → assemble
+   ├─ learner routes: teach-back grading, "explain it differently", the course coach
+   ├─ model router: task → (provider, model, reasoning effort), with fallback
+   │    Meta Model API: Muse Spark 1.3, Muse Voice Transcribe
+   │    Baseten, then Modal: Muse Spark Open
+   ├─ SearchAPI: YouTube search and captions (YouTube Data API as the search fallback)
+   └─ YouTube oEmbed: the embeddable check (no key)
    │
-Postgres (new): courses, transcript cache, spans, recall items, learner state
+Postgres (files in .data/ locally): courses, caches (captions, searches, embeddable), rate limits
 ```
 
 **Stack:** Next.js 16 (App Router), React 19, TypeScript strict, Postgres via `pg` on a new
-project, a new Vercel project, Vercel Workflow for the build pipeline (`after()` locally), zod for
-every model output, `ts-fsrs` for scheduling, hand-drawn SVG for the mind map (no graph library), the YouTube IFrame
-API for playback.
+project, a new Vercel project, `after()` for the build (Vercel Workflow if a build outgrows one
+function's 300 s), zod for every model output, `ts-fsrs` for scheduling (Muse Code's task),
+hand-drawn SVG for the mind map (no graph library), the YouTube IFrame API for playback.
 
-**No accounts for the hackathon.** An anonymous learner id lives in a cookie and courses have
+**No accounts for the hackathon.** Progress lives in the learner's browser and courses have
 shareable URLs, so judges can open the live app and start learning without signing up. Credits are
 protected by per-IP rate limits and a global daily cap on new course builds; pre-built demo courses
 open instantly.
@@ -251,14 +253,20 @@ open instantly.
 
 | Task | Model | API | Why |
 |---|---|---|---|
-| Plan the course: modules, concepts, prerequisite graph (the mind map), objectives, search queries, must-include points per objective | Muse Spark 1.3 | Meta Model API | reasoning and structured output; one call per course |
-| Locate the span that teaches each objective in each candidate transcript | Muse Spark Open | Baseten | the fan-out: hundreds of calls per course |
-| Merge: best span per objective across videos, plus alternates | Muse Spark 1.3 | Meta Model API | one call per concept; judgment |
-| Recall items per clip: check questions, flashcards, cloze cards | Muse Spark Open | Baseten | fan-out |
-| Answerability check: answer each question from the clip without the key | Muse Spark Open | Baseten | an independent check (§6, step 7) |
+| Plan the course: modules, concepts, prerequisite graph (the mind map), objectives, search queries, must-include points per objective, the learner's world | Muse Spark 1.3 | Meta Model API | reasoning and structured output; one call per course |
+| Write the goal challenge: scenario questions from the goal, across objectives | Muse Spark 1.3 | Meta Model API | judgment across the whole course; one call per course |
+| Answer each goal challenge blind, to check its key | Muse Spark Open | Baseten, then Modal | an independent check |
+| Locate the span that teaches each objective in each candidate transcript | Muse Spark Open | Baseten, then Modal | the fan-out: hundreds of calls per course |
+| Recall items per clip: check questions with a misconception per distractor, flashcards | Muse Spark Open | Baseten, then Modal | fan-out |
+| Answerability check: answer each question from the clip without the key | Muse Spark Open | Baseten, then Modal | an independent check (§6, step 7) |
+| "Explain it differently": pick the clip that clears up the learner's mistake, write a question aimed at it | Muse Spark Open | Baseten, then Modal | one call per wrong first answer |
+| The course coach: turn a message into one change to the course | Muse Spark 1.3 | Meta Model API | reads the whole course; low effort, about 5 s |
 | Transcribe the learner's teach-back | Muse Voice Transcribe, else Muse Spark Open | Meta Model API, else Baseten or Modal | file endpoint; Muse Spark Open takes audio input too |
-| Grade the teach-back against the objectives and clips | Muse Spark 1.3 | Meta Model API | judgment with citations |
-| Stretch: diagram flashcards (draw a labelled diagram, mask its labels) | Muse Image → SAM 3.1 | Meta Model API | the image is generated, so there is no rights issue |
+| Grade the teach-back and ask the student's follow-up question, then grade the answer | Muse Spark 1.3 | Meta Model API | judgment with citations |
+
+Every task falls back along its chain in `config.ts` (Muse Spark 1.3's tasks to Muse Spark Open,
+and the other way round) when a provider has no key, rate-limits or fails. Choosing the best span
+per objective (§6, step 6) is code, not a model.
 
 **Limits and prices** (Meta's pricing page, 27 Oct): Muse Spark 1.3 allows 3,000 requests and 4M
 tokens a minute, at $1.25 in and $4.25 out per million tokens. A course of about 1M input and 0.15M
@@ -315,7 +323,8 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
    every key checked by hand. The "before" block opens the course once module 1 is saved; the
    "after" block is added when the whole course is built.
 
-2. **Discover** (YouTube Data API). Per concept: `search.list` (`type=video`,
+2. **Discover.** Built with SearchAPI's YouTube search first and the YouTube Data API as the
+   fallback; YouTube's keyless oEmbed checks that a video can be embedded. With the Data API: per concept: `search.list` (`type=video`,
    `videoEmbeddable=true`, `relevanceLanguage`, `safeSearch=strict`), then `videos.list` for
    duration, caption flag and statistics. Keep 3–40 min videos; rank by relevance, views, channel
    and recency; keep 5–8 per concept.
@@ -351,9 +360,10 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
    - Flag openings that lean on earlier context ("as we saw", "this one here"): pull the start
      back to where that context begins, or mark the span not self-contained.
 
-6. **Merge** (Muse Spark 1.3). Per concept: the best span per objective, plus up to 2 alternates
-   from different creators (the "explain it differently" pool). Prefer self-contained spans that
-   cover every must-include point, fit the time budget and vary the creators.
+6. **Choose** (code; built 27 Oct in place of the planned Muse Spark 1.3 merge). Per objective: the
+   best span, plus up to 2 alternates from different creators (the "explain it differently"
+   pool), ranked by coverage of the must-include points, then self-containedness, then a
+   watchable length.
 
 7. **Recall** (Muse Spark Open, fan-out per chosen span). 2–3 check questions (multiple choice with
    plausible distractors, or short answer) and 2–4 flashcards (basic or cloze), each with evidence
@@ -366,8 +376,9 @@ Each step is a durable, idempotent workflow step that writes progress for the UI
 
    This is the "verifiable agents" story (the Agents 102 workshop covers it).
 
-8. **Assemble.** Write the course timeline: per concept, its clips in objective order with a check
-   after each objective and flashcards at the end; a teach-back at the end of each module.
+8. **Assemble.** Write the course timeline: the goal challenge first; per concept, an intro, then
+   each objective's clip and a check, then flashcards; a teach-back and a mixed quiz at the end of
+   each module; the goal challenge again once the whole course is built.
 
 Module 1 runs through every step first so the learner can start; the rest follows in the background.
 
@@ -401,7 +412,7 @@ Module 1 runs through every step first so the learner can start; the rest follow
 - **Session summary:** learned, re-explained, shaky, and the next review date.
 - **Teach-back history:** per module, the points covered and missed on each attempt.
 - **Should:** a streak (days with a session), and a "continue on another device" link, since
-  progress is tied to the browser's cookie while there are no accounts.
+  progress is tied to the browser (localStorage) while there are no accounts.
 
 **Mechanics:**
 
@@ -422,57 +433,56 @@ Module 1 runs through every step first so the learner can start; the rest follow
 - **Review:** `ts-fsrs` schedules flashcards and objective checks; a review session interleaves
   concepts.
 
-## 8. Data model (first cut)
+## 8. Data model
 
-| Table | Holds |
+As built (27–28 Oct), simpler than the first cut because learner state lives in the browser.
+
+**On the server** (`src/lib/store`: Postgres, or JSON files in `.data/` when `DATABASE_URL` is
+unset):
+
+| Record | Holds |
 |---|---|
-| `courses` | topic, goal, level, budget, status, plan JSON, share slug |
-| `concepts`, `concept_edges` | modules and concepts, prerequisite graph |
-| `objectives` | per concept, with must-include points |
-| `videos` | YouTube metadata cache |
-| `transcripts` | timed lines per video, cached forever |
-| `spans` | objective, video, start, end, rank (chosen or alternate), verification result |
-| `recall_items` | type, prompt, answer, distractors, evidence, check results |
-| `learners` | anonymous id |
-| `enrollments` | learner × course: minutes per day, current position (concept, block), started, completed |
-| `objective_states` | learner × objective: state, evidence counts, last event (written by `nextState`) |
-| `sessions` | learner × course: start, end, minutes, blocks done (for the summary and the streak) |
-| `attempts` | learner × item: answer, correct, time taken |
-| `teachbacks` | learner × module: audio reference, transcript, grading JSON |
-| `reviews` | learner × item: FSRS state |
-| `build_jobs` | course × step: progress, tokens, cost, errors |
+| course | one document per course: the input (topic, goal, level, budget), build progress and cost, and the course: plan (modules, concepts, prerequisites, objectives, the learner's world), videos, spans (chosen and alternates), recall items, goal challenges, timeline |
+| captions | timed lines per video and language, cached forever; null when a video has none |
+| searches, embeddable | YouTube search results and the embeddable flag, cached |
+| limits | fixed-window counters for the rate limits and daily caps |
 
-**Decision (27 Oct): learner state lives in the browser for the hackathon.** Without accounts,
-progress is tied to one browser anyway, so `learners`, `enrollments`, `objective_states`,
-`attempts`, `reviews` and `sessions` are kept in `localStorage` (`src/lib/learner.ts`) rather than
-Postgres. Postgres holds course content: courses, concepts, objectives, videos, transcripts, spans,
-recall items and build jobs. The "continue on another device" link (Should) would move this
-server-side.
+**In the browser** (`src/lib/learner.ts`, one `localStorage` entry per course): the position, each
+objective's state (written by `nextState`), answered blocks and quiz scores by block key, watched
+spans, flashcard ratings, attempts with their confidence and misconception, goal-challenge
+answers, and what the coach added (concepts, spans, items and blocks, merged in by
+`src/lib/overlay.ts`) with the conversation.
+
+The first cut's per-learner tables (learners, enrollments, objective states, sessions, attempts,
+teach-backs, reviews) and `build_jobs` aren't built; "continue on another device" (cut) would move
+the browser part server-side.
 
 ## 9. Scope
 
 **Must (the demo depends on it)**
 
-- The whole build pipeline: plan, discover, transcripts, locate, verify, merge, recall, assemble.
+- The whole build pipeline: plan, discover, transcripts, locate, verify, choose, recall, assemble
+  (built; live runs wait on the SearchAPI key).
 - Course player: clips through the embed, check questions between them, "explain it differently"
-  on a miss.
-- Teach-back by voice, graded, with clip links.
-- Flashcards.
+  on a miss (built).
+- Teach-back by voice, graded, with clip links (built).
+- Flashcards (built).
 - The learner's path (§3): prerequisite order, the per-objective loop, the end-of-module teach-back
-  and mixed quiz.
-- Progress tracker (§7): course progress, mastery bar, resume at the exact block, the Today panel.
+  and mixed quiz (built).
+- Progress tracker (§7): course progress, mastery bar, resume at the exact block (built), the Today
+  panel (not started; needs the review queue).
 - Mind map with per-objective mastery rings (built 28 Oct).
-- The course coach (§3, asked for on 28 Oct): practice and prerequisites on request.
+- The course coach (§3, asked for on 28 Oct): practice and prerequisites on request (built).
 - Teaching that works (§3), in this order: the goal challenge before and after, the student's
   follow-up in the teach-back, wrong answers that diagnose, confidence, examples from the
-  learner's world.
+  learner's world (all five built by 28 Oct).
 - Live deployment with 3 pre-built demo courses.
 
 **Should**
 
-- FSRS review queue.
+- FSRS review queue (Muse Code's scheduler, then the queue).
 - Session summary.
-- Live build progress in the UI.
+- Live build progress in the UI (built).
 
 **Cut (27 Oct, to make room for "Teaching that works")**
 
@@ -528,8 +538,8 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 - **Judging rubric and prize tables:** they did not survive the paste of the participant guide.
   Paste them in to check the demo against the Indie criteria.
 - **Team:** solo, or up to 4 (the Indie track is described as "for individual builders and students").
-- **Transcript vendor:** SearchAPI recommended (compared 27 Oct, vendor pages only, nothing tested
-  live): choice of auto or manual captions, 100 free requests then $40 for 10,000, only successful
+- **Transcript vendor:** decided: SearchAPI, and the sources are built against it; the key is the
+  one still missing. From the comparison (27 Oct, vendor pages only, nothing tested live): choice of auto or manual captions, 100 free requests then $40 for 10,000, only successful
   requests billed, an SLA and a status page, no AI transcription that could run up charges, and
   YouTube search on the same key. Runner-up: Supadata ($17 for 3,000), always with `mode=native`,
   because its default transcribes caption-less videos with AI and bills per minute.
@@ -537,17 +547,20 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 - **The 3 demo topics.** Proposal: Bayes' theorem, attention in transformers, chord progressions in
   music theory. They cover visual, verbal and auditory teaching, and none is near the anti-project list.
 
-## 14. Do today
+## 14. To do
 
 - [x] Request Modal credits (first 1,000 people) and Baseten credits (Appendix A). Both granted: Baseten 27 Oct, Modal 28 Oct.
-- [ ] Claim the $150 Meta Model API credits when the link opens; add a card and a spend limit.
+- [x] Claim the $150 Meta Model API credits (key live 28 Oct).
+- [x] Choose the transcript vendor: SearchAPI.
+- [x] Install Muse Code.
+- [ ] **Get the SearchAPI key** (100 free requests, then $40 for 10,000): real builds, the demo
+      courses and the coach's new concepts need it.
+- [ ] Check that the Modal credit covers Shared Endpoint usage.
+- [ ] Vercel project and a Postgres database for the live deployment.
+- [ ] Muse Code: the review scheduler (`docs/muse-code-tasks.md`, Task 2) and its review of this plan.
+- [ ] Pick the 3 demo topics (§13) and pre-build them.
 - [ ] Join the Discord and post in #intros.
-- [ ] New Google Cloud project → YouTube Data API key; apply for a quota increase.
-- [ ] Choose the transcript vendor.
-- [ ] Install Muse Code (`curl -fsSL https://dev.meta.ai/install.sh | bash`) and pick a plan. The
-      $5 Everyday plan (10–50 prompts per 5 hours) is probably enough for a plan review and two
-      small modules. Ask in #office-hours whether the $150 Meta Model API credits cover Muse Code;
-      its page doesn't say.
+- [ ] Optional: a YouTube Data API key with a quota increase, as the search fallback.
 
 ## Appendix A: Baseten credit request
 

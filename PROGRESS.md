@@ -9,12 +9,12 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 | Day | Date | Milestone | Done when | Status |
 |---|---|---|---|---|
 | 1 | Tue 27 Oct | Skeleton, plan, brand, public repo | the repo is public with the plan and a building app | ✅ [`d43a778`](https://github.com/rishulmatta/shifu/commit/d43a778) |
-| 1 | Tue 27 Oct | API tests against live keys | every test script returns real output | 🔄 Baseten ✅; Meta, YouTube and captions waiting on keys |
-| 2 | Wed 28 Oct | Shared types, fixture course, model router, plan step, discovery and captions | topic → outline plus candidate videos with captions in the database | 🔄 types, sample course, router and planning ✅ (live on Baseten); discovery, captions and database waiting on keys |
+| 1 | Tue 27 Oct | API tests against live keys | every test script returns real output | 🔄 Baseten, Meta (planning and voice) and Modal ✅; YouTube search and captions waiting on the SearchAPI key |
+| 2 | Wed 28 Oct | Shared types, fixture course, model router, plan step, discovery and captions | topic → outline plus candidate videos with captions in the database | 🔄 types, sample course, router and planning ✅ (live on Meta, Baseten and Modal); discovery, captions and Postgres waiting on keys |
 | 3 | Thu 29 Oct | Span locating, verification and merge | at least 7 of 10 hand-checked spans acceptable | 🔄 locate, verify and choose ✅ on test transcripts (live on Baseten); the 10-span eval needs real captions |
 | 4 | Fri 30 Oct | Course player and recall items with both checks | one full module playable end to end | 🔄 player ✅ on the sample course; recall with the quote and answer-blind checks ✅ on test transcripts |
-| 5 | Sat 31 Oct | The learner's path, mastery and the progress tracker | a miss plays a different creator; progress survives a reload | 🔄 both pass on the sample course; review queue and Today panel not started |
-| 6 | Sun 1 Nov | Teach-back by voice and flashcards | a spoken explanation is graded with rewatch links | 🔄 typed teach-back graded live (Baseten) with rewatch links; recording built, voice transcription waiting on the Meta key; flashcards ✅ |
+| 5 | Sat 31 Oct | The learner's path, mastery and the progress tracker | a miss plays a different creator; progress survives a reload | 🔄 both pass, and a miss now plays the creator who best clears up the mistake; the mind map, the goal challenge, confidence and the course coach ✅; review queue and Today panel not started |
+| 6 | Sun 1 Nov | Teach-back by voice and flashcards | a spoken explanation is graded with rewatch links | ✅ spoken and typed teach-backs graded live with rewatch links, the student's follow-up question, flashcards (a real-voice check in a browser still to do) |
 | 7 | Mon 2 Nov | Live deployment, demo courses, review queue, Today panel | the live URL works for a stranger with no sign-up | ⬜ |
 | 8 | Tue 3 Nov | Feature freeze, README, demo script | README done; video script locked | ⬜ |
 | 9 | Wed 4 Nov | Demo video recorded | video uploaded and its link checked | ⬜ |
@@ -23,12 +23,15 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 ## Waiting on
 
 - [x] Baseten key in `.env.local` (credits granted)
-- [ ] Meta Model API key and the $150 credits (claim link not out yet)
-- [ ] YouTube Data API key, and the quota-increase request
-- [ ] Transcript vendor key (SearchAPI recommended)
+- [x] Meta Model API key and the $150 credits
+- [x] Modal: $100 credit and a Shared Endpoint for Muse Spark Open (check that the credit covers
+      Shared Endpoint usage)
+- [ ] **SearchAPI key** (YouTube search and captions): the one key real course builds, the demo
+      courses and the coach's new concepts still need
+- [ ] YouTube Data API key (optional now: only the fallback for search when SearchAPI is missing)
 - [x] Muse Code installed
 - [ ] Muse Code's review of the plan
-- [ ] Modal and Fireworks credit requests
+- [ ] Fireworks credit request (optional)
 - [ ] Vercel project and a Postgres database for the live deployment (your accounts)
 
 ## Log
@@ -76,11 +79,13 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   doesn't count towards solid, and the tracker lists "sure, but wrong" objectives. The recall step
   now writes a misconception per distractor and sets the quiz question in the learner's world
   (tested live: a marketing context gave "the chance a clicker is a buyer").
+### Wed 28 Oct
+
 - Voice without the Meta key: Muse Spark Open takes audio, so the teach-back transcribes on Baseten
   when there is no Meta key (or Muse Voice Transcribe fails). Tested live: about 7 s and $0.002 for
   30 seconds, wrong explanations kept as said; an echo of the last sentence (two runs in five) is
   trimmed. Modal's $100 credit is wired in as a second Muse Spark Open provider after Baseten.
-- All three providers live (28 Oct). Meta: Muse Spark 1.3 plans a course in 24 s for $0.03, and
+- All three providers live. Meta: Muse Spark 1.3 plans a course in 24 s for $0.03, and
   the teach-back route transcribes with Muse Voice Transcribe and grades on Muse Spark 1.3 (a
   planted "99% accurate means 99% sure" was caught). Modal: structured output and audio input
   work. Each provider lists the reasoning efforts it accepts and the router rounds up to one. Over

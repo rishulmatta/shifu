@@ -49,8 +49,13 @@ export function due(cards: ReviewCard[], now: Date): ReviewCard[];          // o
 export function estimateMinutes(cards: ReviewCard[]): number;              // for the Today panel
 ```
 
+- Add the library first: `pnpm add ts-fsrs`. Nothing else in the repo uses it yet.
 - `FsrsState` is whatever `ts-fsrs` needs, stored as plain JSON (dates as ISO strings) because it
   lives in the browser's `localStorage` (`src/lib/learner.ts`).
+- Context only, don't change it: the player already records each flashcard's first rating in
+  `LearnerState.cards` (item id → rating) and every answer in `LearnerState.attempts`. Claude Code
+  will wire the scheduler into the learner state and build the review queue and Today panel on it;
+  this task is the module and its tests, nothing else.
 - Default FSRS parameters, request retention 0.9.
 - `estimateMinutes`: 15 s per card, 30 s per check, rounded up to whole minutes.
 - Pure functions, no React. Tests with fixed dates: a new card rated "good" is due later than one
@@ -60,5 +65,7 @@ export function estimateMinutes(cards: ReviewCard[]): number;              // fo
 ## When done
 
 - `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
-- Commit on the branch with a message that says Muse Code wrote it.
-- Add a line to the "Log" in `PROGRESS.md`.
+- Work on a branch named `muse/review-scheduler` (Claude Code commits to `main` at the same time,
+  so a branch avoids clashes), commit with a message that says Muse Code wrote it, and push the
+  branch. Claude Code merges it.
+- Add a line to the "Log" in `PROGRESS.md`, under the day you finish.
