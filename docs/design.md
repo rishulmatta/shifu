@@ -72,6 +72,25 @@ Easings: `--ease-out` for arrivals, `--ease-spring` for pops, `--ease-stamp` for
   matters on the home page: building the course.
 - The header is paper at 92% with a blur, a thin rule beneath, the mark at 28px.
 
+## The path
+
+The whole course, laid out under the lesson as a strip the learner can scroll and tap.
+
+- **Chapters** across the top: numbered seals with the chapter title, a vermilion line along the
+  bottom showing how much of it is studied. The current chapter is inked.
+- **Concepts** as paper cards in teaching order, each with its mastery dots. Inside, every clip is
+  a **part**: YouTube's own still, a seal with the part number (bars breathe on the one playing),
+  the clip's length, the objective it teaches and the creator. Checks, flashcards, quizzes and
+  teach-backs sit between the parts as small round marks that fill as they are done: a right
+  check goes jade, a wrong one red, a quiz shows its score.
+- The current card is framed in vermilion and the strip scrolls to keep it in view.
+- **Changes land where they belong.** A concept the coach is building appears as a dashed card
+  in its place with a sweeping line until its videos arrive; new parts and practice marks stamp
+  themselves on with the seal's motion. Modules that finish building appear the same way.
+
+Under the video: playback speed (1× to 2×, remembered in the browser), previous and next clip,
+the creator credit, and "In this clip", the points the clip covers.
+
 ## Screens
 
 - **Home**: the mark draws itself, the name in Fraunces, the tagline, then a single question:
@@ -79,7 +98,7 @@ Easings: `--ease-out` for arrivals, `--ease-spring` for pops, `--ease-stamp` for
   below as paper cards. An ink wash sits behind the hero in the paper's own tones.
 - **Building**: the topic as a title, five steps down the left with the Meta model that does each
   one, the outline filling in beside it, and the mind map growing as the plan arrives.
-- **Lesson**: one card at a time, the progress track as a brushed line, the outline and mind map
+- **Lesson**: one card at a time, the progress track as a brushed line, the path beneath, the outline and mind map
   to the right, the coach as an ink launcher bottom right.
 - **Results** (quiz, goal challenge, teach-back): the number first, large, then what to do about it.
 

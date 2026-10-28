@@ -1,7 +1,8 @@
 "use client";
 
 // Plays one span of a YouTube video through the official IFrame API (youtube-nocookie.com).
-// Nothing is downloaded: YouTube streams the video, Shifu only says where to start and stop.
+// Nothing is downloaded: YouTube streams the video, Shifu only says where to start and stop,
+// and how fast.
 
 import { useEffect, useRef } from "react";
 import styles from "./player.module.css";
@@ -27,18 +28,26 @@ interface Props {
   videoId: string;
   start: number;
   end: number;
+  /** Playback speed, 1 by default. */
+  rate?: number;
   /** Called when playback reaches the end of the span. */
   onEnded?: () => void;
 }
 
-export function YouTubeClip({ videoId, start, end, onEnded }: Props) {
+export function YouTubeClip({ videoId, start, end, rate = 1, onEnded }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<YT.Player | null>(null);
   const ended = useRef(onEnded);
+  const wanted = useRef(rate);
 
   useEffect(() => {
     ended.current = onEnded;
   }, [onEnded]);
+
+  useEffect(() => {
+    wanted.current = rate;
+    player.current?.setPlaybackRate?.(rate);
+  }, [rate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +66,10 @@ export function YouTubeClip({ videoId, start, end, onEnded }: Props) {
         videoId,
         playerVars: { start: span.startSeconds, end: span.endSeconds, rel: 0, playsinline: 1, autoplay: 1 },
         events: {
+          onReady: (e) => e.target.setPlaybackRate(wanted.current),
           onStateChange: (e) => {
+            // A new load falls back to 1×, so the chosen speed is set again as each clip starts.
+            if (e.data === yt.PlayerState.PLAYING && e.target.getPlaybackRate() !== wanted.current) e.target.setPlaybackRate(wanted.current);
             if (e.data === yt.PlayerState.ENDED) ended.current?.();
           },
         },

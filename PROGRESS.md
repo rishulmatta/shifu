@@ -170,3 +170,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   and database keys for production and preview, with `PG_POOL_MAX=3` so serverless instances share
   Railway's connection budget. The home page, Open Graph image and favicon serve from the deploy;
   no runtime errors in the first hour.
+- The path: the whole course as a strip under the lesson. Chapters across the top with a studied
+  line, every concept as a card with its parts (YouTube's still, a numbered seal, length, the
+  objective, the creator) and the checks, cards, quizzes and teach-backs between as marks that fill
+  as they are done. The current block is framed and kept in view; a concept the coach is building
+  shows as a dashed card where it will land, and new parts stamp themselves on. Under the video:
+  speed 1× to 2× (remembered, re-applied as each clip starts), previous and next clip, "Up next",
+  and "In this clip" with the points the span covers. Checked in headless Chrome on the sample
+  course, both schemes, desktop and phone.

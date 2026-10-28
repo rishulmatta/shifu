@@ -10,6 +10,7 @@ import type { CardItem, CheckItem, Concept, Confidence, Module, Objective, Span,
 import { CoachControls } from "../coach/coach-controls";
 import { Seal } from "../mark";
 import styles from "./player.module.css";
+import { RATES, setPlaybackRate, usePlaybackRate } from "./use-playback-rate";
 import { YouTubeClip } from "./youtube-clip";
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(" ");
@@ -82,30 +83,84 @@ export function IntroView(props: {
 
 // ── Clip ─────────────────────────────────────────────────────────────────────────────────────
 
-export function ClipView(props: { objective: Objective; span: Span; video: Video; onEnded: () => void; onContinue: () => void }) {
+export function ClipView(props: {
+  objective: Objective;
+  span: Span;
+  video: Video;
+  /** "Part 2 of 3" within the concept. */
+  part: { n: number; of: number };
+  /** What the next block is, in words ("a check", "the next clip from Veritasium"). */
+  upNext?: string;
+  onEnded: () => void;
+  onContinue: () => void;
+  onPrevClip?: () => void;
+  onNextClip?: () => void;
+}) {
   const { objective, span, video } = props;
   const [ended, setEnded] = useState(false);
+  const rate = usePlaybackRate();
   return (
     <section className={styles.card}>
-      <p className={styles.eyebrow}>Watch</p>
+      <p className={styles.eyebrow}>
+        Watch · part {props.part.n} of {props.part.of}
+      </p>
       <h2 className={styles.title}>{objective.text}</h2>
       <YouTubeClip
         videoId={video.id}
         start={span.start}
         end={span.end}
+        rate={rate}
         onEnded={() => {
           setEnded(true);
           props.onEnded();
         }}
       />
+      <div className={styles.clipBar}>
+        <div className={styles.speed} role="group" aria-label="Playback speed">
+          {RATES.map((r) => (
+            <button key={r} className={cx(styles.speedPill, r === rate && styles.speedOn)} aria-pressed={r === rate} onClick={() => setPlaybackRate(r)}>
+              {r}×
+            </button>
+          ))}
+        </div>
+        <div className={styles.clipNav}>
+          <button className={styles.clipStep} onClick={props.onPrevClip} disabled={!props.onPrevClip} aria-label="Previous clip">
+            <ArrowIcon back /> Prev
+          </button>
+          <button className={styles.clipStep} onClick={props.onNextClip} disabled={!props.onNextClip} aria-label="Next clip">
+            Next clip <ArrowIcon />
+          </button>
+        </div>
+      </div>
       <Credit video={video} span={span} />
+      {span.covers.length > 0 && (
+        <div className={styles.highlights}>
+          <p className={styles.highlightsHead}>In this clip</p>
+          <ul className={styles.highlightList}>
+            {span.covers.map((point, i) => (
+              <li key={i} className={styles.highlight} style={{ animationDelay: `${200 + i * 90}ms` }}>
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className={styles.actions}>
         <button className={ended ? styles.primary : styles.secondary} onClick={props.onContinue}>
           {ended ? "Check yourself" : "Skip to the question"}
         </button>
+        {props.upNext && <span className={styles.upNext}>Up next: {props.upNext}</span>}
       </div>
       <CoachControls objectiveId={objective.id} controls={["basics", "skip"]} />
     </section>
+  );
+}
+
+function ArrowIcon({ back }: { back?: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style={back ? { transform: "scaleX(-1)" } : undefined}>
+      <path d="M2.5 7 H11 M7.5 3.5 L11 7 L7.5 10.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

@@ -9,7 +9,7 @@ import { CourseView } from "@/lib/course-view";
 import { update, useLearner, withAnswer, withEvidence } from "@/lib/learner";
 import { mergeCourse } from "@/lib/overlay";
 import type { BuildProgress } from "@/lib/store";
-import type { CardItem, CheckItem, Course } from "@/lib/types";
+import type { Block, CardItem, CheckItem, Course } from "@/lib/types";
 import { BuildBanner } from "../build/build-view";
 import { Mark, Seal } from "../mark";
 import { ThemeToggle } from "../theme-toggle";
@@ -19,8 +19,44 @@ import { ChallengeView } from "./challenge";
 import { MapDialog } from "./map-dialog";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { Outline } from "./outline";
+import { Path } from "./path";
 import styles from "./player.module.css";
 import { TeachbackView } from "./teachback";
+
+/** "Part 2 of 3": where a clip sits among its concept's clips. */
+function partOf(timeline: Block[], index: number) {
+  let start = index;
+  while (start > 0 && timeline[start].kind !== "intro") start--;
+  const clips: number[] = [];
+  for (let i = start; i < timeline.length && (i === start || timeline[i].kind !== "intro"); i++) if (timeline[i].kind === "clip") clips.push(i);
+  return { n: clips.indexOf(index) + 1, of: clips.length };
+}
+
+/** The block after this one, in words, for "Up next". */
+function describe(block: Block | undefined, view: CourseView, course: Course): string | undefined {
+  if (!block) return "the end of the course";
+  switch (block.kind) {
+    case "check":
+      return "a quick check";
+    case "clip": {
+      const span = view.spans.get(block.spanId);
+      const channel = span && course.videos[span.videoId]?.channel;
+      return channel ? `the next clip, from ${channel}` : "the next clip";
+    }
+    case "cards":
+      return "flashcards";
+    case "practice":
+      return "practice questions";
+    case "quiz":
+      return "the chapter quiz";
+    case "teachback":
+      return "teaching it back";
+    case "challenge":
+      return "the goal challenge";
+    case "intro":
+      return view.concepts.get(block.conceptId)?.title;
+  }
+}
 
 /**
  * `build` is set while later modules are still being built. The learner sees the course with what
@@ -117,14 +153,20 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
     );
   } else if (block.kind === "clip") {
     const span = view.spans.get(block.spanId)!;
+    const prevClip = view.clipIndex(index, -1);
+    const nextClip = view.clipIndex(index, 1);
     body = (
       <ClipView
         key={index}
         objective={view.objective(block.objectiveId)!}
         span={span}
         video={course.videos[span.videoId]}
+        part={partOf(timeline, index)}
+        upNext={describe(timeline[index + 1], view, course)}
         onEnded={() => save((s) => (s.watched.includes(span.id) ? s : { ...s, watched: [...s.watched, span.id] }))}
         onContinue={next}
+        onPrevClip={prevClip >= 0 ? () => go(prevClip) : undefined}
+        onNextClip={nextClip >= 0 ? () => go(nextClip) : undefined}
       />
     );
   } else if (block.kind === "check") {
@@ -250,6 +292,16 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
             <span style={{ width: `${(Math.min(index, timeline.length) / timeline.length) * 100}%` }} />
           </div>
           {body}
+          <Path
+            merged={merged}
+            view={view}
+            learner={learner}
+            index={index}
+            pending={learner.overlay.concepts
+              .filter((c) => pending.has(c.id))
+              .map((c) => ({ concept: c, before: learner.overlay.links.find((l) => l.prerequisiteId === c.id)?.conceptId }))}
+            onGo={go}
+          />
           {index > 0 && block && (
             <button className={styles.back} onClick={() => go(index - 1)}>
               ← Back

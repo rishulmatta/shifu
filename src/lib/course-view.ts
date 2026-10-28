@@ -39,6 +39,15 @@ export class CourseView {
     return this.course.timeline.findIndex((b) => b.kind === "intro" && b.conceptId === conceptId);
   }
 
+  /** Index of the next clip after `from` (or the previous one before it), or -1. */
+  clipIndex(from: number, direction: 1 | -1 = 1) {
+    const { timeline } = this.course;
+    for (let i = from + direction; i >= 0 && i < timeline.length; i += direction) {
+      if (timeline[i].kind === "clip") return i;
+    }
+    return -1;
+  }
+
   /** The concept the block at `index` belongs to (the last intro at or before it). */
   conceptAt(index: number): Concept | undefined {
     for (let i = Math.min(index, this.course.timeline.length - 1); i >= 0; i--) {

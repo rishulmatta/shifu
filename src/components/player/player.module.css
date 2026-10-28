@@ -322,6 +322,134 @@
   border: 0;
 }
 
+/* Under the video: speed on the left, previous and next clip on the right. */
+.clipBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.speed {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+}
+
+.speedPill {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+
+.speedPill:hover {
+  color: var(--ink);
+}
+
+.speedOn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.clipNav {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.clipStep {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.clipStep:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.clipStep:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* What this clip covers: the points the master would check you heard. */
+.highlights {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-field);
+  background: var(--paper);
+}
+
+.highlightsHead {
+  margin-bottom: 8px;
+  color: var(--vermilion);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.highlightList {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.highlight {
+  position: relative;
+  padding-left: 18px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  animation: settle 360ms var(--ease-out) backwards;
+}
+
+.highlight::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--vermilion);
+  transform: rotate(-6deg);
+}
+
+.upNext {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .credit {
   margin-top: 12px;
   font-size: 0.88rem;
