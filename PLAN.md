@@ -545,7 +545,9 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
   requests billed, an SLA and a status page, no AI transcription that could run up charges, and
   YouTube search on the same key. Runner-up: Supadata ($17 for 3,000), always with `mode=native`,
   because its default transcribes caption-less videos with AI and bills per minute.
-- **Postgres host:** Railway (familiar) or Neon from the Vercel Marketplace.
+- **Postgres host:** Railway (decided Wed 28 Oct): project `shifu`, service `Postgres`, reached over
+  its public TCP proxy; the same `DATABASE_URL` goes in the Vercel project env. Keep `PG_POOL_MAX`
+  low (3) on Vercel, since every function instance opens its own pool.
 - **The 3 demo topics.** Proposal: Bayes' theorem, attention in transformers, chord progressions in
   music theory. They cover visual, verbal and auditory teaching, and none is near the anti-project list.
 
@@ -558,7 +560,7 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 - [ ] **Get the SearchAPI key** (100 free requests, then $40 for 10,000): real builds, the demo
       courses and the coach's new concepts need it.
 - [ ] Check that the Modal credit covers Shared Endpoint usage.
-- [ ] Vercel project and a Postgres database for the live deployment.
+- [ ] Vercel project for the live deployment (Postgres is on Railway, done Wed 28 Oct).
 - [ ] Muse Code: the review scheduler (`docs/muse-code-tasks.md`, Task 2) and its review of this plan.
 - [ ] Pick the 3 demo topics (§13) and pre-build them.
 - [ ] Join the Discord and post in #intros.
