@@ -53,13 +53,21 @@ decorate. Rules:
 1. **The brush draws, the seal stamps.** The home-page mark draws its ensō on (a conic mask
    sweep, 1.1 s) and the seal comes down after it (scale 2 → 0.94 → 1 with a slight twist, 0.5 s).
    A right answer stamps the check seal with the same motion. An objective going solid stamps its dot.
-2. **Cards arrive from below** (12px rise, 320 ms, ease-out) when the lesson moves to a new block.
-   Nothing slides sideways.
+2. **Cards arrive under a brush.** A new block is revealed by a diagonal brush wipe with a ragged
+   leading edge (460 ms, ease-out) and a 10px rise. Nothing slides sideways.
 3. **Work in progress breathes**: the current build step and the coach's working state pulse at
    1.4 s. A build step completing fills its marker with a short pop.
 4. **The map grows**: nodes pop in staggered (70 ms apart), prerequisite lines draw on, and a line
    from a solid concept flows.
-5. **Reduced motion** turns all of it off (`prefers-reduced-motion`): the mark appears whole, cards
+5. **Ink in the questions.** Hovering an option bleeds a faint ink pool from the cursor. The right
+   answer is filled by one brush stroke from the left, its text turning paper where the brush has
+   passed; a wrong pick takes a single red brush slash and the shake.
+6. **The wash.** Three blurred pools of the paper's own tones drift behind the page on minute-long
+   loops. They warm toward vermilion while a clip plays, turn jade on a right answer, flush red and
+   settle on a wrong one, and rest on a question.
+7. **Flecks, not confetti.** Full marks on the goal challenge or a quiz spray ink flecks from the
+   seal as it lands.
+8. **Reduced motion** turns all of it off (`prefers-reduced-motion`): the mark appears whole, cards
    appear in place, nothing pulses.
 
 Easings: `--ease-out` for arrivals, `--ease-spring` for pops, `--ease-stamp` for the seal.

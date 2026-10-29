@@ -3,6 +3,8 @@
    state (fill-mode backwards) and ends on the static layout, so reduced motion loses nothing. */
 
 .shell {
+  position: relative;
+  z-index: 1;
   min-height: 100dvh;
 }
 

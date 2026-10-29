@@ -20,6 +20,7 @@ import { MapDialog } from "./map-dialog";
 import { MindMap } from "../mind-map/mind-map";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
 import { GoalLine } from "./goal-line";
+import { type InkMood, InkWash } from "./ink-wash";
 import styles from "./player.module.css";
 import { Progression } from "./progression";
 import { TeachbackView } from "./teachback";
@@ -76,6 +77,11 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
   const concept = view.conceptAt(index);
   // The full map: open, and the concept it picks out ("Show on map" from the coach).
   const [map, setMap] = useState<{ focus?: string } | null>(null);
+  // The ink wash behind the page follows the lesson: warm while a clip plays, jade on a right answer.
+  const [verdict, setVerdict] = useState<{ index: number; mood: "right" | "wrong" } | null>(null);
+  const mood: InkMood =
+    verdict?.index === index ? verdict.mood : !block ? "right" : block.kind === "clip" ? "watch" : block.kind === "check" || block.kind === "quiz" || block.kind === "practice" || block.kind === "challenge" ? "ask" : "calm";
+  const judge = (correct: boolean) => setVerdict({ index, mood: correct ? "right" : "wrong" });
   const added = new Set(learner.overlay.concepts.map((c) => c.id));
   // Concepts the coach is still building: on the map, but nothing to play yet.
   const pending = new Set([...added].filter((id) => !view.available.has(id)));
@@ -142,13 +148,15 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
         challenges={course.challenges ?? []}
         answers={learner.challenge}
         conceptOf={(id) => view.concepts.get(id.split("/")[0])}
-        onAnswer={(i, choice) =>
+        onAnswer={(i, choice) => {
+          const c = (course.challenges ?? [])[i];
+          if (c && choice !== null) judge(choice === c.answerIndex);
           save((s) => {
             const answers = [...(s.challenge[stage] ?? [])];
             answers[i] = choice;
             return { ...s, challenge: { ...s.challenge, [stage]: answers } };
-          })
-        }
+          });
+        }}
         onRewatch={(conceptId) => go(view.introIndex(conceptId))}
         onContinue={next}
       />
@@ -194,7 +202,10 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
         target={altSpan ? target : undefined}
         alternate={altSpan && altItem ? { span: altSpan, video: course.videos[altSpan.videoId], item: altItem } : undefined}
         answered={learner.answered.includes(key)}
-        onAnswer={(asked, choice, confidence, unaided) => save((s) => markAnswered(withAnswer(s, asked, choice, confidence, unaided)))}
+        onAnswer={(asked, choice, confidence, unaided) => {
+          judge(choice === asked.answerIndex);
+          save((s) => markAnswered(withAnswer(s, asked, choice, confidence, unaided)));
+        }}
         onContinue={next}
       />
     );
@@ -237,7 +248,10 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
         title={view.concepts.get(block.conceptId)?.title ?? ""}
         items={block.itemIds.flatMap((id) => (view.items.get(id) as CheckItem | undefined) ?? [])}
         done={learner.quizScores[key]}
-        onAnswer={(item, choice, confidence) => save((s) => withAnswer(s, item, choice, confidence, true))}
+        onAnswer={(item, choice, confidence) => {
+          judge(choice === item.answerIndex);
+          save((s) => withAnswer(s, item, choice, confidence, true));
+        }}
         onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [key]: score } }))}
         onContinue={next}
       />
@@ -251,7 +265,10 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
         title={mod.title}
         items={block.itemIds.map((id) => view.items.get(id) as CheckItem)}
         done={learner.quizScores[key]}
-        onAnswer={(item, choice, confidence) => save((s) => withAnswer(s, item, choice, confidence, true))}
+        onAnswer={(item, choice, confidence) => {
+          judge(choice === item.answerIndex);
+          save((s) => withAnswer(s, item, choice, confidence, true));
+        }}
         onFinish={(score) => save((s) => ({ ...s, quizScores: { ...s.quizScores, [key]: score } }))}
         onContinue={next}
       />
@@ -260,6 +277,7 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
 
   return (
     <div className={styles.shell}>
+      <InkWash mood={mood} />
       <header className={styles.header}>
         <Link href="/" className={styles.brand}>
           <Mark size={28} />

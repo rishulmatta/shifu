@@ -186,3 +186,9 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   learner stands beside it, the mind map as a scrolling band (a new single-row layout, sliding to
   the current concept), then the lesson. The horizontal strip from earlier today is gone. Checked
   in headless Chrome on the sample course, both schemes, desktop and phone.
+- Ink and brush everywhere in the lesson: a new block is revealed by a diagonal brush wipe; hovering
+  an answer bleeds an ink pool from the cursor, the right answer is filled by one brush stroke
+  with its text turning paper under the bristles, a wrong pick takes a red slash; three blurred
+  washes of the paper's own tones drift behind the page and tint with the lesson (warm on a clip,
+  jade on a right answer, a red flush on a wrong one); full marks spray ink flecks from the seal.
+  Motion rules in `docs/design.md` updated.

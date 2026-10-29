@@ -5,7 +5,8 @@
 .wash {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  /* Behind everything in the page's stacking context (the shell is relative, z-index 1). */
+  z-index: -1;
   overflow: hidden;
   pointer-events: none;
   contain: strict;
