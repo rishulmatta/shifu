@@ -1,0 +1,64 @@
+/* The thread from the progression to the lesson card. */
+
+.thread {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: var(--vermilion);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: draw 600ms var(--ease-out) forwards;
+}
+
+.end {
+  fill: var(--vermilion);
+}
+
+.seal {
+  fill: var(--vermilion);
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-6deg);
+  animation: stamp 420ms var(--ease-stamp) 380ms backwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(2);
+  }
+  60% {
+    transform: rotate(-7deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .seal {
+    animation: none;
+  }
+}

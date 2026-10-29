@@ -65,9 +65,11 @@ module a concept comes only after the concepts it builds on. The default next st
 unfinished concept whose prerequisites are done. The mind map lets the learner jump anywhere;
 jumping past an unfinished prerequisite names it and offers to go there first, but never blocks.
 
-**The path** sits under the lesson: chapters, then every concept with its parts (each clip as a
-still with the objective it teaches), and the checks, cards and quizzes between, all tappable.
-What the coach adds lands in it as it is built. Clips play at the learner's chosen speed (1× to
+**The progression** runs down the left of the lesson on one brush stroke: chapters, then every
+concept with its parts (each clip as a still with the objective it teaches), and the checks, cards
+and quizzes between, all tappable; a thread joins the current node to the lesson. The goal sits at
+the top of the main column, the mind map under it, then the lesson. What the coach adds lands in
+the progression as it is built. Clips play at the learner's chosen speed (1× to
 2×, remembered) with previous and next clip a tap away. The look is in `docs/design.md`.
 
 **A session** fits the learner's minutes per day:

@@ -1,11 +1,12 @@
 // Where each concept of the mind map goes (PLAN.md §3). Pure, so the drawing stays simple and the
 // tests can pin the layout down. Horizontal: one column per module, left to right, concepts stacked
 // in plan order. Vertical (narrow screens and the progress panel): one row per module, top to
-// bottom, concepts side by side.
+// bottom, concepts side by side. Row (the band under the goal on the lesson page): every concept
+// on one line in teaching order, modules marked above, prerequisite links arcing over the line.
 
 import type { ConceptId, CoursePlan } from "@/lib/types";
 
-export type Orientation = "horizontal" | "vertical";
+export type Orientation = "horizontal" | "vertical" | "row";
 
 export interface MapNode {
   id: ConceptId;
@@ -49,6 +50,7 @@ export interface MapLayout {
 
 const H = { radius: 30, colW: 210, rowH: 172, header: 70, padX: 64, padBottom: 8, labelOffset: 58, lineHeight: 15.6, charW: 7.4, maxLines: 3 };
 const V = { radius: 24, rowH: 156, header: 28, arc: 30, padX: 12, padBottom: 4, labelOffset: 44, lineHeight: 13.2, charW: 6.2, maxLines: 2 };
+const R = { radius: 24, colW: 148, header: 40, arc: 64, padX: 28, padBottom: 6, labelOffset: 42, lineHeight: 13.2, charW: 6.4, maxLines: 2 };
 
 /** Splits a title into at most `maxLines` lines that fit `width` at roughly `charW` per character. */
 export function wrap(text: string, width: number, charW: number, maxLines = 3): string[] {
@@ -79,7 +81,7 @@ export function layoutMap(plan: CoursePlan, orientation: Orientation, width = 32
   const columns = modules.map((m) => m.conceptIds.filter((id) => titles.has(id)));
   const nodes: MapNode[] = [];
   const placed: MapModule[] = [];
-  const k = orientation === "horizontal" ? H : V;
+  const k = orientation === "horizontal" ? H : orientation === "row" ? R : V;
   let size: { width: number; height: number };
 
   const lines = (id: ConceptId, labelWidth: number) => {
@@ -98,6 +100,18 @@ export function layoutMap(plan: CoursePlan, orientation: Orientation, width = 32
       );
     });
     size = { width: H.padX * 2 + columns.length * H.colW, height: H.header + rows * H.rowH + H.padBottom };
+  } else if (orientation === "row") {
+    const y = R.header + R.arc + R.radius;
+    let col = 0;
+    columns.forEach((ids, m) => {
+      placed.push({ index: modules[m].index, title: modules[m].title, x: R.padX + col * R.colW + 8, y: 18 });
+      ids.forEach((id, order) => {
+        nodes.push({ id, moduleIndex: modules[m].index, order, x: R.padX + col * R.colW + R.colW / 2, y, lines: lines(id, R.colW - 16) });
+        col += 1;
+      });
+    });
+    const deepest = Math.max(1, ...nodes.map((n) => n.lines.length));
+    size = { width: R.padX * 2 + Math.max(1, col) * R.colW, height: y + R.labelOffset + (deepest - 1) * R.lineHeight + 8 + R.padBottom };
   } else {
     const widest = Math.max(1, ...columns.map((c) => c.length));
     const inner = width - V.padX * 2;
@@ -150,6 +164,14 @@ function edgePath(l: Frame, a: MapNode, b: MapNode, within: boolean, freeBefore:
   const r = l.radius + 6;
   const step = Math.abs(b.order - a.order);
   const down = b.order > a.order ? 1 : -1;
+  if (l.orientation === "row") {
+    // Along the line: neighbours are joined straight; longer links arc over the concepts between.
+    const cols = Math.round(Math.abs(b.x - a.x) / R.colW);
+    const dir = b.x > a.x ? 1 : -1;
+    if (cols <= 1) return `M ${a.x + dir * r} ${a.y} L ${b.x - dir * r} ${b.y}`;
+    const lift = Math.min(R.arc - 6, 24 + 9 * cols);
+    return `M ${a.x} ${a.y - r} C ${a.x + dir * 20} ${a.y - r - lift}, ${b.x - dir * 20} ${b.y - r - lift}, ${b.x} ${b.y - r}`;
+  }
   if (l.orientation === "horizontal") {
     if (within && step === 1 && down === 1) return `M ${a.x} ${underLabel(l, a)} L ${b.x} ${b.y - r}`;
     if (within) {

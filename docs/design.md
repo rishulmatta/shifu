@@ -72,21 +72,22 @@ Easings: `--ease-out` for arrivals, `--ease-spring` for pops, `--ease-stamp` for
   matters on the home page: building the course.
 - The header is paper at 92% with a blur, a thin rule beneath, the mark at 28px.
 
-## The path
+## The progression
 
-The whole course, laid out under the lesson as a strip the learner can scroll and tap.
+The whole course down the left of the lesson page, on one brush stroke.
 
-- **Chapters** across the top: numbered seals with the chapter title, a vermilion line along the
-  bottom showing how much of it is studied. The current chapter is inked.
-- **Concepts** as paper cards in teaching order, each with its mastery dots. Inside, every clip is
-  a **part**: YouTube's own still, a seal with the part number (bars breathe on the one playing),
-  the clip's length, the objective it teaches and the creator. Checks, flashcards, quizzes and
-  teach-backs sit between the parts as small round marks that fill as they are done: a right
-  check goes jade, a wrong one red, a quiz shows its score.
-- The current card is framed in vermilion and the strip scrolls to keep it in view.
-- **Changes land where they belong.** A concept the coach is building appears as a dashed card
-  in its place with a sweeping line until its videos arrive; new parts and practice marks stamp
-  themselves on with the seal's motion. Modules that finish building appear the same way.
+- **One stroke.** A vertical ink stroke, heavier where it lands at the top and tapering, drawn as
+  far as the learner has come; past the current block it is a dry guide. It grows as they move on.
+- **Chapters** are headings along the stroke: a numbered seal and the title.
+- **Concepts** sit under their chapter with mastery dots; their blocks are nodes on the stroke.
+  A clip is a small still from the video with a numbered seal and its length, the objective it
+  teaches beside it. Checks, flashcards, quizzes and teach-backs are round marks that fill as they
+  are done: a right check goes jade, a wrong one red, a quiz shows its score.
+- The current node is ringed in vermilion and breathes, and a vermilion **thread** runs from it to
+  the lesson card. Passed clips carry the seal. The column scrolls to keep the current node in view.
+- **Changes land where they belong.** A concept the coach is building appears as a dashed card in
+  its place until its videos arrive; new nodes stamp themselves on. Modules that finish building
+  arrive the same way.
 
 Under the video: playback speed (1× to 2×, remembered in the browser), previous and next clip,
 the creator credit, and "In this clip", the points the clip covers.
@@ -98,8 +99,10 @@ the creator credit, and "In this clip", the points the clip covers.
   below as paper cards. An ink wash sits behind the hero in the paper's own tones.
 - **Building**: the topic as a title, five steps down the left with the Meta model that does each
   one, the outline filling in beside it, and the mind map growing as the plan arrives.
-- **Lesson**: one card at a time, the progress track as a brushed line, the path beneath, the outline and mind map
-  to the right, the coach as an ink launcher bottom right.
+- **Lesson**: the progression down the left; in the main column the goal as a calligraphic line
+  with an ink underline that fills as the goal challenge improves, where the learner stands beside
+  it, the mind map as a band, then one lesson card at a time under the brushed progress track. The
+  coach is an ink launcher bottom right.
 - **Results** (quiz, goal challenge, teach-back): the number first, large, then what to do about it.
 
 ## Accessibility

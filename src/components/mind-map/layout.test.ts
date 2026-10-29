@@ -74,4 +74,19 @@ describe("wrap", () => {
     expect(wrap("The medical test paradox explained", 84, 7)).toEqual(["The medical", "test paradox", "explained"]);
     expect(wrap("one two three four five six seven", 49, 7, 2)).toEqual(["one two", "three…"]);
   });
+
+  it("puts every concept on one line in teaching order when laid out as a row, with links arcing over", () => {
+    const l = layoutMap(plan, "row");
+    const [a, b, c] = ["a", "b", "c"].map((id) => l.nodes.find((n) => n.id === id)!);
+    expect(a.y).toBe(b.y);
+    expect(b.y).toBe(c.y);
+    expect(a.x).toBeLessThan(b.x);
+    expect(b.x).toBeLessThan(c.x);
+    expect(l.height).toBeLessThan(260);
+    const ac = l.edges.find((e) => e.from === "a" && e.to === "c")!;
+    const ab = l.edges.find((e) => e.from === "a" && e.to === "b")!;
+    expect(ab.path.startsWith("M")).toBe(true);
+    expect(ab.path).toContain(" L ");
+    expect(ac.path).toContain(" C ");
+  });
 });

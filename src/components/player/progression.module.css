@@ -1,0 +1,673 @@
+/* The progression (docs/design.md): one brush stroke down the left of the lesson, the chapters
+   stamped on it as seals, every part of the course a node on the line. The ink reaches as far as
+   the learner has come; past that the stroke is a dry guide. */
+
+/* Where the ink stops, animatable so the stroke grows as the lesson moves on. */
+@property --ink-to {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+.progression {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+  /* The column fades at its ends: there is more course above and below. */
+  mask-image: linear-gradient(to bottom, transparent, #000 14px, #000 calc(100% - 28px), transparent);
+}
+
+.rail {
+  --spine: 40px;
+  --ink-to: 0px;
+  position: relative;
+  display: grid;
+  margin: 0;
+  padding: 10px 6px 40px 0;
+  list-style: none;
+  transition: --ink-to 600ms var(--ease-out);
+}
+
+/* ── The stroke ── */
+
+.strokeItem {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--spine) * 2);
+  pointer-events: none;
+}
+
+.guide,
+.ink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+/* Ahead of the learner: the same stroke, dry and broken, barely there. */
+.guide {
+  color: var(--rule-strong);
+  opacity: 0.55;
+}
+
+/* Behind the learner: wet ink, ending in a short dry fade just past the current node. */
+.ink {
+  color: var(--ink);
+  mask-image: linear-gradient(to bottom, #000 calc(var(--ink-to) - 4px), transparent calc(var(--ink-to) + 26px));
+}
+
+/* ── Rows: a marker on the stroke, the words to its right ── */
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(var(--spine) * 2) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+}
+
+.row > [data-marker],
+.nodeButton > [data-marker] {
+  justify-self: center;
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ── Chapters: a seal stamped on the stroke ── */
+
+.chapter {
+  margin: 26px 0 6px;
+}
+
+.chapter:first-child,
+.strokeItem + .chapter {
+  margin-top: 4px;
+}
+
+.chapterSeal {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variation-settings: "opsz" 14;
+  transform: rotate(-6deg);
+  box-shadow: 0 0 0 4px var(--paper);
+  transition: background-color 300ms var(--ease-out);
+}
+
+.chapterOn .chapterSeal {
+  background: var(--vermilion);
+  color: #fff;
+}
+
+.chapterText {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.chapterTitle {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.04rem;
+  font-weight: 550;
+  font-variation-settings: "opsz" 36, "SOFT" 40;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.chapterMeta {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.02em;
+}
+
+.chapterOn .chapterMeta {
+  color: var(--vermilion);
+}
+
+/* ── Concepts ── */
+
+.group {
+  display: grid;
+}
+
+.nodes {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.concept {
+  margin: 14px 0 4px;
+}
+
+/* Where a concept begins: the brush pauses and presses, a small ink knot on the stroke. */
+.knot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50% 45% 50% 40%;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.conceptText {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.conceptTitle {
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 550;
+  font-variation-settings: "opsz" 18, "SOFT" 30;
+  line-height: 1.25;
+  text-align: left;
+}
+
+button.conceptTitle {
+  cursor: pointer;
+}
+
+button.conceptTitle:hover,
+button.conceptTitle[aria-current] {
+  color: var(--vermilion);
+}
+
+.concept:has([aria-current]) .knot {
+  background: var(--vermilion);
+  animation: ring 1.4s ease-in-out infinite;
+}
+
+.dots {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dot_solid {
+  background: var(--state-solid);
+}
+
+.dot_learning {
+  background: var(--state-learning);
+}
+
+.dot_shaky {
+  background: var(--state-shaky);
+}
+
+.dot_new {
+  box-shadow: inset 0 0 0 1.5px var(--state-new);
+}
+
+/* ── Nodes ── */
+
+.nodeButton {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: calc(var(--spine) * 2) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  width: 100%;
+  padding: 5px 0;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nodeButton:focus-visible {
+  outline-offset: -1px;
+}
+
+.standalone {
+  margin: 10px 0 2px;
+}
+
+/* A clip: YouTube's still, on the line. */
+.still {
+  position: relative;
+  display: block;
+  width: 72px;
+  height: 40px;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--ink) 80%, var(--paper));
+  box-shadow:
+    0 0 0 1px var(--rule-strong),
+    0 0 0 4px var(--paper);
+  transition:
+    box-shadow 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+.frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 220ms var(--ease-out);
+}
+
+.nodeButton:hover .frame {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px var(--ink),
+    0 0 0 4px var(--paper);
+}
+
+/* The part number: a tiny vermilion seal in the still's corner. */
+.partSeal {
+  position: absolute;
+  top: -4px;
+  left: -5px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--vermilion);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1;
+  transform: rotate(-6deg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+.len {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgb(0 0 0 / 0.68);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  line-height: 1.2;
+}
+
+/* Watched to the end: the master's seal, stamped over the corner. */
+.watched {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.35));
+}
+
+.clipText {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.channel {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Everything that isn't a clip: a small round mark on the line. */
+.mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  box-shadow: 0 0 0 4px var(--paper);
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out);
+}
+
+.nodeButton:hover .mark {
+  transform: scale(1.08);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.label {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 550;
+  line-height: 1.25;
+}
+
+.note {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.filled {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.right {
+  border-color: var(--state-solid);
+  background: var(--state-solid);
+  color: #fff;
+}
+
+.wrong {
+  border-color: var(--state-shaky);
+  background: var(--state-shaky);
+  color: #fff;
+}
+
+.added {
+  border-style: dashed;
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+}
+
+.addedScored {
+  border-color: var(--vermilion);
+  background: var(--vermilion);
+  color: #fff;
+}
+
+.nodeButton:hover .filled,
+.nodeButton:hover .right,
+.nodeButton:hover .wrong,
+.nodeButton:hover .addedScored {
+  color: inherit;
+}
+
+.nodeButton:hover .filled {
+  color: var(--paper);
+}
+
+.nodeButton:hover .right,
+.nodeButton:hover .wrong,
+.nodeButton:hover .addedScored {
+  color: #fff;
+}
+
+/* ── States ── */
+
+/* Behind the learner: quieter. */
+.passed .clipText,
+.passed .label,
+.passed .conceptTitle {
+  color: var(--muted);
+}
+
+.passed .frame img {
+  filter: saturate(0.45);
+  opacity: 0.85;
+}
+
+/* Where the learner is: a vermilion ring that breathes. */
+.on .nodeButton {
+  background: color-mix(in srgb, var(--vermilion) 7%, transparent);
+}
+
+.on .frame {
+  box-shadow:
+    0 0 0 2px var(--vermilion),
+    0 0 0 5px var(--paper);
+  animation: ringStill 1.4s ease-in-out infinite;
+}
+
+.on .mark {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+  animation: ring 1.4s ease-in-out infinite;
+}
+
+.on .clipText,
+.on .label {
+  color: var(--ink);
+}
+
+/* "Now playing" in the part's seal: three bars that breathe. */
+.playing {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 9px;
+}
+
+.playing i {
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: bars 900ms ease-in-out infinite;
+}
+
+.playing i:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.playing i:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+/* ── A concept the coach is still building ── */
+
+.pendingRow {
+  margin: 12px 0 4px;
+  align-items: start;
+}
+
+.pendingMark {
+  width: 14px;
+  height: 14px;
+  margin-top: 12px;
+  border: 1.5px dashed var(--vermilion);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0 0 3px var(--paper);
+  animation: breathe 1.4s ease-in-out infinite;
+}
+
+.pending {
+  display: grid;
+  gap: 7px;
+  padding: 9px 11px 10px;
+  border: 1.5px dashed color-mix(in srgb, var(--vermilion) 70%, var(--rule));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--vermilion-ink) 45%, transparent);
+  animation: breathe 1.4s ease-in-out infinite;
+}
+
+.pendingTitle {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 550;
+  font-variation-settings: "opsz" 18, "SOFT" 30;
+  line-height: 1.25;
+}
+
+.sweep {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--vermilion), transparent) no-repeat;
+  background-size: 50% 100%;
+  animation: sweep 1.2s linear infinite;
+}
+
+.pendingNote {
+  color: var(--vermilion);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+/* ── Arrivals: every row stamps itself on, about the stroke, so whatever the coach or the build
+   adds later lands with the seal's motion. ── */
+
+.fresh {
+  transform-origin: var(--spine) 50%;
+  animation: stampIn 480ms var(--ease-stamp) backwards;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes stampIn {
+  from {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px var(--paper),
+      0 0 0 5px color-mix(in srgb, var(--vermilion) 30%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px var(--paper),
+      0 0 0 7px color-mix(in srgb, var(--vermilion) 55%, transparent);
+  }
+}
+
+@keyframes ringStill {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--vermilion),
+      0 0 0 5px var(--paper),
+      0 0 0 6px color-mix(in srgb, var(--vermilion) 25%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--vermilion),
+      0 0 0 5px var(--paper),
+      0 0 0 8px color-mix(in srgb, var(--vermilion) 50%, transparent);
+  }
+}
+
+@keyframes bars {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes sweep {
+  from {
+    background-position: -100% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail {
+    transition: none;
+  }
+
+  .fresh,
+  .playing i,
+  .on .frame,
+  .on .mark,
+  .concept:has([aria-current]) .knot,
+  .pendingMark,
+  .pending,
+  .sweep {
+    animation: none;
+  }
+}

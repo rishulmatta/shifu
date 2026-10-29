@@ -88,9 +88,9 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 36px;
-  max-width: 1180px;
+  grid-template-columns: 292px minmax(0, 1fr);
+  gap: 40px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 28px 24px 120px;
 }
@@ -1152,113 +1152,43 @@
   grid-column: 1 / -1;
 }
 
-/* ── Outline and progress ── */
+/* ── Left column: the progression ── */
 
-.aside {
+.left {
   align-self: start;
   position: sticky;
-  top: 84px;
-  display: grid;
-  gap: 22px;
+  top: 76px;
+  height: calc(100dvh - 92px);
+  min-width: 0;
 }
 
-.mapCard,
-.progress {
+/* ── The mind map band under the goal ── */
+
+.mapBand {
+  margin-bottom: 20px;
+  padding: 14px 18px 8px;
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
 
-.mapCard {
-  padding: 18px 18px 10px;
-}
-
-.progress {
-  padding: 20px 22px;
-}
-
-.mapCardHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.mapCardHead .link {
-  font-size: 0.85rem;
-}
-
-.goal {
-  margin-bottom: 6px;
-  font-family: var(--font-display);
-  font-size: 1.12rem;
-  font-variation-settings: "opsz" 36, "SOFT" 30;
-  line-height: 1.35;
-}
-
-.goalScore {
-  margin-bottom: 4px;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.goalScore strong {
-  color: var(--state-solid);
-}
-
-.progressHead {
-  margin-top: 20px;
-}
-
-.stat {
-  margin-bottom: 12px;
-}
-
-.bar {
-  display: flex;
-  gap: 2px;
-  height: 10px;
-  overflow: hidden;
-  border-radius: 3px 6px 5px 4px / 4px 5px 3px 6px;
-  background: var(--rule);
-}
-
-.bar span {
-  min-width: 4px;
-  transition: flex-grow 400ms var(--ease-out);
-}
-
-.seg_solid {
-  background: var(--state-solid);
-}
-
-.seg_learning {
-  background: var(--state-learning);
-}
-
-.seg_shaky {
-  background: var(--state-shaky);
-}
-
-.seg_new {
-  background: var(--state-new);
-}
-
-.legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 12px;
-  margin: 14px 0;
-  list-style: none;
-  font-size: 0.85rem;
-}
-
-.legend li {
+.mapBandHead {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  margin-bottom: 4px;
 }
 
+.mapBandHead .eyebrow {
+  margin-bottom: 0;
+}
+
+.lesson {
+  position: relative;
+}
+
+/* Mastery dots, shared with the map dialog's legend. */
 .dot {
   display: inline-block;
   flex-shrink: 0;
@@ -1267,10 +1197,8 @@
   border-radius: 50%;
 }
 
-/* An objective going solid stamps its dot. */
 .dot_solid {
   background: var(--state-solid);
-  animation: dotPop 360ms var(--ease-spring);
 }
 
 .dot_learning {
@@ -1284,99 +1212,6 @@
 .dot_new {
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--state-new);
-}
-
-.calibration {
-  margin-top: 10px;
-  font-size: 0.9rem;
-}
-
-.surprises {
-  margin-top: 16px;
-}
-
-.surprises ul {
-  display: grid;
-  gap: 6px;
-  list-style: none;
-}
-
-.surprises .link {
-  padding: 0;
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-align: left;
-}
-
-.modules {
-  display: grid;
-  gap: 20px;
-  padding: 0 4px;
-  list-style: none;
-}
-
-.moduleTitle {
-  margin: 0 0 6px 10px;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.concepts {
-  display: grid;
-  gap: 2px;
-  list-style: none;
-}
-
-.concept {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.95rem;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 160ms var(--ease-out);
-}
-
-.concept:hover {
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-}
-
-.unavailable {
-  color: var(--muted);
-  cursor: default;
-}
-
-.unavailable:hover {
-  background: transparent;
-}
-
-.why {
-  display: block;
-  font-size: 0.8rem;
-}
-
-.current {
-  background: var(--surface);
-  box-shadow:
-    inset 3px 0 0 var(--vermilion),
-    0 1px 2px light-dark(rgb(31 26 23 / 0.06), rgb(0 0 0 / 0.3));
-  font-weight: 600;
-}
-
-.dots {
-  display: inline-flex;
-  gap: 3px;
-  flex-shrink: 0;
 }
 
 /* ── Mind map dialog ── */
@@ -1444,17 +1279,6 @@
 
 /* ── Responsive ── */
 
-@media (min-width: 901px) {
-  .aside {
-    max-height: calc(100dvh - 100px);
-    /* Room for the cards' shadows inside the scroll box. */
-    margin: -6px -16px 0;
-    padding: 6px 16px 24px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-  }
-}
-
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
@@ -1462,8 +1286,12 @@
     padding: 18px 16px 110px;
   }
 
-  .aside {
+  /* On a phone the progression follows the lesson. */
+  .left {
+    order: 2;
     position: static;
+    height: auto;
+    max-height: 70dvh;
   }
 
   .header {

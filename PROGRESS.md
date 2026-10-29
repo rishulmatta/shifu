@@ -178,3 +178,11 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   speed 1× to 2× (remembered, re-applied as each clip starts), previous and next clip, "Up next",
   and "In this clip" with the points the span covers. Checked in headless Chrome on the sample
   course, both schemes, desktop and phone.
+- The lesson page, laid out again: the progression down the left on one brush stroke (chapters as
+  seals, concepts with their mastery dots, every clip a still with the objective it teaches, the
+  checks and quizzes as marks that fill; the current node ringed and a vermilion thread from it to
+  the lesson card; a coach-built concept as a dashed card where it will land). In the main column
+  the goal as a calligraphic line whose ink underline fills with the goal challenge, where the
+  learner stands beside it, the mind map as a scrolling band (a new single-row layout, sliding to
+  the current concept), then the lesson. The horizontal strip from earlier today is gone. Checked
+  in headless Chrome on the sample course, both schemes, desktop and phone.

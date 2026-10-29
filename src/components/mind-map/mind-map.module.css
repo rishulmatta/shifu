@@ -18,6 +18,24 @@
   max-height: 72dvh;
 }
 
+/* The band under the goal: the whole map, scaled to a strip so the lesson stays in view. */
+.band {
+  --map-bg: var(--surface);
+}
+
+.band {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.band .svg {
+  height: auto;
+  max-width: none;
+  margin: 0 auto;
+}
+
 .dot {
   fill: var(--rule-strong);
   opacity: 0.6;

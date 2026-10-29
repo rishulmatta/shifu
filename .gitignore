@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local course store (src/lib/store/file.ts)
 /.data/
+
+# Subagent worktrees
+.claude/worktrees/

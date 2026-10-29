@@ -17,11 +17,13 @@ import { MAP_EVENT } from "../coach/ask";
 import { Coach } from "../coach/coach";
 import { ChallengeView } from "./challenge";
 import { MapDialog } from "./map-dialog";
+import { MindMap } from "../mind-map/mind-map";
 import { CardsView, CheckView, ClipView, IntroView, QuizView } from "./blocks";
-import { Outline } from "./outline";
-import { Path } from "./path";
+import { GoalLine } from "./goal-line";
 import styles from "./player.module.css";
+import { Progression } from "./progression";
 import { TeachbackView } from "./teachback";
+import { Thread } from "./thread";
 
 /** "Part 2 of 3": where a clip sits among its concept's clips. */
 function partOf(timeline: Block[], index: number) {
@@ -286,13 +288,8 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
         />
       )}
       <div className={styles.layout}>
-        <main className={styles.main}>
-          {build && <BuildBanner slug={course.slug} progress={build} />}
-          <div className={styles.track} aria-label={`Step ${Math.min(index + 1, timeline.length)} of ${timeline.length}`}>
-            <span style={{ width: `${(Math.min(index, timeline.length) / timeline.length) * 100}%` }} />
-          </div>
-          {body}
-          <Path
+        <aside className={styles.left}>
+          <Progression
             merged={merged}
             view={view}
             learner={learner}
@@ -302,23 +299,43 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
               .map((c) => ({ concept: c, before: learner.overlay.links.find((l) => l.prerequisiteId === c.id)?.conceptId }))}
             onGo={go}
           />
+        </aside>
+        <main className={styles.main}>
+          <GoalLine view={view} learner={learner} onJump={(id) => go(view.introIndex(id))} />
+          <section className={styles.mapBand} aria-label="Mind map">
+            <div className={styles.mapBandHead}>
+              <p className={styles.eyebrow}>Mind map</p>
+              <button className={styles.link} onClick={() => setMap({})}>
+                Expand
+              </button>
+            </div>
+            <MindMap
+              variant="band"
+              plan={course.plan}
+              states={view.objectiveStates(learner)}
+              available={view.available}
+              building={!!build}
+              pending={pending}
+              added={added}
+              currentConceptId={concept?.id}
+              onSelect={(id) => go(view.introIndex(id))}
+            />
+          </section>
+          {build && <BuildBanner slug={course.slug} progress={build} />}
+          <div className={styles.track} aria-label={`Step ${Math.min(index + 1, timeline.length)} of ${timeline.length}`}>
+            <span style={{ width: `${(Math.min(index, timeline.length) / timeline.length) * 100}%` }} />
+          </div>
+          <div className={styles.lesson} data-lesson="">
+            {body}
+          </div>
           {index > 0 && block && (
             <button className={styles.back} onClick={() => go(index - 1)}>
               ← Back
             </button>
           )}
         </main>
-        <Outline
-          view={view}
-          learner={learner}
-          pending={pending}
-          added={added}
-          currentConceptId={concept?.id}
-          building={!!build}
-          onJump={(id) => go(view.introIndex(id))}
-          onOpenMap={() => setMap({})}
-        />
       </div>
+      <Thread from={`.${styles.left} [data-current]`} to="[data-lesson] > section" index={index} />
       <Coach
         shared={shared}
         merged={merged}

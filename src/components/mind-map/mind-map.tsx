@@ -37,8 +37,11 @@ export function MindMap(props: {
   focusId?: ConceptId;
   currentConceptId?: ConceptId;
   onSelect?: (conceptId: ConceptId) => void;
-  /** compact: always vertical, sized to its container (the progress panel). full: the big map. */
-  variant?: "compact" | "full";
+  /**
+   * compact: always vertical, sized to its container. full: the big map. band: the strip under
+   * the goal on the lesson page, horizontal and capped in height.
+   */
+  variant?: "compact" | "full" | "band";
 }) {
   const { plan, states, available, currentConceptId, variant = "full" } = props;
   const box = useRef<HTMLDivElement>(null);
@@ -53,7 +56,19 @@ export function MindMap(props: {
     return () => observer.disconnect();
   }, []);
 
-  const orientation: Orientation = variant === "compact" || (width !== null && width < NARROW) ? "vertical" : "horizontal";
+  const orientation: Orientation = variant === "band" ? "row" : variant === "compact" || (width !== null && width < NARROW) ? "vertical" : "horizontal";
+
+  // The band is a scroll: it slides to keep the current concept in view.
+  useEffect(() => {
+    const el = box.current;
+    if (variant !== "band" || !el || !currentConceptId) return;
+    const node = el.querySelector<SVGGElement>(`[data-concept="${CSS.escape(currentConceptId)}"]`);
+    if (!node) return;
+    const r = node.getBoundingClientRect();
+    const b = el.getBoundingClientRect();
+    const left = el.scrollLeft + (r.left - b.left) - b.width / 2 + r.width / 2;
+    el.scrollTo({ left, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }, [variant, currentConceptId]);
   const isOpen = (id: ConceptId) => !available || available.has(id);
   const closed = new Set(plan.concepts.filter((c) => !isOpen(c.id)).map((c) => c.id));
   const layout = layoutMap(plan, orientation, width ?? 320, closed);
@@ -65,7 +80,7 @@ export function MindMap(props: {
     <div ref={box} className={cx(styles.map, styles[variant])}>
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
-        width="100%"
+        width={variant === "band" ? layout.width : "100%"}
         className={styles.svg}
         role="group"
         aria-label={`Mind map of ${plan.topic}: ${layout.nodes.length} concepts`}
@@ -83,7 +98,7 @@ export function MindMap(props: {
             </marker>
           ))}
         </defs>
-        {variant === "full" && <rect width={layout.width} height={layout.height} fill={`url(#dots-${uid})`} />}
+        {variant !== "compact" && <rect width={layout.width} height={layout.height} fill={`url(#dots-${uid})`} />}
 
         {layout.modules.map((m) => (
           <ModuleLabel key={m.index} layout={layout} index={m.index} title={m.title} x={m.x} y={m.y} />
@@ -117,7 +132,7 @@ export function MindMap(props: {
           const extra = props.added?.has(n.id);
           const label = `${concept.title}${extra ? " (added for you)" : ""}: ${open ? `${STATE_LABEL[state]}, ${solid} of ${concept.objectives.length} objectives solid` : building ? "still building" : "no good clip found"}${current ? ", you are here" : ""}`;
           return (
-            <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
+            <g key={n.id} transform={`translate(${n.x} ${n.y})`} data-concept={n.id}>
               <g
                 className={cx(styles.node, select && styles.clickable, !open && styles.closed)}
                 style={{ animationDelay: `${(numbers.get(n.id)! - 1) * 70}ms` }}
