@@ -97,3 +97,52 @@
     transform: none;
   }
 }
+
+/* ── Flecks: ink thrown off the brush or the stamp, once ── */
+
+.flecks {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Each fleck turns to its angle, then flies out along it, so a stretched one points the way it went. */
+.fleckDot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  translate: -50% -50%;
+  transform: rotate(var(--angle)) translateX(var(--distance)) scaleX(1);
+  animation: spray 1300ms cubic-bezier(0.15, 0.85, 0.25, 1) both;
+}
+
+@keyframes spray {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(0) scaleX(var(--stretch)) scale(0.4);
+  }
+  8% {
+    opacity: 1;
+  }
+  54% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateX(var(--distance)) scaleX(1) scale(1);
+  }
+  72% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(calc(var(--distance) * 1.04)) scaleX(1) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flecks {
+    display: none;
+  }
+}

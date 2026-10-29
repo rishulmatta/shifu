@@ -1,0 +1,160 @@
+/* The lesson's ink wash (ink-wash.tsx). Three large pools, each a few overlapping soft ellipses
+   with the darker rim pigment leaves where a wash dries, so they read as washes, not spotlights.
+   Only transform (the drift) and opacity (the mood) ever change, both on the compositor. */
+
+.wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.drift {
+  position: absolute;
+  width: 78vmax;
+  height: 64vmax;
+  will-change: transform;
+  animation: drift 72s ease-in-out infinite alternate;
+}
+
+/* Upper left, behind the lesson's start; right, beside the outline; low, under the path. */
+.drift0 {
+  top: -26vmax;
+  left: -22vmax;
+}
+
+.drift1 {
+  top: 8vh;
+  right: -34vmax;
+  width: 70vmax;
+  animation-name: drift1;
+  animation-duration: 86s;
+}
+
+.drift2 {
+  bottom: -34vmax;
+  left: 14vw;
+  width: 64vmax;
+  height: 52vmax;
+  animation-name: drift2;
+  animation-duration: 64s;
+}
+
+/* One pool: --c is its colour, opaque; the gradients set how much of it soaks through. */
+.pool {
+  --c: color-mix(in srgb, var(--ink) 7%, var(--paper-deep));
+  position: absolute;
+  inset: 0;
+  /* Softens the rims into a bleed; rasterised once, since only the wrapper moves. */
+  filter: blur(22px);
+  background:
+    radial-gradient(
+      46% 42% at 44% 46%,
+      color-mix(in srgb, var(--c) 72%, transparent),
+      color-mix(in srgb, var(--c) 46%, transparent) 54%,
+      color-mix(in srgb, var(--c) 62%, transparent) 66%,
+      transparent 74%
+    ),
+    radial-gradient(
+      32% 36% at 66% 60%,
+      color-mix(in srgb, var(--c) 52%, transparent),
+      color-mix(in srgb, var(--c) 30%, transparent) 58%,
+      color-mix(in srgb, var(--c) 44%, transparent) 68%,
+      transparent 76%
+    ),
+    radial-gradient(
+      26% 22% at 30% 70%,
+      color-mix(in srgb, var(--c) 40%, transparent),
+      color-mix(in srgb, var(--c) 34%, transparent) 64%,
+      transparent 78%
+    );
+}
+
+.drift1 .pool {
+  rotate: 34deg;
+}
+
+.drift2 .pool {
+  rotate: -18deg;
+  scale: -1 1;
+}
+
+/* ── Moods: each tint fades in over the paper pool; leaving one fades it back out ── */
+
+.tint {
+  opacity: 0;
+  transition: opacity 1200ms var(--ease-out);
+}
+
+.watch {
+  --c: color-mix(in srgb, var(--vermilion) 15%, var(--paper));
+}
+
+.ask {
+  --c: color-mix(in srgb, var(--gold) 18%, var(--paper));
+}
+
+.right {
+  --c: color-mix(in srgb, var(--state-solid) 18%, var(--paper));
+}
+
+.wrong {
+  --c: color-mix(in srgb, var(--state-shaky) 24%, var(--paper));
+}
+
+.wash[data-mood="watch"] .watch,
+.wash[data-mood="ask"] .ask,
+.wash[data-mood="right"] .right {
+  opacity: 1;
+}
+
+/* A wrong answer flushes red, then settles to a trace while the learner reads why. */
+.wash[data-mood="wrong"] .wrong {
+  opacity: 0.4;
+  animation: flush 1800ms var(--ease-out) backwards;
+}
+
+@keyframes flush {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate(9vw, 7vh) rotate(14deg) scale(1.08);
+  }
+}
+
+@keyframes drift1 {
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1.04);
+  }
+  to {
+    transform: translate(-8vw, 10vh) rotate(-12deg) scale(0.96);
+  }
+}
+
+@keyframes drift2 {
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate(10vw, -6vh) rotate(10deg) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drift,
+  .wash[data-mood="wrong"] .wrong {
+    animation: none;
+  }
+}

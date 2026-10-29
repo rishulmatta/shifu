@@ -145,8 +145,10 @@
   border-radius: var(--radius-card);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  /* Each block mounts fresh (key={index}), so this plays as the lesson moves on. */
-  animation: rise 320ms var(--ease-out) backwards;
+  /* Each block mounts fresh (key={index}), so this plays as the lesson moves on: one wide brush
+     sweeps the card in from the top left (brushWipe, at the end). Backwards fill only, so the
+     card ends with no clip and its shadow and overhanging seal show whole. */
+  animation: brushWipe 460ms var(--ease-out) backwards;
 }
 
 .eyebrow {
@@ -500,9 +502,17 @@
     background-color 180ms var(--ease-out);
 }
 
+/* The text and the marker sit over the ink layer (ink.tsx), which fills the option beneath them. */
+.optionText {
+  position: relative;
+  z-index: 1;
+}
+
 /* The marker: an empty ring, a dot when picked, a check or a cross once answered. */
 .option::before {
   content: "";
+  position: relative;
+  z-index: 1;
   display: grid;
   flex-shrink: 0;
   place-items: center;
@@ -525,6 +535,7 @@
   top: 10px;
   bottom: 10px;
   left: -1px;
+  z-index: 1;
   width: 3px;
   border-radius: 2px;
   background: var(--vermilion);
@@ -567,15 +578,11 @@
   box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 
-.right {
-  border-color: var(--state-solid);
-  background: color-mix(in srgb, var(--state-solid) 12%, var(--paper));
-}
-
+/* The right answer takes one brush pass of ink, its words turning paper as it passes (ink.tsx). */
 .right::before {
   content: "✓";
   background: var(--state-solid);
-  box-shadow: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--paper) 85%, transparent);
 }
 
 .wrong {
@@ -1652,4 +1659,28 @@
   .flashInner {
     transition: none;
   }
+}
+
+/* ── Ink and brush (appended) ── */
+
+/* A wide brush laid across the card from the top left: the leading edge leans, and the bristle
+   tips leave it ragged. Both polygons have the same points, so the edge travels as one stroke;
+   the start sits wholly left of the card and the end wholly past it, seal overhang included. */
+@keyframes brushWipe {
+  from {
+    transform: translateY(10px);
+    clip-path: polygon(-12% -20%, -6.5% -20%, -7.3% -13.6%, -15.3% -7.3%, -18.3% -0.9%, -24.7% 5.5%, -23.5% 11.8%, -27.3% 18.2%, -26.3% 24.5%, -33.5% 30.9%, -35.1% 37.3%, -43.2% 43.6%, -43.5% 50%, -49.1% 56.4%, -47.5% 62.7%, -51.6% 69.1%, -52.3% 75.5%, -60.6% 81.8%, -63.1% 88.2%, -69.1% 94.5%, -68.1% 100.9%, -72.8% 107.3%, -70.8% 113.6%, -77.1% 120%, -12% 120%);
+  }
+  to {
+    transform: translateY(0);
+    clip-path: polygon(-12% -20%, 180.5% -20%, 179.7% -13.6%, 171.7% -7.3%, 168.7% -0.9%, 162.3% 5.5%, 163.5% 11.8%, 159.7% 18.2%, 160.7% 24.5%, 153.5% 30.9%, 151.9% 37.3%, 143.8% 43.6%, 143.5% 50%, 137.9% 56.4%, 139.5% 62.7%, 135.4% 69.1%, 134.7% 75.5%, 126.4% 81.8%, 123.9% 88.2%, 117.9% 94.5%, 118.9% 100.9%, 114.2% 107.3%, 116.2% 113.6%, 109.9% 120%, -12% 120%);
+  }
+}
+
+/* Ink thrown off the seal as it lands, from the seal's centre (its 56px, overhanging the corner). */
+.sealFlecks {
+  top: 12px;
+  right: 56px;
+  z-index: 1;
+  color: var(--vermilion);
 }

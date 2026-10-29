@@ -8,7 +8,8 @@ import type { Rating } from "@/lib/learner";
 import { clock } from "@/lib/course-view";
 import type { CardItem, CheckItem, Concept, Confidence, Module, Objective, Span, Video } from "@/lib/types";
 import { CoachControls } from "../coach/coach-controls";
-import { Seal } from "../mark";
+import { Flecks, Seal } from "../mark";
+import { OptionInk, trackInk } from "./ink";
 import styles from "./player.module.css";
 import { RATES, setPlaybackRate, usePlaybackRate } from "./use-playback-rate";
 import { YouTubeClip } from "./youtube-clip";
@@ -190,22 +191,22 @@ export function Question(props: { item: CheckItem; reveal?: boolean; onAnswer: (
       {done && correct && !props.reveal && <Seal size={44} stamp label="Correct" className={styles.seal} />}
       <h2 className={styles.title}>{item.prompt}</h2>
       <div className={styles.options}>
-        {item.options.map((option, i) => (
-          <button
-            key={i}
-            disabled={done}
-            aria-pressed={done ? undefined : picked === i}
-            className={cx(
-              styles.option,
-              !done && picked === i && styles.picked,
-              done && i === item.answerIndex && styles.right,
-              done && i === picked && !correct && styles.wrong,
-            )}
-            onClick={() => setPicked(i)}
-          >
-            {option}
-          </button>
-        ))}
+        {item.options.map((option, i) => {
+          const mark = done && i === item.answerIndex ? "right" : done && i === picked && !correct ? "wrong" : undefined;
+          return (
+            <button
+              key={i}
+              disabled={done}
+              aria-pressed={done ? undefined : picked === i}
+              className={cx(styles.option, !done && picked === i && styles.picked, mark && styles[mark])}
+              onPointerMove={done ? undefined : trackInk}
+              onClick={() => setPicked(i)}
+            >
+              <OptionInk mark={mark} text={option} />
+              <span className={styles.optionText}>{option}</span>
+            </button>
+          );
+        })}
       </div>
       {/* Stays after answering, disabled, with the chosen one filled: a record of how sure you were. */}
       {picked !== null && (!done || confidence !== null) && (
@@ -472,8 +473,15 @@ export function QuizView(props: {
   const score = props.done;
 
   if (score) {
+    const full = score.total > 0 && score.correct === score.total;
     return (
       <section className={styles.card}>
+        {full && (
+          <>
+            <Seal size={56} stamp label="Full marks" className={styles.seal} />
+            <Flecks count={14} delay={220} className={styles.sealFlecks} />
+          </>
+        )}
         <p className={styles.eyebrow}>
           {props.label} · {props.title}
         </p>
