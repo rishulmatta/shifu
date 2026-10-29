@@ -7,8 +7,9 @@
 
 import { useState } from "react";
 import type { Challenge, CheckItem, Concept, Confidence } from "@/lib/types";
-import { Seal } from "../mark";
+import { Flecks, Seal } from "../mark";
 import { Question } from "./blocks";
+import { OptionInk, trackInk } from "./ink";
 import styles from "./player.module.css";
 
 type Answers = (number | null)[];
@@ -93,12 +94,25 @@ function Cold(props: { challenge: Challenge; last: boolean; onAnswer: (choice: n
       <h2 className={styles.title}>{props.challenge.prompt}</h2>
       <div className={styles.options}>
         {props.challenge.options.map((o, i) => (
-          <button key={i} className={`${styles.option} ${picked === i ? styles.picked : ""}`} aria-pressed={picked === i} onClick={() => setPicked(i)}>
-            {o}
+          <button
+            key={i}
+            className={`${styles.option} ${picked === i ? styles.picked : ""}`}
+            aria-pressed={picked === i}
+            onPointerMove={trackInk}
+            onClick={() => setPicked(i)}
+          >
+            <OptionInk />
+            <span className={styles.optionText}>{o}</span>
           </button>
         ))}
-        <button className={`${styles.option} ${styles.unsure} ${picked === null ? styles.picked : ""}`} aria-pressed={picked === null} onClick={() => setPicked(null)}>
-          I don&apos;t know yet
+        <button
+          className={`${styles.option} ${styles.unsure} ${picked === null ? styles.picked : ""}`}
+          aria-pressed={picked === null}
+          onPointerMove={trackInk}
+          onClick={() => setPicked(null)}
+        >
+          <OptionInk />
+          <span className={styles.optionText}>I don&apos;t know yet</span>
         </button>
       </div>
       <div className={styles.actions}>
@@ -205,7 +219,12 @@ function Result(props: Parameters<typeof ChallengeView>[0]) {
   return (
     <section className={styles.card}>
       <p className={styles.eyebrow}>Goal challenge</p>
-      {now === n && n > 0 && <Seal size={56} stamp label="Every one right" className={styles.seal} />}
+      {now === n && n > 0 && (
+        <>
+          <Seal size={56} stamp label="Every one right" className={styles.seal} />
+          <Flecks count={14} delay={220} className={styles.sealFlecks} />
+        </>
+      )}
       <h2 className={styles.result}>
         {before !== undefined && (
           <span className={styles.resultBefore}>
