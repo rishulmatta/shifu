@@ -2,8 +2,9 @@
 
 // The coach (PLAN.md §3, "The course coach"): a window over the lesson where the learner says what
 // they need and the course changes to fit. Every reply comes with a card showing the change and
-// where it lands in their path: questions inserted after where they are, or a new prerequisite
-// concept growing in front of the one that needs it. The controls under each clip and question
+// where it lands in their path: questions inserted after where they are, a new prerequisite
+// concept growing in front of the one that needs it, or a concept they asked for growing after the
+// one they're on. The controls under each clip and question
 // open the window with a precise request (ask.ts). Additions go into the learner's own overlay.
 
 import { useEffect, useRef, useState } from "react";
@@ -106,6 +107,18 @@ export function Coach(props: Props) {
     return intro > 0 ? merged.keys[intro - 1] : "^";
   };
 
+  /** A concept's last block: a concept that builds on it goes there, once the learner has finished it. */
+  const anchorAfter = (conceptId?: string) => {
+    const { merged, view, index } = latest.current.props;
+    const intro = conceptId ? view.introIndex(conceptId) : -1;
+    if (intro < 0) return merged.keys[index] ?? "^";
+    // The concept's blocks run from its intro to the next intro, teach-back, quiz or challenge.
+    const { timeline } = merged.course;
+    let last = intro;
+    while (last + 1 < timeline.length && !["intro", "teachback", "quiz", "challenge"].includes(timeline[last + 1].kind)) last += 1;
+    return merged.keys[last];
+  };
+
   const skip = (): CoachChange => {
     const { view, index, merged, conceptId, go } = latest.current.props;
     const next = merged.course.timeline.findIndex((b, i) => i > index && b.kind === "intro" && b.conceptId !== conceptId);
@@ -164,7 +177,7 @@ export function Coach(props: Props) {
         .filter((a) => a.misconception)
         .slice(-5)
         .map((a) => ({ objectiveId: a.objectiveId, text: a.misconception!.slice(0, 300) })),
-      added: { concepts: built, links: o.links.filter((l) => built.some((c) => c.id === l.prerequisiteId)), spans: o.spans, asked },
+      added: { concepts: built, links: o.links.filter((l) => built.some((c) => c.id === l.prerequisiteId || c.id === l.conceptId)), spans: o.spans, asked },
     };
 
     let growing: string | undefined;
@@ -190,17 +203,25 @@ export function Coach(props: Props) {
           if (e.type === "reply") {
             const a = e.action;
             if (a.kind === "practice") say("coach", e.text, { kind: "practice", status: "working", note: "Writing questions", count: a.count });
-            else if (a.kind === "prerequisite") {
+            else if (a.kind === "prerequisite" || a.kind === "extend") {
               growing = a.concept.id;
-              const before = latest.current.props.view.concepts.get(a.before)?.title;
-              say("coach", e.text, { kind: "prerequisite", status: "working", note: "Finding videos", concept: { id: a.concept.id, title: a.concept.title }, before, step: 0 });
-              place({ concept: a.concept, before: a.before }, after);
+              const place_ = a.kind === "prerequisite" ? { before: a.before } : { after: a.after };
+              const neighbour = latest.current.props.view.concepts.get(a.kind === "prerequisite" ? a.before : a.after)?.title;
+              say("coach", e.text, {
+                kind: a.kind,
+                status: "working",
+                note: "Finding videos",
+                concept: { id: a.concept.id, title: a.concept.title },
+                ...(a.kind === "prerequisite" ? { before: neighbour } : { after: neighbour }),
+                step: 0,
+              });
+              place({ concept: a.concept, ...place_ }, after);
             } else say("coach", e.text, actNow(a));
           } else if (e.type === "progress") {
             const step = e.step ? STEPS.indexOf(e.step) : -1;
             setChange({ note: e.text.replace(/ for .*$/, ""), ...(step >= 0 && { step }) });
           } else if (e.type === "patch") {
-            const at = e.patch.concept ? anchorBefore(e.patch.before) : after;
+            const at = e.patch.concept ? (e.patch.after ? anchorAfter(e.patch.after) : anchorBefore(e.patch.before)) : after;
             const goTo = place(e.patch, at);
             const note = e.patch.concept ? "Added to your path" : `${e.patch.items?.length ?? 0} questions added`;
             setChange({ status: "done", note, goTo, count: e.patch.concept ? undefined : e.patch.items?.length });
@@ -226,14 +247,22 @@ export function Coach(props: Props) {
   };
 
   const objective = props.objectiveId;
-  const suggestions: CoachRequest[] = objective
+  // A chip with `prefill` starts a message for the learner to finish instead of sending one.
+  const addLesson = { text: "Add a lesson on…", prefill: "Add a lesson on " };
+  const suggestions: (CoachRequest & { prefill?: string })[] = objective
     ? [
         { text: "More practice on this", intent: { kind: "practice", objectiveId: objective } },
         { text: "I'm missing the basics", intent: { kind: "basics", objectiveId: objective } },
         { text: "Explain it differently" },
+        addLesson,
         { text: "Skip, I know this", local: "skip" },
       ]
-    : [{ text: "Ask me more questions" }, { text: "Explain the basics first" }, { text: "Skip, I know this", local: "skip" }];
+    : [{ text: "Ask me more questions" }, { text: "Explain the basics first" }, addLesson, { text: "Skip, I know this", local: "skip" }];
+  const pick = (s: CoachRequest & { prefill?: string }) => {
+    if (!s.prefill) return void send(s);
+    setText(s.prefill);
+    input.current?.focus();
+  };
   const working = busy || lastStatus === "working";
 
   return (
@@ -260,7 +289,7 @@ export function Coach(props: Props) {
           <ol ref={list} className={styles.turns} aria-live="polite">
             {learner.coach.length === 0 && (
               <li className={styles.empty}>
-                <p>Tell me what you need: more practice, the basics behind an idea, or a different explanation.</p>
+                <p>Tell me what you need: a lesson on something this course doesn&apos;t cover, the basics behind an idea, more practice, or a different explanation.</p>
                 <p className={styles.muted}>I change your course to fit, and show you where each change lands.</p>
               </li>
             )}
@@ -293,7 +322,7 @@ export function Coach(props: Props) {
           <footer className={styles.foot}>
             <div className={styles.suggestions}>
               {suggestions.map((s) => (
-                <button key={s.text} className={styles.chip} disabled={busy} onClick={() => send(s)}>
+                <button key={s.text} className={styles.chip} disabled={busy} onClick={() => pick(s)}>
                   {s.text}
                 </button>
               ))}

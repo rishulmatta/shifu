@@ -23,10 +23,14 @@ export interface Overlay {
 
 export const NO_OVERLAY: Overlay = { concepts: [], links: [], videos: {}, spans: [], items: [], insertions: [] };
 
-/** What one coach action adds. `concept` with `before` is a new prerequisite of that concept. */
+/**
+ * What one coach action adds. `concept` with `before` is a new prerequisite of that concept; with
+ * `after` it's a new concept that builds on that one and follows it.
+ */
 export interface OverlayPatch {
   concept?: Concept;
   before?: ConceptId;
+  after?: ConceptId;
   videos?: Video[];
   spans?: Span[];
   items?: RecallItem[];
@@ -55,13 +59,15 @@ export function mergeCourse(course: Course, o: Overlay): Merged {
 
   const prerequisites = (c: Concept) => [...c.prerequisites, ...o.links.filter((l) => l.conceptId === c.id).map((l) => l.prerequisiteId)];
   const concepts = [...course.plan.concepts, ...o.concepts].map((c) => ({ ...c, prerequisites: prerequisites(c) }));
-  // An added concept sits in its module just before the first concept that builds on it.
+  // An added concept sits in its module just before the first concept that builds on it, or just
+  // after the one it builds on; with neither link, at the module's end.
   const modules = course.plan.modules.map((m) => {
     const ids = [...m.conceptIds];
     for (const c of o.concepts) {
       if (c.moduleIndex !== m.index || ids.includes(c.id)) continue;
       const builder = o.links.find((l) => l.prerequisiteId === c.id && ids.includes(l.conceptId));
-      ids.splice(builder ? ids.indexOf(builder.conceptId) : ids.length, 0, c.id);
+      const base = o.links.find((l) => l.conceptId === c.id && ids.includes(l.prerequisiteId));
+      ids.splice(builder ? ids.indexOf(builder.conceptId) : base ? ids.indexOf(base.prerequisiteId) + 1 : ids.length, 0, c.id);
     }
     return { ...m, conceptIds: ids };
   });
@@ -86,12 +92,10 @@ export function mergeCourse(course: Course, o: Overlay): Merged {
 export function applyPatch(o: Overlay, patch: OverlayPatch, after: string): Overlay {
   const concept = patch.concept;
   const known = concept && o.concepts.some((c) => c.id === concept.id);
+  const link = concept && (patch.before ? { conceptId: patch.before, prerequisiteId: concept.id } : patch.after ? { conceptId: concept.id, prerequisiteId: patch.after } : null);
   return {
     concepts: concept && !known ? [...o.concepts, concept] : o.concepts,
-    links:
-      concept && patch.before && !o.links.some((l) => l.prerequisiteId === concept.id)
-        ? [...o.links, { conceptId: patch.before, prerequisiteId: concept.id }]
-        : o.links,
+    links: link && !o.links.some((l) => l.conceptId === link.conceptId && l.prerequisiteId === link.prerequisiteId) ? [...o.links, link] : o.links,
     videos: { ...o.videos, ...Object.fromEntries((patch.videos ?? []).map((v) => [v.id, v])) },
     spans: [...o.spans, ...(patch.spans ?? [])],
     items: [...o.items, ...(patch.items ?? [])],
@@ -101,5 +105,5 @@ export function applyPatch(o: Overlay, patch: OverlayPatch, after: string): Over
 
 /** Takes back a concept that never got its blocks (the coach couldn't find a clip for it). */
 export function dropConcept(o: Overlay, id: ConceptId): Overlay {
-  return { ...o, concepts: o.concepts.filter((c) => c.id !== id), links: o.links.filter((l) => l.prerequisiteId !== id) };
+  return { ...o, concepts: o.concepts.filter((c) => c.id !== id), links: o.links.filter((l) => l.prerequisiteId !== id && l.conceptId !== id) };
 }

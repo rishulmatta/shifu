@@ -378,14 +378,16 @@ button.conceptTitle[aria-current] {
   letter-spacing: -0.03em;
   box-shadow: 0 0 0 4px var(--paper);
   transition:
-    transform 160ms var(--ease-out),
-    border-color 160ms var(--ease-out),
-    color 160ms var(--ease-out),
-    background-color 160ms var(--ease-out);
+    transform 420ms var(--ease-spring),
+    border-color 200ms var(--ease-out),
+    color 200ms var(--ease-out),
+    background-color 200ms var(--ease-out);
 }
 
-.nodeButton:hover .mark {
-  transform: scale(1.08);
+/* Hovering a node swells it off the stroke: the mark half again as big, the label leaning in. */
+.nodeButton:hover .mark,
+.nodeButton:focus-visible .mark {
+  transform: scale(1.5);
   border-color: var(--ink);
   color: var(--ink);
 }
@@ -395,6 +397,16 @@ button.conceptTitle[aria-current] {
   font-size: 0.82rem;
   font-weight: 550;
   line-height: 1.25;
+  transform-origin: left center;
+  transition:
+    transform 420ms var(--ease-spring),
+    color 200ms var(--ease-out);
+}
+
+.nodeButton:hover .label,
+.nodeButton:focus-visible .label {
+  transform: translateX(8px) scale(1.12);
+  color: var(--ink);
 }
 
 .note {
@@ -669,5 +681,161 @@ button.conceptTitle[aria-current] {
   .pending,
   .sweep {
     animation: none;
+  }
+}
+
+/* ── Hover: the node swells, a clip's still lifts off the stroke, the goal challenge opens up ── */
+
+.frame,
+.frame img {
+  transition:
+    transform 420ms var(--ease-spring),
+    box-shadow 220ms var(--ease-out),
+    filter 220ms var(--ease-out);
+}
+
+.nodeButton:hover .still,
+.nodeButton:focus-visible .still {
+  z-index: 3;
+}
+
+.nodeButton:hover .frame,
+.nodeButton:focus-visible .frame {
+  transform: translate(10px, -2px) scale(1.35);
+  box-shadow:
+    0 0 0 1px var(--ink),
+    0 0 0 4px var(--paper),
+    0 14px 28px -10px rgb(0 0 0 / 0.45);
+}
+
+.nodeButton:hover .partSeal,
+.nodeButton:hover .len,
+.nodeButton:hover .watched,
+.nodeButton:focus-visible .partSeal,
+.nodeButton:focus-visible .len,
+.nodeButton:focus-visible .watched {
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+}
+
+.clipText {
+  transform-origin: left center;
+  transition:
+    transform 420ms var(--ease-spring),
+    color 200ms var(--ease-out);
+}
+
+.nodeButton:hover .clipText,
+.nodeButton:focus-visible .clipText {
+  transform: translateX(24px) scale(1.03);
+  color: var(--ink);
+}
+
+.channel {
+  transition: transform 420ms var(--ease-spring);
+}
+
+.nodeButton:hover .channel,
+.nodeButton:focus-visible .channel {
+  transform: translateX(24px);
+}
+
+/* The text moves right with the still, so it gives up that much width rather than being cut off. */
+.still + .text {
+  transition: padding-right 420ms var(--ease-spring);
+}
+
+.nodeButton:hover .still + .text,
+.nodeButton:focus-visible .still + .text {
+  padding-right: 24px;
+}
+
+.nodeButton:hover .note,
+.nodeButton:focus-visible .note {
+  transform: translateX(8px);
+}
+
+.note {
+  transition: transform 420ms var(--ease-spring);
+}
+
+/* The goal challenge's questions unfold under its label (grid rows 0fr → 1fr, so the height animates). */
+.detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 460ms var(--ease-spring),
+    opacity 240ms var(--ease-out);
+}
+
+.nodeButton:hover .detail,
+.nodeButton:focus-visible .detail {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition-delay: 40ms;
+}
+
+.detailInner {
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+  overflow: hidden;
+  padding-left: 8px;
+}
+
+.qDots {
+  display: flex;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.qDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 360ms var(--ease-spring);
+}
+
+.nodeButton:hover .qDot,
+.nodeButton:focus-visible .qDot {
+  transform: scale(1);
+}
+
+.qRight {
+  background: var(--state-solid);
+}
+
+.qMiss {
+  background: var(--state-shaky);
+}
+
+.qUnsure {
+  box-shadow: inset 0 0 0 2px var(--state-learning);
+}
+
+.qTodo {
+  box-shadow: inset 0 0 0 1.5px var(--rule-strong);
+}
+
+.detailText {
+  padding-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark,
+  .label,
+  .frame,
+  .frame img,
+  .clipText,
+  .channel,
+  .note,
+  .detail,
+  .qDot {
+    transition: none;
   }
 }

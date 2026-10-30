@@ -26,4 +26,12 @@ describe("groupPath", () => {
     expect(groups[at].pending).toBe(true);
     expect(groups[at + 1].id).toBe("bayes-rule");
   });
+
+  it("places a concept the learner asked for after the one it builds on", () => {
+    const concept = { ...bayesCourse.plan.concepts[0], id: "odds-x2", title: "Odds form" };
+    const groups = groupPath(merged, view, [{ concept, after: "bayes-rule" }]);
+    const at = groups.findIndex((g) => g.id === "odds-x2");
+    expect(groups[at].pending).toBe(true);
+    expect(groups[at - 1].id).toBe("bayes-rule");
+  });
 });

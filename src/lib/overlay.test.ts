@@ -46,6 +46,16 @@ describe("mergeCourse", () => {
     expect(plan.concepts.some((c) => c.id === "conditional-x1")).toBe(true);
   });
 
+  it("adds a concept the learner asked for just after the one it builds on", () => {
+    const extra = { ...prereq, id: "odds-x2", title: "Odds form", objectives: [] };
+    const o = applyPatch(NO_OVERLAY, { concept: extra, after: "bayes-rule" }, "b0");
+    const { plan } = mergeCourse(bayesCourse, o).course;
+    const mod = plan.modules.find((x) => x.index === 0)!;
+    expect(mod.conceptIds.indexOf("odds-x2")).toBe(mod.conceptIds.indexOf("bayes-rule") + 1);
+    expect(plan.concepts.find((c) => c.id === "odds-x2")!.prerequisites).toEqual(["bayes-rule"]);
+    expect(dropConcept(o, "odds-x2").links).toHaveLength(0);
+  });
+
   it("doesn't add a concept or its link twice, and can take a concept back", () => {
     let o = applyPatch(NO_OVERLAY, { concept: prereq, before: "bayes-rule" }, "b0");
     o = applyPatch(o, { concept: prereq, before: "bayes-rule", blocks: [practice] }, "b0");

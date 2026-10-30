@@ -314,7 +314,11 @@ export function CoursePlayer({ course: shared, build }: { course: Course; build?
             index={index}
             pending={learner.overlay.concepts
               .filter((c) => pending.has(c.id))
-              .map((c) => ({ concept: c, before: learner.overlay.links.find((l) => l.prerequisiteId === c.id)?.conceptId }))}
+              .map((c) => ({
+                concept: c,
+                before: learner.overlay.links.find((l) => l.prerequisiteId === c.id)?.conceptId,
+                after: learner.overlay.links.find((l) => l.conceptId === c.id)?.prerequisiteId,
+              }))}
             onGo={go}
           />
         </aside>

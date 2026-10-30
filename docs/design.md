@@ -93,9 +93,14 @@ The whole course down the left of the lesson page, on one brush stroke.
   are done: a right check goes jade, a wrong one red, a quiz shows its score.
 - The current node is ringed in vermilion and breathes, and a vermilion **thread** runs from it to
   the lesson card. Passed clips carry the seal. The column scrolls to keep the current node in view.
+- **Hover swells a node.** The mark grows half again, the label leans in, a clip's still lifts off
+  the stroke and the text makes room for it; the goal challenge unfolds a dot per question (jade
+  right, red missed, amber "I don't know yet", outline not yet answered) and what the score says.
+  All on the spring easing, so it feels pressed rather than switched.
 - **Changes land where they belong.** A concept the coach is building appears as a dashed card in
-  its place until its videos arrive; new nodes stamp themselves on. Modules that finish building
-  arrive the same way.
+  its place until its videos arrive (before the concept that needs it, or after the one the
+  learner asked to go on from); new nodes stamp themselves on. Modules that finish building arrive
+  the same way.
 
 Under the video: playback speed (1× to 2×, remembered in the browser), previous and next clip,
 the creator credit, and "In this clip", the points the clip covers.

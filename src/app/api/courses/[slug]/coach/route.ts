@@ -11,7 +11,8 @@ import { getStore } from "@/lib/store";
 import type { BuildStep } from "@/lib/store";
 import type { CheckItem } from "@/lib/types";
 
-// A prerequisite is a small build: finding videos, reading captions and writing questions.
+// A new concept (a prerequisite or a topic the learner asked for) is a small build: finding videos,
+// reading captions and writing questions.
 export const maxDuration = 300;
 
 const Id = z.string().min(1).max(80);
@@ -132,12 +133,13 @@ export async function POST(req: Request, ctx: RouteContext<"/api/courses/[slug]/
             const conceptId = objectives[0].conceptId;
             send({ type: "patch", patch: { items: out.items, blocks: [{ kind: "practice", conceptId, itemIds: out.items.map((i) => i.id) }] } });
           }
-        } else if (action.kind === "prerequisite") {
+        } else if (action.kind === "prerequisite" || action.kind === "extend") {
           const grow = await allowGrow(store, who);
           if (!grow.ok) send({ type: "failed", text: grow.message });
           else {
             const sources = cached(liveSources, store);
-            const out = await growConcept(mine.plan, action.concept, action.before, sources, (text, step) => send({ type: "progress", text, step }));
+            const place = action.kind === "prerequisite" ? { before: action.before } : { after: action.after };
+            const out = await growConcept(mine.plan, action.concept, place, sources, (text, step) => send({ type: "progress", text, step }));
             send({ type: "patch", patch: out.patch });
           }
         }

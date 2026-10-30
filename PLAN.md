@@ -185,13 +185,18 @@ teaches in the chat, and every reply comes with one visible change to the course
   YouTube searches), built from fresh clips through the same steps as a course build. Its node
   grows into the mind map while it builds; it is placed before the concept that needs it, and the
   learner can start it at once.
+- **A lesson they ask for** (30 Oct): "add a lesson on X", "I also want to learn X", "go deeper
+  into X". The same small build as a prerequisite, but the new concept builds on the one the
+  learner is on and follows it, its blocks slotted in after that concept's last block.
 - **Explain it differently**, **go to** a concept the course has, or **skip ahead**: done in the
   browser.
-- **None:** a short reply for anything else, saying what the coach can do.
+- **None:** a short reply for anything else, saying everything the coach can do (it must never say
+  it can't add lessons).
 
 Where it lives (28 Oct): a floating window opened from an ink "Coach" launcher bearing the ensō
 mark, bottom right (a full-screen sheet on phones), plus a row of coach controls under every clip
-and answered question: "More practice on this", "I'm missing the basics", "Skip, I know this".
+and answered question: "More practice on this", "I'm missing the basics", "Skip, I know this";
+the window's chips add "Add a lesson on…", which starts the message for the learner to finish.
 The controls name their objective, so "more practice" needs no model to decide and "missing the
 basics" asks the model only for the foundation that objective lacks. Each reply carries a card
 showing where the change lands: inserted questions as squares after a caret at the learner's

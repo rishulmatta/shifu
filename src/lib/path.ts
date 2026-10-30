@@ -24,10 +24,11 @@ export interface PathGroup {
   pending?: boolean;
 }
 
-/** Concepts the coach is building, and the concept each one will come before. */
+/** Concepts the coach is building, and the concept each one will come before, or after. */
 export interface PendingConcept {
   concept: Concept;
   before?: string;
+  after?: string;
 }
 
 export function groupPath(merged: Merged, view: CourseView, pending: PendingConcept[]): PathGroup[] {
@@ -53,11 +54,13 @@ export function groupPath(merged: Merged, view: CourseView, pending: PendingConc
       groups.push(open);
     }
   });
-  // A concept still being built sits where it will land: before the concept that needs it.
+  // A concept still being built sits where it will land: before the concept that needs it, or
+  // after the one it builds on.
   for (const p of pending) {
     const group: PathGroup = { id: p.concept.id, title: p.concept.title, concept: p.concept, moduleIndex: p.concept.moduleIndex, items: [], pending: true };
-    const at = p.before ? groups.findIndex((g) => g.id === p.before) : -1;
-    groups.splice(at < 0 ? groups.length : at, 0, group);
+    const before = p.before ? groups.findIndex((g) => g.id === p.before) : -1;
+    const after = p.after ? groups.findIndex((g) => g.id === p.after) : -1;
+    groups.splice(before >= 0 ? before : after >= 0 ? after + 1 : groups.length, 0, group);
   }
   return groups;
 }

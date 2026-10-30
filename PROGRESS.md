@@ -165,6 +165,19 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
 
 ### Fri 30 Oct
 
+- The coach can add a lesson. Asked to modify the course, it used to answer that it couldn't add
+  new lessons: its only addition was a prerequisite of the current concept, and its own account of
+  what it can do left even that out. Now "add a lesson on X", "I also want to learn X" or "go deeper
+  into X" is a new action, "extend": a concept built from fresh clips through the same small build
+  as a prerequisite, placed just after the concept the learner is on (which it builds on, so the
+  map draws the link), with its blocks slotted in after that concept's last block. The learner's
+  overlay, the pending card in the progression, the change card under the coach's reply (the new
+  node now grows on the right of the current one) and the tests cover both directions. The coach's
+  system prompt lists everything it can do when asked, and the window has an "Add a lesson on…"
+  chip that starts the message. Hovering a node in the progression now swells it properly: the mark
+  half again as big, the label leaning in, a clip's still lifting off the stroke at 1.45×, and the
+  goal challenge unfolding a dot per question (right, missed, unsure, not yet) with what the score
+  says, all on the spring easing. Checked in headless Chrome.
 - The first course built end to end on the live sources, in production: "Chord progressions"
   (goal: hear why a progression feels resolved or restless, and write one of my own), seeded with
   the new `pnpm seed` script, which runs the whole build into whichever store `DATABASE_URL`

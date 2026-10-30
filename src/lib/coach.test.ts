@@ -59,6 +59,27 @@ describe("resolve", () => {
     expect(a.concept.searchQueries).toEqual(["conditional probability explained"]);
   });
 
+  it("builds a concept the learner asked for after the current one", () => {
+    const a = resolve(
+      out({
+        action: "extend",
+        title: "Likelihood ratios",
+        why: "They say how much one piece of evidence should move you.",
+        objectives: [{ text: "Turn a likelihood ratio into an update", mustInclude: ["multiply the odds"] }],
+        searchQueries: ["likelihood ratio explained"],
+      }),
+      ctx,
+      "y2",
+    );
+    expect(a).toMatchObject({ kind: "extend", after: "bayes-rule" });
+    if (a.kind !== "extend") throw new Error();
+    expect(a.concept.id).toBe("likelihood-ratios-y2");
+    expect(a.concept.moduleIndex).toBe(0);
+    expect(resolve(out({ action: "extend", title: "Odds", objectives: [{ text: "Convert odds", mustInclude: [] }], searchQueries: ["odds"] }), { ...ctx, canGrow: false }, "ab")).toEqual({
+      kind: "none",
+    });
+  });
+
   it("makes no change when a prerequisite can't be built or a concept doesn't exist", () => {
     const pre = out({ action: "prerequisite", title: "Odds", objectives: [{ text: "Convert odds", mustInclude: [] }], searchQueries: ["odds explained"] });
     expect(resolve(pre, { ...ctx, canGrow: false }, "ab")).toEqual({ kind: "none" });
@@ -75,7 +96,7 @@ describe("coachPrompt", () => {
     expect(p).toContain("bayes-rule/2 (shaky)");
     expect(p).toContain("← the learner is here");
     expect(p).toContain("That flips the condition.");
-    expect(p).toContain(`"prerequisite" isn't available`);
+    expect(p).toContain(`"prerequisite" and "extend" aren't available`);
     expect(p).toContain("updating-gradually · Updating gradually  (no clip: can't go there)");
     expect(p.trim().endsWith("The learner's message: explain the basics")).toBe(true);
   });

@@ -49,14 +49,14 @@ export async function writePracticeFor(input: PracticeInput, tag: string) {
 }
 
 /**
- * Builds one new concept from fresh clips and returns it as an overlay patch: the concept (placed
- * before `before`, which now builds on it), its videos, spans, questions and cards, and its blocks.
- * Throws when no clip teaches any of its objectives.
+ * Builds one new concept from fresh clips and returns it as an overlay patch: the concept with its
+ * place (before the concept that will build on it, or after the one it builds on), its videos,
+ * spans, questions and cards, and its blocks. Throws when no clip teaches any of its objectives.
  */
 export async function growConcept(
   plan: CoursePlan,
   concept: Concept,
-  before: string,
+  place: { before?: string; after?: string },
   sources: Sources,
   onProgress: (message: string, step?: BuildStep) => void,
 ): Promise<{ patch: OverlayPatch; usage: Usage; warnings: string[] }> {
@@ -69,7 +69,7 @@ export async function growConcept(
   const blocks = conceptBlocks(concept, built.spans, built.items);
   if (!blocks.length) throw new Error(`No clip teaches "${concept.title}" well enough`);
   return {
-    patch: { concept, before, videos: built.videos, spans: built.spans, items: built.items, blocks },
+    patch: { concept, ...place, videos: built.videos, spans: built.spans, items: built.items, blocks },
     usage: built.usage,
     warnings,
   };

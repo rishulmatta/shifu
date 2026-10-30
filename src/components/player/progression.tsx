@@ -10,7 +10,7 @@ import { clock, type CourseView } from "@/lib/course-view";
 import type { LearnerState } from "@/lib/learner";
 import type { Merged } from "@/lib/overlay";
 import { groupPath, type PathGroup, type PathItem, type PendingConcept } from "@/lib/path";
-import type { Block, Concept } from "@/lib/types";
+import type { Block, Challenge, Concept } from "@/lib/types";
 import { Seal } from "../mark";
 import styles from "./progression.module.css";
 
@@ -341,9 +341,41 @@ function Node(props: {
         <span className={styles.text}>
           <span className={styles.label}>{glyph.label}</span>
           {glyph.note && <span className={styles.note}>{glyph.note}</span>}
+          {b.kind === "challenge" && <ChallengeDetail stage={b.stage} challenges={course.challenges ?? []} learner={learner} view={view} />}
         </span>
       </button>
     </li>
+  );
+}
+
+/**
+ * Under the goal challenge, revealed as the node is hovered: a dot per question (right, missed,
+ * "I don't know yet", or not yet answered) and what the score says.
+ */
+function ChallengeDetail(props: { stage: "before" | "after"; challenges: Challenge[]; learner: LearnerState; view: CourseView }) {
+  const { stage, challenges, learner, view } = props;
+  if (!challenges.length) return null;
+  const answers = learner.challenge[stage];
+  const score = view.challengeScore(learner, stage);
+  const before = stage === "after" ? view.challengeScore(learner, "before") : undefined;
+  const text = !score
+    ? `${challenges.length} questions on your goal, ${stage === "before" ? "answered now and again at the end" : "answered again at the end"}`
+    : before && before.right !== score.right
+      ? `${score.right} of ${score.of} right, ${score.right > before.right ? "up" : "down"} from ${before.right}`
+      : `${score.right} of ${score.of} right`;
+  return (
+    <span className={styles.detail} aria-hidden="true">
+      <span className={styles.detailInner}>
+        <span className={styles.qDots}>
+          {challenges.map((c, i) => {
+            const a = answers?.[i];
+            const tone = a === undefined ? styles.qTodo : a === null ? styles.qUnsure : a === c.answerIndex ? styles.qRight : styles.qMiss;
+            return <span key={c.id} className={cx(styles.qDot, tone)} style={{ transitionDelay: `${i * 45}ms` }} />;
+          })}
+        </span>
+        <span className={styles.detailText}>{text}</span>
+      </span>
+    </span>
   );
 }
 

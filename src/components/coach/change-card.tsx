@@ -2,8 +2,9 @@
 
 // The card under a coach reply: what changed and where it lands in the learner's path. Inserted
 // questions show as squares after a caret at the learner's place, like an insertion mark in a
-// manuscript; a new prerequisite shows as a node growing in front of the concept that needs it,
-// with the build's four steps filling in beneath.
+// manuscript; a new concept shows as a node growing in front of the concept that needs it (a
+// prerequisite) or after the one it builds on (a lesson the learner asked for), with the build's
+// four steps filling in beneath.
 
 import type { CoachChange } from "@/lib/learner";
 import { wrap } from "../mind-map/layout";
@@ -16,7 +17,7 @@ export function ChangeCard(props: { change: CoachChange; here?: string; onStart?
   return (
     <div className={`${styles.card} ${styles[`card_${change.status}`]}`}>
       {(change.kind === "practice" || change.kind === "reexplain") && <PathStrip change={change} here={props.here} />}
-      {change.kind === "prerequisite" && change.concept && <Growth change={change} />}
+      {(change.kind === "prerequisite" || change.kind === "extend") && change.concept && <Growth change={change} />}
       <div className={styles.status}>
         <span className={styles.statusIcon} aria-hidden="true">
           {change.status === "working" ? <span className={styles.spinner} /> : change.status === "done" ? "✓" : "✕"}
@@ -73,31 +74,37 @@ function PathStrip({ change, here }: { change: CoachChange; here?: string }) {
   );
 }
 
-/** A new prerequisite in front of the concept that builds on it, and how far its build has got. */
+/**
+ * A new concept beside the one it's linked to (in front of the concept that builds on it, or after
+ * the one it builds on), and how far its build has got.
+ */
 function Growth({ change }: { change: CoachChange }) {
   const step = change.status === "done" ? 4 : (change.step ?? 0);
   const label = (text: string) => wrap(text, 118, 6.3, 2);
+  const follows = change.kind === "extend";
+  const neighbour = change.before ?? change.after ?? "This concept";
+  const [newX, hereX] = follows ? [244, 52] : [52, 244];
   return (
     <div className={styles.growth}>
-      <svg viewBox="0 0 300 96" width="100%" role="img" aria-label={`${change.concept!.title}, added before ${change.before ?? "this concept"}`}>
+      <svg viewBox="0 0 300 96" width="100%" role="img" aria-label={`${change.concept!.title}, added ${follows ? "after" : "before"} ${neighbour}`}>
         <defs>
           <marker id="coach-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M 0 1 L 9 5 L 0 9 z" className={styles.arrowHead} />
           </marker>
         </defs>
         <path d="M 74 30 L 220 30" className={`${styles.link} ${change.status === "working" ? styles.linkWorking : ""}`} markerEnd="url(#coach-arrow)" />
-        <g transform="translate(52 30)">
+        <g transform={`translate(${newX} 30)`}>
           <circle r="17" className={`${styles.newNode} ${styles[`newNode_${change.status}`]}`} />
           <text dy="0.35em" className={styles.plus}>
             +
           </text>
         </g>
-        <g transform="translate(244 30)">
+        <g transform={`translate(${hereX} 30)`}>
           <circle r="17" className={styles.hereNode} />
         </g>
         {[
-          { x: 52, lines: label(change.concept!.title), strong: true },
-          { x: 244, lines: label(change.before ?? "This concept"), strong: false },
+          { x: newX, lines: label(change.concept!.title), strong: true },
+          { x: hereX, lines: label(neighbour), strong: false },
         ].map((l) => (
           <text key={l.x} x={l.x} y="64" className={l.strong ? styles.nodeLabelStrong : styles.nodeLabel}>
             {l.lines.map((line, i) => (

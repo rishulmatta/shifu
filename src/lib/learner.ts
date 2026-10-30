@@ -22,17 +22,18 @@ export interface Attempt {
 
 /** What a coach turn changed in the course, shown as a card under the reply. */
 export interface CoachChange {
-  kind: "practice" | "prerequisite" | "reexplain" | "goto" | "skip";
+  kind: "practice" | "prerequisite" | "extend" | "reexplain" | "goto" | "skip";
   status: "working" | "done" | "failed";
   note: string;
   /** Key of the first block it added, for "Start now". */
   goTo?: string;
   /** Practice: how many questions. */
   count?: number;
-  /** Prerequisite: the new concept and the title of the one it comes before. */
+  /** A new concept, and the title of the one it comes before (a prerequisite) or after (an extension). */
   concept?: { id: string; title: string };
   before?: string;
-  /** While a prerequisite builds: 0 to 3, finding videos to writing questions. */
+  after?: string;
+  /** While a new concept builds: 0 to 3, finding videos to writing questions. */
   step?: number;
 }
 
