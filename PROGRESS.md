@@ -163,6 +163,17 @@ tests come from [`PLAN.md`](PLAN.md) §10. Dates are Sydney time (AEDT); the sub
   Everything respects reduced motion. Checked in headless Chrome, both schemes, desktop and phone;
   `pnpm test`, `typecheck`, `lint` and `build` pass.
 
+### Fri 30 Oct
+
+- The first course built end to end on the live sources, in production: "Chord progressions"
+  (goal: hear why a progression feels resolved or restless, and write one of my own), seeded with
+  the new `pnpm seed` script, which runs the whole build into whichever store `DATABASE_URL`
+  picks, outside the visitor limits of the create form. Three modules and nine concepts from
+  twenty videos in under four minutes for about sixty cents; two concepts found no clip and show
+  as pending on the map. It sits beside the Bayes sample on the home page at
+  https://shifu-nine.vercel.app/c/chord-progressions. In the map band a module's label now starts
+  at its first concept rather than centring on it, so the first one isn't cut off at the edge.
+
 ### Thu 29 Oct
 
 - Live at https://shifu-nine.vercel.app. Postgres is a Railway service reached over its public TCP

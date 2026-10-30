@@ -219,9 +219,11 @@ function Label({ layout, node, note }: { layout: MapLayout; node: MapNode; note?
 
 function ModuleLabel(props: { layout: MapLayout; index: number; title: string; x: number; y: number }) {
   const vertical = props.layout.orientation === "vertical";
-  const lines = vertical ? [props.title] : wrap(props.title, 180, 7.6, 2);
+  // In the band the label starts at its module's first concept, so the first one isn't cut off.
+  const start = vertical || props.layout.orientation === "row";
+  const lines = vertical ? [props.title] : wrap(props.title, start ? 150 : 180, 7.6, 2);
   return (
-    <text x={props.x} y={props.y} className={cx(styles.module, vertical && styles.moduleStart)}>
+    <text x={props.x} y={props.y} className={cx(styles.module, start && styles.moduleStart)}>
       <tspan className={styles.moduleIndex}>Module {props.index + 1}</tspan>
       {vertical ? (
         <tspan dx="8" className={styles.moduleTitle}>{wrap(props.title, props.layout.width - 90, 6.4, 1)[0]}</tspan>

@@ -557,6 +557,8 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
   low (3) on Vercel, since every function instance opens its own pool.
 - **The 3 demo topics.** Proposal: Bayes' theorem, attention in transformers, chord progressions in
   music theory. They cover visual, verbal and auditory teaching, and none is near the anti-project list.
+  Chord progressions is built and live (`/c/chord-progressions`, seeded with `pnpm seed`, which runs
+  a build into the production store outside the create form's visitor limits).
 
 ## 14. To do
 
@@ -564,12 +566,13 @@ or catch the recording if one is posted. Office hours (Discord, text only) are w
 - [x] Claim the $150 Meta Model API credits (key live 28 Oct).
 - [x] Choose the transcript vendor: SearchAPI.
 - [x] Install Muse Code.
-- [ ] **Get the SearchAPI key** (100 free requests, then $40 for 10,000): real builds, the demo
-      courses and the coach's new concepts need it.
+- [x] Get the SearchAPI key (100 free requests, then $40 for 10,000): in `.env.local` and on Vercel
+      since Thu 29 Oct; the first live build (chord progressions) ran Fri 30 Oct.
 - [ ] Check that the Modal credit covers Shared Endpoint usage.
 - [x] Vercel project for the live deployment: https://shifu-nine.vercel.app (Thu 29 Oct), Postgres on Railway.
 - [ ] Muse Code: the review scheduler (`docs/muse-code-tasks.md`, Task 2) and its review of this plan.
-- [ ] Pick the 3 demo topics (§13) and pre-build them.
+- [ ] Pick the 3 demo topics (§13) and pre-build them: chord progressions done (Fri 30 Oct); Bayes
+      is still the hand-made sample; attention in transformers to come.
 - [ ] Join the Discord and post in #intros.
 - [ ] Optional: a YouTube Data API key with a quota increase, as the search fallback.
 

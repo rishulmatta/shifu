@@ -16,7 +16,8 @@
     "test": "vitest run",
     "try:plan": "tsx --env-file-if-exists=.env.local scripts/try-plan.mts",
     "try:clips": "tsx --env-file-if-exists=.env.local scripts/try-clips.mts",
-    "try:build": "tsx --env-file-if-exists=.env.local scripts/try-build.mts"
+    "try:build": "tsx --env-file-if-exists=.env.local scripts/try-build.mts",
+    "seed": "tsx --env-file-if-exists=.env.local scripts/seed.mts"
   },
   "dependencies": {
     "next": "16.4.3",
